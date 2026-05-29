@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#09090c">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/tree.png">
+  <link rel="apple-touch-icon" href="img/tree.png">
+  <title>iwtxz builder</title>
+  <style>
+    :root {
+      --bg: #09090c;
+      --panel: rgba(18, 18, 22, 0.82);
+      --panel-strong: rgba(25, 25, 31, 0.92);
+      --line: rgba(255, 255, 255, 0.1);
+      --text: #f5f5f7;
+      --muted: rgba(255, 255, 255, 0.68);
+      --accent: #4ade80;
+      --danger: #fb7185;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        linear-gradient(135deg, rgba(74, 222, 128, 0.08), transparent 34%),
+        linear-gradient(180deg, #101014 0%, #08080b 100%),
+        var(--bg);
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .topbar {
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 0 22px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(8, 8, 11, 0.82);
+      backdrop-filter: blur(14px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .brand strong {
+      font-size: 18px;
+      letter-spacing: 0.02em;
+    }
+
+    .brand span,
+    .userline {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .main {
+      width: min(1380px, 100%);
+      margin: 0 auto;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: 300px minmax(360px, 1fr) minmax(420px, 0.9fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: 0 22px 60px rgba(0, 0, 0, 0.28);
+      backdrop-filter: blur(16px);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 13px 14px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.035);
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 14px;
+      letter-spacing: 0.02em;
+    }
+
+    .panel-body {
+      padding: 14px;
+    }
+
+    .auth {
+      display: grid;
+      gap: 10px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 10px 11px;
+      background: rgba(0, 0, 0, 0.26);
+      color: var(--text);
+      outline: none;
+    }
+
+    textarea {
+      min-height: 76px;
+      resize: vertical;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: rgba(74, 222, 128, 0.48);
+      box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.12);
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 9px 12px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      font-weight: 700;
+      transition: background 160ms ease, transform 160ms ease, border-color 160ms ease;
+    }
+
+    .btn:hover,
+    .btn:focus-visible {
+      transform: translateY(-1px);
+      background: rgba(255, 255, 255, 0.12);
+      outline: none;
+    }
+
+    .btn.primary {
+      border-color: rgba(74, 222, 128, 0.38);
+      background: rgba(74, 222, 128, 0.18);
+    }
+
+    .btn.danger {
+      border-color: rgba(251, 113, 133, 0.42);
+      color: #fecdd3;
+    }
+
+    .btn.small {
+      padding: 7px 9px;
+      font-size: 12px;
+    }
+
+    .sites {
+      display: grid;
+      gap: 8px;
+    }
+
+    .site-item {
+      width: 100%;
+      display: grid;
+      gap: 4px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: rgba(255, 255, 255, 0.045);
+      color: var(--text);
+      text-align: left;
+    }
+
+    .site-item span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .editor {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .editor .wide {
+      grid-column: 1 / -1;
+    }
+
+    .file-note,
+    .status {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .status.error {
+      color: #fecdd3;
+    }
+
+    .status.ok {
+      color: #bbf7d0;
+    }
+
+    .preview-shell {
+      position: sticky;
+      top: 84px;
+    }
+
+    .preview {
+      height: min(720px, calc(100vh - 112px));
+      min-height: 520px;
+      display: grid;
+      place-items: center;
+      position: relative;
+      overflow: hidden;
+      background: #08080b;
+    }
+
+    .preview::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(rgba(0, 0, 0, 0.58), rgba(0, 0, 0, 0.58)),
+        var(--preview-bg, url("img/photo.gif")) center center / cover no-repeat;
+    }
+
+    .preview::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      backdrop-filter: blur(0.75px);
+      pointer-events: none;
+    }
+
+    .profile-card {
+      width: min(380px, calc(100% - 32px));
+      position: relative;
+      z-index: 1;
+      display: grid;
+      justify-items: center;
+      gap: 12px;
+      text-align: center;
+    }
+
+    .profile-avatar {
+      width: 108px;
+      height: 108px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.08),
+        0 14px 28px rgba(0, 0, 0, 0.36);
+    }
+
+    .profile-name {
+      margin: 0;
+      font-size: 38px;
+      line-height: 1;
+      text-shadow:
+        0 0 6px rgba(255, 255, 255, 0.72),
+        0 0 18px rgba(255, 255, 255, 0.52),
+        0 0 34px rgba(255, 255, 255, 0.24);
+    }
+
+    .profile-desc {
+      margin: 0;
+      max-width: 560px;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.35;
+      white-space: pre-line;
+    }
+
+    .profile-socials {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .profile-socials a,
+    .profile-socials button {
+      width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      border: 0;
+      background: none;
+      color: white;
+      filter:
+        drop-shadow(0 0 8px rgba(255, 255, 255, 0.7))
+        drop-shadow(0 0 18px rgba(255, 255, 255, 0.52));
+    }
+
+    .profile-socials img {
+      width: 42px;
+      height: 42px;
+      object-fit: contain;
+    }
+
+    .profile-discord {
+      width: min(286px, calc(100vw - 32px));
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px 8px 8px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: 16px;
+      background: rgba(0, 0, 0, 0.22);
+      color: rgba(255, 255, 255, 0.96);
+      text-align: left;
+      backdrop-filter: blur(6px);
+    }
+
+    .profile-discord img {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .profile-discord strong {
+      display: block;
+      font-size: 15px;
+    }
+
+    .profile-discord span {
+      color: rgba(255, 255, 255, 0.86);
+      font-size: 12px;
+    }
+
+    .music {
+      position: absolute;
+      left: 50%;
+      bottom: 28px;
+      transform: translateX(-50%);
+      z-index: 1;
+      width: min(620px, calc(100% - 32px));
+      display: grid;
+      grid-template-columns: 46px 1fr;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .music-cover {
+      width: 46px;
+      height: 46px;
+      border-radius: 10px;
+      object-fit: cover;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .music-title {
+      margin-bottom: 5px;
+      font-weight: 700;
+    }
+
+    .music-line {
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.26);
+    }
+
+    .auth-locked .main {
+      grid-template-columns: minmax(280px, 420px);
+      justify-content: center;
+      align-content: start;
+    }
+
+    .auth-locked .requires-auth {
+      display: none !important;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 1040px) {
+      .main {
+        grid-template-columns: 1fr;
+      }
+
+      .preview-shell {
+        position: static;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .topbar {
+        height: auto;
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 14px;
+      }
+
+      .main {
+        padding: 12px;
+      }
+
+      .editor {
+        grid-template-columns: 1fr;
+      }
+
+      .preview {
+        min-height: 620px;
+      }
+    }
+  </style>
+</head>
+<body class="auth-locked">
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <strong>iwtxz builder</strong>
+        <span>конструктор профилей</span>
+      </div>
+      <div class="row">
+        <span class="userline" id="userLine">не вошёл</span>
+        <button class="btn small hidden" id="logoutButton" type="button">выйти</button>
+      </div>
+    </header>
+
+    <main class="main">
+      <aside class="panel">
+        <div class="panel-head">
+          <h2>Аккаунт</h2>
+        </div>
+        <div class="panel-body">
+          <form class="auth" id="authForm">
+            <div class="field">
+              <label for="username">Логин</label>
+              <input id="username" autocomplete="username" placeholder="nickname">
+            </div>
+            <div class="field">
+              <label for="password">Пароль</label>
+              <input id="password" type="password" autocomplete="current-password" placeholder="минимум 6 символов">
+            </div>
+            <div class="row">
+              <button class="btn primary" data-auth-mode="login" type="submit">войти</button>
+              <button class="btn" data-auth-mode="signup" type="submit">создать</button>
+            </div>
+            <p class="status" id="authStatus">Для сохранения проектов нужен вход через Netlify Functions.</p>
+          </form>
+        </div>
+      </aside>
+
+      <section class="panel requires-auth">
+        <div class="panel-head">
+          <h2>Редактор</h2>
+          <div class="row">
+            <button class="btn small" id="newButton" type="button">новый</button>
+            <button class="btn small primary" id="saveButton" type="button">сохранить</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <form class="editor" id="editorForm">
+            <div class="field">
+              <label for="title">Название сайта</label>
+              <input id="title" name="title" placeholder="strelokk">
+            </div>
+            <div class="field">
+              <label for="nickname">Ник</label>
+              <input id="nickname" name="nickname" placeholder="nickname">
+            </div>
+            <div class="field wide">
+              <label for="description">Описание</label>
+              <textarea id="description" name="description" placeholder="Текст под ником"></textarea>
+            </div>
+            <div class="field">
+              <label for="discord">Discord</label>
+              <input id="discord" name="discord" placeholder="username">
+            </div>
+            <div class="field">
+              <label for="musicTitle">Название музыки</label>
+              <input id="musicTitle" name="musicTitle" placeholder="sound">
+            </div>
+            <div class="field">
+              <label for="telegram">Telegram URL</label>
+              <input id="telegram" name="telegram" placeholder="https://t.me/...">
+            </div>
+            <div class="field">
+              <label for="steam">Steam URL</label>
+              <input id="steam" name="steam" placeholder="https://steamcommunity.com/...">
+            </div>
+            <div class="field">
+              <label for="avatar">Аватар</label>
+              <input id="avatar" name="avatar" type="file" accept="image/*">
+            </div>
+            <div class="field">
+              <label for="background">Фон GIF/картинка</label>
+              <input id="background" name="background" type="file" accept="image/*">
+            </div>
+            <div class="field wide">
+              <label for="music">Музыка</label>
+              <input id="music" name="music" type="file" accept="audio/*">
+            </div>
+          </form>
+          <div class="row">
+            <button class="btn" id="exportButton" type="button">экспорт HTML</button>
+            <button class="btn primary" id="publishButton" type="button">в проект</button>
+            <button class="btn danger" id="deleteButton" type="button">удалить проект</button>
+            <span class="status" id="editorStatus"></span>
+          </div>
+        </div>
+      </section>
+
+      <aside class="panel preview-shell requires-auth">
+        <div class="panel-head">
+          <h2>Превью</h2>
+          <span class="status" id="saveStatus">черновик</span>
+        </div>
+        <div class="preview" id="preview">
+          <section class="profile-card">
+            <img class="profile-avatar" id="previewAvatar" src="img/avatar.jpg" alt="">
+            <h1 class="profile-name" id="previewName">iwtlu</h1>
+            <p class="profile-desc" id="previewDesc">Я где-то на небесах, и мои сиппеты тоже</p>
+            <div class="profile-socials">
+              <button type="button" aria-label="Discord"><img src="img/discord.png" alt=""></button>
+              <a id="previewTelegram" href="#" aria-label="Telegram"><img src="img/telegram.png" alt=""></a>
+              <a id="previewSteam" href="#" aria-label="Steam"><img src="img/steam.png" alt=""></a>
+            </div>
+            <div class="profile-discord">
+              <img id="previewDiscordAvatar" src="img/avatar.jpg" alt="">
+              <div>
+                <strong id="previewDiscord">discord</strong>
+                <span><b style="color: var(--accent)">♫</b> • статус профиля</span>
+              </div>
+            </div>
+          </section>
+          <div class="music">
+            <img class="music-cover" id="previewMusicCover" src="img/mysoundicon.png" alt="">
+            <div>
+              <div class="music-title" id="previewMusicTitle">sound</div>
+              <div class="music-line"></div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <aside class="panel requires-auth">
+        <div class="panel-head">
+          <h2>Мои сайты</h2>
+          <button class="btn small" id="refreshButton" type="button">обновить</button>
+        </div>
+        <div class="panel-body">
+          <div class="sites" id="sitesList"></div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    const defaultSite = {
+      id: "",
+      title: "iwtlu",
+      nickname: "iwtlu",
+      description: "Я где-то на небесах, и мои сиппеты тоже",
+      discord: "meowixzz",
+      telegram: "https://t.me/iwtluz",
+      steam: "https://steamcommunity.com/id/meintofores",
+      background: "img/photo.gif",
+      avatar: "img/avatar.jpg",
+      music: "sound/sound.mp3",
+      musicTitle: "ща кабудта фильм"
+    };
+
+    let currentUser = null;
+    let currentSite = { ...defaultSite };
+    let authMode = "login";
+
+    const $ = (selector) => document.querySelector(selector);
+    const authForm = $("#authForm");
+    const editorForm = $("#editorForm");
+    const sitesList = $("#sitesList");
+    const userLine = $("#userLine");
+    const authStatus = $("#authStatus");
+    const editorStatus = $("#editorStatus");
+    const saveStatus = $("#saveStatus");
+    const logoutButton = $("#logoutButton");
+
+    const fields = ["title", "nickname", "description", "discord", "telegram", "steam", "musicTitle"];
+
+    function setStatus(element, text, type = "") {
+      element.textContent = text;
+      element.classList.toggle("error", type === "error");
+      element.classList.toggle("ok", type === "ok");
+    }
+
+    async function api(path, options = {}) {
+      const response = await fetch(path, {
+        headers: { "content-type": "application/json", ...(options.headers ?? {}) },
+        credentials: "same-origin",
+        ...options
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || "request failed");
+      }
+      return data;
+    }
+
+    function readEditor() {
+      const data = { ...currentSite };
+      fields.forEach((field) => {
+        data[field] = $(`#${field}`).value.trim();
+      });
+      return data;
+    }
+
+    function writeEditor(site) {
+      currentSite = { ...defaultSite, ...site };
+      fields.forEach((field) => {
+        $(`#${field}`).value = currentSite[field] ?? "";
+      });
+      updatePreview();
+    }
+
+    function cssUrl(value) {
+      return `url("${String(value).replaceAll('"', "%22")}")`;
+    }
+
+    function updatePreview() {
+      currentSite = readEditor();
+      $("#preview").style.setProperty("--preview-bg", cssUrl(currentSite.background || defaultSite.background));
+      $("#previewAvatar").src = currentSite.avatar || defaultSite.avatar;
+      $("#previewDiscordAvatar").src = currentSite.avatar || defaultSite.avatar;
+      $("#previewName").textContent = currentSite.nickname || "nickname";
+      $("#previewDesc").textContent = currentSite.description || "";
+      $("#previewDiscord").textContent = currentSite.discord || "discord";
+      $("#previewMusicTitle").textContent = currentSite.musicTitle || "sound";
+      $("#previewTelegram").href = currentSite.telegram || "#";
+      $("#previewSteam").href = currentSite.steam || "#";
+      saveStatus.textContent = currentSite.id ? `проект: ${currentSite.title}` : "новый черновик";
+    }
+
+    function readFileAsDataURL(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function bindFileInput(id, key) {
+      $(`#${id}`).addEventListener("change", async (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        setStatus(editorStatus, "читаю файл...");
+        currentSite[key] = await readFileAsDataURL(file);
+        updatePreview();
+        setStatus(editorStatus, "файл добавлен", "ok");
+      });
+    }
+
+    async function checkMe() {
+      try {
+        const data = await api("/api/builder/auth/me");
+        currentUser = data.user;
+      } catch {
+        currentUser = null;
+      }
+
+      userLine.textContent = currentUser ? `@${currentUser.username}` : "не вошёл";
+      logoutButton.classList.toggle("hidden", !currentUser);
+      document.body.classList.toggle("auth-locked", !currentUser);
+      setStatus(authStatus, currentUser ? "вход выполнен" : "войдите, чтобы сохранять проекты", currentUser ? "ok" : "");
+      if (currentUser) {
+        await loadSites();
+      } else {
+        sitesList.innerHTML = "";
+      }
+    }
+
+    async function loadSites() {
+      if (!currentUser) return;
+      sitesList.innerHTML = "";
+      const data = await api("/api/builder/sites/list");
+
+      if (!data.sites.length) {
+        sitesList.innerHTML = '<p class="status">Пока нет сохранённых сайтов.</p>';
+        return;
+      }
+
+      data.sites.forEach((site) => {
+        const button = document.createElement("button");
+        button.className = "site-item";
+        button.type = "button";
+        button.innerHTML = `<strong></strong><span></span>`;
+        button.querySelector("strong").textContent = site.title;
+        button.querySelector("span").textContent = site.nickname;
+        button.addEventListener("click", () => {
+          writeEditor(site);
+          setStatus(editorStatus, "проект открыт", "ok");
+        });
+        sitesList.appendChild(button);
+      });
+    }
+
+    async function saveSite() {
+      if (!currentUser) {
+        setStatus(editorStatus, "сначала войдите в аккаунт", "error");
+        return;
+      }
+
+      const site = readEditor();
+      if (!site.id) {
+        site.id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+      }
+
+      setStatus(editorStatus, "сохраняю...");
+      const data = await api("/api/builder/sites/save", {
+        method: "POST",
+        body: JSON.stringify({ site })
+      });
+      writeEditor(data.site);
+      await loadSites();
+      setStatus(editorStatus, "сохранено", "ok");
+    }
+
+    async function deleteSite() {
+      if (!currentUser || !currentSite.id) return;
+      await api("/api/builder/sites/delete", {
+        method: "POST",
+        body: JSON.stringify({ id: currentSite.id })
+      });
+      writeEditor({ ...defaultSite, id: "" });
+      await loadSites();
+      setStatus(editorStatus, "удалено", "ok");
+    }
+
+    function generateExportHtml() {
+      const site = readEditor();
+      const escape = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[char]));
+
+      return `<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${escape(site.title)}</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px 24px 110px;overflow:hidden;font-family:"Trebuchet MS","Segoe UI",sans-serif;color:#fff;background:linear-gradient(rgba(0,0,0,.58),rgba(0,0,0,.58)),url("${site.background}") center/cover no-repeat #09090c}body:before{content:"";position:fixed;inset:0;backdrop-filter:blur(.75px);pointer-events:none}.card{position:relative;z-index:1;display:grid;justify-items:center;gap:12px;text-align:center}.avatar{width:108px;height:108px;border-radius:50%;object-fit:cover}.name{margin:0;font-size:38px;text-shadow:0 0 18px #fff}.desc{margin:0;max-width:560px;font-weight:700;white-space:pre-line}.discord{display:flex;align-items:center;gap:10px;padding:8px 12px 8px 8px;border-radius:16px;background:rgba(0,0,0,.22);backdrop-filter:blur(6px)}.discord img{width:42px;height:42px;border-radius:50%;object-fit:cover}.music{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);width:min(620px,calc(100% - 32px));font-weight:700}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <img class="avatar" src="${site.avatar}" alt="">
+    <h1 class="name">${escape(site.nickname)}</h1>
+    <p class="desc">${escape(site.description)}</p>
+    <div class="discord"><img src="${site.avatar}" alt=""><div><strong>${escape(site.discord)}</strong><br><span>♫ • status</span></div></div>
+  </main>
+  <div class="music">${escape(site.musicTitle)}</div>
+  <audio src="${site.music}" autoplay loop></audio>
+</body>
+</html>`;
+    }
+
+    function exportHtml() {
+      const blob = new Blob([generateExportHtml()], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${readEditor().title || "profile"}.html`;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    async function publishSite() {
+      if (!currentUser) {
+        setStatus(editorStatus, "сначала войдите в аккаунт", "error");
+        return;
+      }
+
+      setStatus(editorStatus, "записываю файл проекта...");
+      await saveSite();
+      const site = readEditor();
+      const data = await api("/api/builder/publish", {
+        method: "POST",
+        body: JSON.stringify({ site })
+      });
+      setStatus(editorStatus, `файл ${data.file} обновлён`, "ok");
+    }
+
+    authForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const button = event.submitter;
+      authMode = button?.dataset.authMode ?? authMode;
+      try {
+        setStatus(authStatus, "проверяю...");
+        await api(`/api/builder/auth/${authMode}`, {
+          method: "POST",
+          body: JSON.stringify({
+            username: $("#username").value,
+            password: $("#password").value
+          })
+        });
+        await checkMe();
+      } catch (error) {
+        setStatus(authStatus, error.message, "error");
+      }
+    });
+
+    logoutButton.addEventListener("click", async () => {
+      await api("/api/builder/auth/logout");
+      currentUser = null;
+      sitesList.innerHTML = "";
+      await checkMe();
+    });
+
+    fields.forEach((field) => $(`#${field}`).addEventListener("input", updatePreview));
+    bindFileInput("avatar", "avatar");
+    bindFileInput("background", "background");
+    bindFileInput("music", "music");
+
+    $("#newButton").addEventListener("click", () => {
+      writeEditor({ ...defaultSite, id: "" });
+      setStatus(editorStatus, "новый черновик");
+    });
+    $("#saveButton").addEventListener("click", () => saveSite().catch((error) => setStatus(editorStatus, error.message, "error")));
+    $("#deleteButton").addEventListener("click", () => deleteSite().catch((error) => setStatus(editorStatus, error.message, "error")));
+    $("#refreshButton").addEventListener("click", () => loadSites().catch((error) => setStatus(editorStatus, error.message, "error")));
+    $("#exportButton").addEventListener("click", exportHtml);
+    $("#publishButton").addEventListener("click", () => publishSite().catch((error) => setStatus(editorStatus, error.message, "error")));
+
+    writeEditor(defaultSite);
+    checkMe();
+  </script>
+</body>
+</html>

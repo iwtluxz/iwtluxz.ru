@@ -1,0 +1,1908 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0a0a0d">
+  <script>
+    const documentBase = document.createElement("base");
+    documentBase.href = window.location.protocol === "file:" ? "./" : "/";
+    document.head.appendChild(documentBase);
+  </script>
+  <link rel="icon" type="image/png" sizes="32x32" href="img/tree.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/tree.png">
+  <link rel="apple-touch-icon" href="img/tree.png">
+  <title>shakzy | iwtxz.ru</title>
+  <style>
+    :root {
+      --bg: #09090c;
+      --panel: rgba(27, 27, 27, 0.5);
+      --panel-line: transparent;
+      --text: #f5f5f7;
+      --muted: rgba(255, 255, 255, 0.84);
+      --shadow: 0 24px 64px rgba(0, 0, 0, 0.34);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      min-height: 100%;
+    }
+
+    body {
+      margin: 0;
+      width: 100%;
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding: 24px;
+      display: grid;
+      place-items: center;
+      place-content: center;
+      overflow: hidden;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        linear-gradient(rgba(0, 0, 0, 0.58), rgba(0, 0, 0, 0.58)),
+        url("img/gif_shakzy.gif") center center / cover no-repeat;
+      background-color: var(--bg);
+      position: relative;
+      isolation: isolate;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      pointer-events: none;
+    }
+
+    body::before {
+      inset: 0;
+      z-index: -2;
+      background: rgba(0, 0, 0, 0.01);
+      backdrop-filter: blur(0.75px);
+      -webkit-backdrop-filter: blur(0.75px);
+    }
+
+    body::after {
+      inset: -12%;
+      z-index: -1;
+      background:
+        radial-gradient(circle at 50% 50%, transparent 20%, rgba(0, 0, 0, 0.24) 62%, rgba(0, 0, 0, 0.58) 100%),
+        linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.08) 14%, transparent 24%, transparent 76%, rgba(255, 255, 255, 0.06) 86%, transparent 100%),
+        linear-gradient(180deg, rgba(0, 0, 0, 0.42), transparent 40%, transparent 60%, rgba(0, 0, 0, 0.48));
+      opacity: 0.4;
+      filter: blur(12px);
+    }
+
+    body.no-js .entry-overlay {
+      display: none;
+    }
+
+    body.no-js .panel,
+    body.no-js .audio-toggle,
+    body.is-entered .panel {
+      opacity: 1;
+      transform: none;
+    }
+
+    body.is-entered .audio-toggle {
+      opacity: 1;
+      transform: none;
+      pointer-events: auto;
+    }
+
+    body:not(.is-entered):not(.no-js) .panel {
+      opacity: 0;
+      transform: translateY(8px) scale(0.985);
+    }
+
+    body:not(.is-entered):not(.no-js) .audio-toggle {
+      opacity: 0;
+      transform: translateY(-6px);
+      pointer-events: none;
+    }
+
+    .entry-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 5;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: rgba(0, 0, 0, 0.48);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      cursor: pointer;
+      transition: opacity 900ms ease, visibility 900ms ease;
+    }
+
+    .entry-overlay::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at center, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.32) 70%);
+      pointer-events: none;
+    }
+
+    .entry-overlay.is-hidden {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .entry-button {
+      position: relative;
+      z-index: 1;
+      border: 0;
+      padding: 0;
+      background: none;
+      color: rgba(255, 255, 255, 0.97);
+      font: inherit;
+      font-size: clamp(22px, 2.2vw, 30px);
+      font-weight: 700;
+      line-height: 1;
+      cursor: pointer;
+      text-shadow: 0 0 28px rgba(0, 0, 0, 0.45);
+      transition: opacity 160ms ease, transform 160ms ease;
+    }
+
+    .entry-button:hover,
+    .entry-button:focus-visible {
+      opacity: 0.9;
+      transform: translateY(-1px);
+      outline: none;
+    }
+
+    .panel {
+      width: min(460px, calc(100vw - 48px));
+      margin: auto;
+      display: grid;
+      justify-items: center;
+      gap: 18px;
+      position: relative;
+      align-self: center;
+      justify-self: center;
+      transition: opacity 1200ms ease, transform 1200ms ease;
+    }
+
+    .identity {
+      --identity-offset: 8px;
+      display: grid;
+      place-content: center;
+      justify-items: center;
+      gap: 10px;
+      position: relative;
+      z-index: 1;
+      opacity: 0;
+      transform: translateY(var(--identity-offset));
+    }
+
+    .avatar {
+      --avatar-offset: -10px;
+      width: 114px;
+      height: 114px;
+      border-radius: 50%;
+      background: url("img/avatar_shakzy.jpg") center center / cover no-repeat;
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.06),
+        0 12px 24px rgba(0, 0, 0, 0.32);
+      position: relative;
+      overflow: visible;
+      cursor: default;
+      outline: none;
+      transform: translateY(var(--avatar-offset));
+      margin-bottom: -10px;
+      animation: avatar-drift 6.4s ease-in-out infinite;
+    }
+
+    .avatar::before {
+      content: none;
+    }
+
+    .avatar::after {
+      content: attr(data-hover);
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 10px);
+      transform: translateX(-50%) translateY(6px);
+      padding: 6px 9px;
+      border-radius: 8px;
+      background: rgba(12, 12, 16, 0.88);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.92);
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1;
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.34);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .avatar:hover::after,
+    .avatar:focus-visible::after {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .name {
+      margin: 0;
+      font-size: clamp(26px, 4vw, 40px);
+      line-height: 0.95;
+      letter-spacing: -0.05em;
+      font-weight: 700;
+      color: var(--muted);
+      text-shadow:
+        0 0 6px rgba(255, 255, 255, 0.7),
+        0 0 18px rgba(255, 255, 255, 0.5),
+        0 0 34px rgba(255, 255, 255, 0.22);
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: var(--name-lock-width, fit-content);
+      min-height: var(--name-lock-height, auto);
+    }
+
+    .name::before {
+      content: "";
+      position: absolute;
+      left: 8%;
+      right: 8%;
+      bottom: -5px;
+      height: 10px;
+      background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.34), transparent 70%);
+      filter: blur(8px);
+      opacity: 0.85;
+      pointer-events: none;
+      animation: name-glow 4.6s ease-in-out infinite;
+    }
+
+    .name-text {
+      position: relative;
+      display: inline-block;
+      white-space: nowrap;
+    }
+
+    .trail-dots {
+      display: inline-flex;
+      align-items: center;
+      position: relative;
+      top: 0.08em;
+      vertical-align: middle;
+      margin-left: 0.16em;
+      gap: 0.02em;
+    }
+
+    .trail-dot {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 0.72em;
+      letter-spacing: -0.08em;
+      text-shadow: 0 0 8px rgba(255, 255, 255, 0.55);
+      opacity: 0.2;
+      animation: dot-sequence 0.95s ease-in-out infinite;
+    }
+
+    .trail-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .tagline-box {
+      width: fit-content;
+      max-width: calc(100vw - 56px);
+      padding: 11px 18px;
+      border-radius: 16px;
+      background: rgba(18, 18, 22, 0.52);
+      box-shadow:
+        0 16px 36px rgba(0, 0, 0, 0.26),
+        0 0 0 1px rgba(255, 255, 255, 0.07);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+      position: relative;
+      overflow: hidden;
+      opacity: 0;
+      animation: box-breathe 6.8s ease-in-out infinite;
+    }
+
+    .tagline-box::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% -25%, rgba(255, 255, 255, 0.08), transparent 62%);
+      pointer-events: none;
+    }
+
+    .tagline-box > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .tagline {
+      margin: 0;
+      text-align: center;
+      white-space: nowrap;
+      max-width: none;
+      min-height: 0;
+      font-size: clamp(11px, 1.05vw, 15px);
+      line-height: 1.4;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.9);
+      text-shadow: 0 0 14px rgba(255, 255, 255, 0.16);
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .tagline.is-swapping {
+      opacity: 0.3;
+      transform: translateY(2px);
+    }
+
+    .tagline:empty {
+      display: none;
+    }
+
+    .socials {
+      --socials-offset: -11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 0;
+      opacity: 0;
+      transform: translateY(var(--socials-offset));
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 0;
+      opacity: 0;
+    }
+
+    .social-link {
+      display: grid;
+      place-items: center;
+      width: 48px;
+      height: 48px;
+      color: rgba(255, 255, 255, 0.98);
+      text-decoration: none;
+      filter:
+        drop-shadow(0 0 8px rgba(255, 255, 255, 0.7))
+        drop-shadow(0 0 18px rgba(255, 255, 255, 0.52))
+        drop-shadow(0 0 30px rgba(255, 255, 255, 0.34));
+      transition: transform 180ms ease, filter 180ms ease;
+    }
+
+    body.is-entered .social-link {
+      animation: social-enter 800ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    }
+
+    body.is-entered .social-link:nth-child(2) {
+      animation-delay: 100ms;
+    }
+
+    body.is-entered .social-link:nth-child(3) {
+      animation-delay: 180ms;
+    }
+
+    .social-link:hover,
+    .social-link:focus-visible {
+      transform: translateY(-2px);
+      filter:
+        drop-shadow(0 0 10px rgba(255, 255, 255, 0.82))
+        drop-shadow(0 0 22px rgba(255, 255, 255, 0.62))
+        drop-shadow(0 0 36px rgba(255, 255, 255, 0.42));
+      outline: none;
+    }
+
+    .social-button {
+      border: 0;
+      padding: 0;
+      background: none;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .social-link svg {
+      width: 42px;
+      height: 42px;
+      fill: currentColor;
+    }
+
+    .social-link img {
+      width: 42px;
+      height: 42px;
+      display: block;
+      object-fit: contain;
+      animation: icon-float 4.8s ease-in-out infinite;
+    }
+
+    .social-link:nth-child(2) img {
+      animation-delay: 0.5s;
+    }
+
+    .social-link:nth-child(3) img {
+      animation-delay: 1s;
+    }
+
+    .audio-toggle {
+      position: fixed;
+      top: 24px;
+      left: 24px;
+      z-index: 4;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 64px;
+      height: 64px;
+      padding: 0;
+      border: 0;
+      border-radius: 22px;
+      background: rgba(16, 16, 20, 0.66);
+      color: rgba(255, 255, 255, 0.96);
+      cursor: pointer;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      box-shadow:
+        0 16px 34px rgba(0, 0, 0, 0.3),
+        0 0 0 1px rgba(255, 255, 255, 0.09);
+      transition: background 160ms ease, transform 160ms ease, opacity 160ms ease;
+    }
+
+    .audio-toggle::before {
+      content: "";
+      position: absolute;
+      inset: -7px;
+      border-radius: inherit;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .audio-toggle:hover,
+    .audio-toggle:focus-visible {
+      background: rgba(24, 24, 30, 0.82);
+      transform: translateY(-1px);
+      outline: none;
+    }
+
+    .audio-toggle svg {
+      width: 30px;
+      height: 30px;
+      flex: 0 0 auto;
+    }
+
+    .audio-toggle [data-audio-label] {
+      display: none;
+    }
+
+    .audio-toggle .audio-icon-speaker {
+      fill: currentColor;
+    }
+
+    .audio-toggle .audio-icon-off {
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.1;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0;
+      transition: opacity 160ms ease;
+    }
+
+    .audio-toggle.is-muted .audio-icon-off {
+      opacity: 1;
+    }
+
+    .audio-toggle:not(.is-muted)::before {
+      animation: audio-ring 2.8s ease-out infinite;
+    }
+
+    .entry-views {
+      --views-offset: -18px;
+      position: static;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-width: 0;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.96);
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
+      user-select: none;
+      transform: translateY(var(--views-offset));
+      animation: views-pulse 5.6s ease-in-out infinite;
+    }
+
+    .entry-views svg {
+      width: 14px;
+      height: 14px;
+      fill: currentColor;
+      flex: 0 0 auto;
+    }
+
+    .entry-views [data-view-count] {
+      white-space: nowrap;
+      min-width: 1ch;
+    }
+
+    body.no-js .identity,
+    body.no-js .tagline-box,
+    body.no-js .socials,
+    body.no-js .controls {
+      opacity: 1;
+      animation: none;
+    }
+
+    body.is-entered .identity {
+      animation: identity-reveal 820ms cubic-bezier(0.2, 0.85, 0.2, 1) 70ms both;
+    }
+
+    body.is-entered .tagline-box {
+      animation:
+        block-reveal 820ms cubic-bezier(0.2, 0.85, 0.2, 1) 170ms both,
+        box-breathe 6.8s ease-in-out 1s infinite;
+    }
+
+    body.is-entered .socials {
+      animation: socials-reveal 860ms cubic-bezier(0.2, 0.85, 0.2, 1) 260ms both;
+    }
+
+    body.is-entered .controls {
+      animation: block-reveal 860ms cubic-bezier(0.2, 0.85, 0.2, 1) 340ms both;
+    }
+
+    @keyframes dot-sequence {
+      0%,
+      20%,
+      100% {
+        opacity: 0.18;
+        transform: translateY(0.08em);
+      }
+      35%,
+      72% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes identity-reveal {
+      from {
+        opacity: 0;
+        transform: translateY(calc(var(--identity-offset) + 24px)) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(var(--identity-offset)) scale(1);
+      }
+    }
+
+    @keyframes block-reveal {
+      from {
+        opacity: 0;
+        transform: translateY(18px) scale(0.96);
+      }
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    @keyframes name-glow {
+      0%,
+      100% {
+        opacity: 0.5;
+        filter: blur(8px);
+      }
+      50% {
+        opacity: 1;
+        filter: blur(12px);
+      }
+    }
+
+    @keyframes avatar-drift {
+      0%,
+      100% {
+        transform: translateY(var(--avatar-offset)) rotate(0deg) scale(1);
+      }
+      50% {
+        transform: translateY(calc(var(--avatar-offset) - 5px)) rotate(-1.2deg) scale(1.02);
+      }
+    }
+
+    @keyframes box-breathe {
+      0%,
+      100% {
+        box-shadow:
+          0 16px 36px rgba(0, 0, 0, 0.26),
+          0 0 0 1px rgba(255, 255, 255, 0.07);
+      }
+      50% {
+        box-shadow:
+          0 18px 40px rgba(0, 0, 0, 0.3),
+          0 0 0 1px rgba(255, 255, 255, 0.1),
+          0 0 18px rgba(255, 255, 255, 0.06);
+      }
+    }
+
+    @keyframes socials-reveal {
+      from {
+        opacity: 0;
+        transform: translateY(calc(var(--socials-offset) + 22px)) scale(0.96);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(var(--socials-offset)) scale(1);
+      }
+    }
+
+    @keyframes social-enter {
+      0% {
+        opacity: 0;
+        transform: translateY(18px) scale(0.9);
+      }
+      100% {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    @keyframes audio-ring {
+      0% {
+        opacity: 0.42;
+        transform: scale(0.9);
+      }
+      70%,
+      100% {
+        opacity: 0;
+        transform: scale(1.16);
+      }
+    }
+
+    @keyframes icon-float {
+      0%,
+      100% {
+        transform: translateY(0) scale(1);
+      }
+      50% {
+        transform: translateY(-2px) scale(1.03);
+      }
+    }
+
+    @keyframes views-pulse {
+      0%,
+      100% {
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
+      }
+      50% {
+        box-shadow:
+          0 0 0 1px rgba(255, 255, 255, 0.1),
+          0 0 18px rgba(255, 255, 255, 0.08);
+      }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 12px;
+      }
+
+      .entry-overlay {
+        padding: 12px;
+      }
+
+      .panel {
+        width: min(360px, calc(100vw - 24px));
+        gap: 14px;
+      }
+
+      .identity {
+        gap: 9px;
+        --identity-offset: 4px;
+        transform: translateY(var(--identity-offset));
+      }
+
+      .avatar {
+        --avatar-offset: -7px;
+        width: 102px;
+        height: 102px;
+        transform: translateY(var(--avatar-offset));
+        margin-bottom: -8px;
+      }
+
+      .name {
+        font-size: 32px;
+      }
+
+      .tagline-box {
+        max-width: calc(100vw - 32px);
+        padding: 10px 14px;
+        border-radius: 14px;
+      }
+
+      .tagline {
+        font-size: 10px;
+      }
+
+      .socials {
+        --socials-offset: -12px;
+        gap: 7px;
+        margin-top: 0;
+        transform: translateY(var(--socials-offset));
+      }
+
+      .social-link {
+        width: 42px;
+        height: 42px;
+      }
+
+      .social-link svg {
+        width: 37px;
+        height: 37px;
+      }
+
+      .social-link img {
+        width: 37px;
+        height: 37px;
+      }
+
+      .controls {
+        gap: 8px;
+        margin-top: 0;
+      }
+
+      .entry-views {
+        --views-offset: -10px;
+        transform: translateY(var(--views-offset));
+      }
+
+      .audio-toggle {
+        top: 12px;
+        left: 12px;
+        width: 56px;
+        height: 56px;
+        border-radius: 18px;
+      }
+
+      .audio-toggle svg {
+        width: 26px;
+        height: 26px;
+      }
+
+      .entry-views {
+        padding: 6px 9px;
+        font-size: 11px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+
+      .trail-dot {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    body {
+      padding: 24px 24px 128px;
+    }
+
+    .panel {
+      width: min(560px, calc(100vw - 48px));
+      margin-inline: auto;
+      text-align: center;
+      justify-content: center;
+      justify-items: center;
+    }
+
+    .identity,
+    .socials,
+    .controls {
+      width: 100%;
+      margin-inline: auto;
+      text-align: center;
+      justify-content: center;
+      justify-items: center;
+    }
+
+    .discord-card {
+      width: min(286px, calc(100vw - 32px));
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px 8px 8px;
+      margin: -8px auto 0;
+      border: 1px solid rgba(255, 255, 255, 0.035);
+      border-radius: 16px;
+      background: rgba(0, 0, 0, 0.18);
+      color: rgba(255, 255, 255, 0.95);
+      font: inherit;
+      font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+      text-align: left;
+      text-decoration: none;
+      cursor: pointer;
+      box-shadow:
+        0 6px 18px rgba(0, 0, 0, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.025);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      transition: transform 180ms ease, background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+    }
+
+    .discord-card:hover,
+    .discord-card:focus-visible {
+      transform: translateY(-2px);
+      background: rgba(0, 0, 0, 0.26);
+      border-color: rgba(255, 255, 255, 0.06);
+      outline: none;
+    }
+
+    .discord-card-media {
+      position: relative;
+      flex: 0 0 auto;
+    }
+
+    .discord-card-avatar {
+      width: 42px;
+      height: 42px;
+      display: block;
+      border-radius: 50%;
+      object-fit: cover;
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.08),
+        0 6px 14px rgba(0, 0, 0, 0.22);
+    }
+
+    .discord-card-dot {
+      position: absolute;
+      right: -1px;
+      bottom: -1px;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: rgba(22, 22, 26, 0.98) url("img/neaktiv.png") center center / cover no-repeat;
+      border: 2px solid rgba(8, 8, 12, 0.96);
+    }
+
+    .discord-card-body {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .discord-card-top,
+    .discord-card-status {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .discord-card-top {
+      gap: 5px;
+      min-height: 24px;
+    }
+
+    .discord-card-name {
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1;
+      color: rgba(244, 244, 255, 0.96);
+      text-shadow:
+        0 0 4px rgba(255, 255, 255, 0.78),
+        0 0 10px rgba(255, 255, 255, 0.42),
+        0 0 18px rgba(255, 255, 255, 0.22);
+      white-space: nowrap;
+    }
+
+    .discord-card-badges {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex: 0 0 auto;
+    }
+
+    .discord-card-badge-icon {
+      width: 17px;
+      height: 17px;
+      display: block;
+      object-fit: contain;
+    }
+
+    .discord-card-status {
+      gap: 5px;
+      margin-top: -2px;
+      font-size: 12px;
+      line-height: 1.2;
+      color: rgba(255, 255, 255, 0.92);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .discord-card-status-note {
+      color: #4ade80;
+      font-size: 14px;
+      line-height: 1;
+    }
+
+    .discord-card-status-dot {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 12px;
+      line-height: 1;
+    }
+
+    .discord-card-status-heart {
+      width: 14px;
+      height: 14px;
+      display: block;
+      object-fit: contain;
+      transform: translateY(1px);
+    }
+
+    .entry-views {
+      position: fixed;
+      left: 30px;
+      bottom: max(30px, calc(env(safe-area-inset-bottom) + 24px));
+      z-index: 4;
+      transform: none;
+      animation: none;
+    }
+
+    body:not(.is-entered):not(.no-js) .track-card {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .name {
+      letter-spacing: 0.03em;
+    }
+
+    .name::before {
+      content: none;
+    }
+
+    .name-text {
+      transform-origin: center;
+      will-change: transform, opacity, text-shadow;
+    }
+
+    .name.is-animated .name-text {
+      animation: name-flicker 7.4s linear infinite;
+    }
+
+    .trail-dots {
+      display: none;
+    }
+
+    .tagline {
+      margin: 2px auto 6px;
+      width: min(560px, calc(100vw - 48px));
+      max-width: calc(100vw - 48px);
+      display: block;
+      padding: 0;
+      text-align: center;
+      white-space: normal;
+      max-height: min(34vh, 260px);
+      overflow-y: auto;
+      font-size: clamp(11px, 0.98vw, 14px);
+      line-height: 1.42;
+      font-weight: 600;
+      background: none;
+      color: rgba(255, 255, 255, 0.9);
+      text-shadow: 0 0 14px rgba(255, 255, 255, 0.16);
+    }
+
+    .tagline-text {
+      display: block;
+      white-space: pre-line;
+    }
+
+    .tagline-box {
+      display: contents;
+    }
+
+    .track-card {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: max(30px, calc(env(safe-area-inset-bottom) + 24px));
+      z-index: 4;
+      width: min(640px, calc(100vw - 32px));
+      margin-inline: auto;
+      display: grid;
+      grid-template-columns: 50px minmax(0, 1fr);
+      align-items: center;
+      gap: 14px;
+      color: rgba(255, 255, 255, 0.95);
+      font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+      transition: opacity 180ms ease;
+    }
+
+    .track-card-cover {
+      width: 50px;
+      height: 50px;
+      display: block;
+      border-radius: 10px;
+      object-fit: contain;
+      transform: translateY(-3px);
+      filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.08));
+    }
+
+    .track-card-main {
+      min-width: 0;
+      display: grid;
+      align-content: center;
+      gap: 5px;
+    }
+
+    .track-card-title {
+      margin: 0;
+      transform: translateY(5px);
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .track-card-progress-row {
+      display: grid;
+      grid-template-columns: auto minmax(320px, 1fr) auto auto;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .track-card-time {
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1;
+      color: rgba(255, 255, 255, 0.86);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .track-card-progress {
+      position: relative;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.2);
+      overflow: hidden;
+    }
+
+    .track-card-progress-fill {
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.18);
+    }
+
+    .track-card-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-left: 10px;
+    }
+
+    .track-card-action {
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      padding: 0;
+      border: 0;
+      background: none;
+      color: rgba(255, 255, 255, 0.88);
+      cursor: pointer;
+      transition: transform 160ms ease, color 160ms ease, opacity 160ms ease;
+    }
+
+    .track-card-action:hover,
+    .track-card-action:focus-visible {
+      color: rgba(255, 255, 255, 1);
+      transform: translateY(-1px);
+      outline: none;
+    }
+
+    .track-card-action svg {
+      width: 24px;
+      height: 24px;
+      display: block;
+      fill: currentColor;
+    }
+
+    .track-card-action:disabled {
+      opacity: 1;
+      transform: none;
+      color: rgba(255, 255, 255, 0.76);
+      cursor: default;
+    }
+
+    .track-card-action-toggle {
+      width: 42px;
+      height: 42px;
+      color: rgba(255, 255, 255, 0.98);
+    }
+
+    .track-card-action-toggle svg {
+      width: 26px;
+      height: 26px;
+    }
+
+    .track-card-action-toggle .track-card-icon-play {
+      display: none;
+    }
+
+    .track-card-action-toggle.is-paused .track-card-icon-pause {
+      display: none;
+    }
+
+    .track-card-action-toggle.is-paused .track-card-icon-play {
+      display: block;
+    }
+
+    @keyframes name-flicker {
+      0%,
+      13%,
+      17%,
+      34%,
+      36%,
+      58%,
+      62%,
+      100% {
+        opacity: 1;
+        text-shadow:
+          0 0 6px rgba(255, 255, 255, 0.72),
+          0 0 18px rgba(255, 255, 255, 0.52),
+          0 0 34px rgba(255, 255, 255, 0.24);
+      }
+      14%,
+      35%,
+      60% {
+        opacity: 0.78;
+        text-shadow:
+          0 0 4px rgba(255, 255, 255, 0.45),
+          0 0 10px rgba(255, 255, 255, 0.24),
+          0 0 18px rgba(255, 255, 255, 0.1);
+      }
+      15%,
+      61% {
+        opacity: 0.92;
+        text-shadow:
+          0 0 10px rgba(255, 255, 255, 0.82),
+          0 0 24px rgba(255, 255, 255, 0.62),
+          0 0 44px rgba(255, 255, 255, 0.34);
+      }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 12px 12px 104px;
+      }
+
+      .panel {
+        width: min(420px, calc(100vw - 24px));
+      }
+
+      .track-card {
+        bottom: max(20px, calc(env(safe-area-inset-bottom) + 16px));
+        width: min(100%, calc(100vw - 24px));
+        grid-template-columns: 42px minmax(0, 1fr);
+        gap: 10px;
+      }
+
+      .track-card-cover {
+        width: 42px;
+        height: 42px;
+      }
+
+      .track-card-progress-row {
+        grid-template-columns: auto minmax(150px, 1fr) auto auto;
+        gap: 10px;
+      }
+
+      .track-card-action {
+        width: 34px;
+        height: 34px;
+      }
+
+      .entry-views {
+        left: 20px;
+        bottom: max(20px, calc(env(safe-area-inset-bottom) + 16px));
+        transform: none;
+      }
+    }
+
+    .controls {
+      display: contents;
+    }
+
+    .entry-views {
+      position: fixed;
+      left: 30px;
+      bottom: max(30px, calc(env(safe-area-inset-bottom) + 24px));
+      z-index: 4;
+      transform: none;
+      animation: none;
+    }
+
+    @media (max-width: 640px) {
+      .entry-views {
+        left: 20px;
+        bottom: max(20px, calc(env(safe-area-inset-bottom) + 16px));
+      }
+    }
+  </style>
+</head>
+<body class="no-js">
+  <div class="entry-overlay" id="entryOverlay">
+    <button class="entry-button" id="entryButton" type="button">click to enter...</button>
+  </div>
+  <audio id="bgAudio" src="sound/sound2.mp3" preload="auto"></audio>
+  <main class="panel" aria-label="Profile card">
+    <section class="identity">
+      <div class="avatar" data-discord-avatar-target data-hover="UID: #2" tabindex="0" role="img" aria-label="avatar UID: #2"></div>
+      <h1 class="name" aria-label="shakzy">
+        <span class="name-text" data-text="shakzy">shakzy</span>
+      </h1>
+      <p class="tagline">
+        <span class="tagline-text">Respect the past, create the future</span>
+      </p>
+    </section>
+    <div class="socials" aria-label="Social links">
+      <a class="social-link" href="https://www.faceit.com/ru/players/Shakzyy" target="_blank" rel="noreferrer" aria-label="Faceit">
+        <img src="img/faceit.png" alt="" aria-hidden="true">
+      </a>
+      <a class="social-link" href="https://t.me/yfixeris" target="_blank" rel="noreferrer" aria-label="Telegram">
+        <img src="img/telegram.png" alt="" aria-hidden="true">
+      </a>
+      <a class="social-link" href="https://steamcommunity.com/id/765611991050022167" target="_blank" rel="noreferrer" aria-label="Steam">
+        <img src="img/steam.png" alt="" aria-hidden="true">
+      </a>
+    </div>
+    <button class="discord-card" id="discordCardCopy" type="button" data-discord-copy="mrshakzzy" aria-label="Copy Discord: mrshakzzy" title="mrshakzzy">
+      <span class="discord-card-media" aria-hidden="true">
+        <img class="discord-card-avatar" data-discord-avatar-image src="img/avatar_shakzy.jpg" alt="">
+        <span class="discord-card-dot"></span>
+      </span>
+      <span class="discord-card-body">
+        <span class="discord-card-top">
+          <span class="discord-card-name">mrshakzzy</span>
+          <span class="discord-card-badges" aria-hidden="true">
+            <img class="discord-card-badge-icon" src="img/nitro.png" alt="">
+            <img class="discord-card-badge-icon" src="img/hypesquad.png" alt="">
+          </span>
+        </span>
+        <span class="discord-card-status">
+          <span class="discord-card-status-note" aria-hidden="true">♫</span>
+          <span class="discord-card-status-dot" aria-hidden="true">•</span>
+          <img class="discord-card-status-heart" src="img/hearrsss.gif" alt="">
+          <span>дальше меньше владик</span>
+        </span>
+      </span>
+    </button>
+  </main>
+  <div class="entry-views" aria-live="polite" aria-label="Entry views">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 5c5.2 0 9.38 3.67 10.7 6.48a1.2 1.2 0 0 1 0 1.04C21.38 15.33 17.2 19 12 19S2.62 15.33 1.3 12.52a1.2 1.2 0 0 1 0-1.04C2.62 8.67 6.8 5 12 5Zm0 2C7.9 7 4.45 9.87 3.33 12 4.45 14.13 7.9 17 12 17s7.55-2.87 8.67-5C19.55 9.87 16.1 7 12 7Zm0 1.75A3.25 3.25 0 1 1 8.75 12 3.25 3.25 0 0 1 12 8.75Zm0 2A1.25 1.25 0 1 0 13.25 12 1.25 1.25 0 0 0 12 10.75Z"></path>
+    </svg>
+    <span data-view-count>0</span>
+  </div>
+  <section class="track-card" aria-label="Current track">
+    <img class="track-card-cover" src="img/shakzysoundicon.png" alt="" aria-hidden="true">
+    <div class="track-card-main">
+      <div class="track-card-title" data-track-title>sound</div>
+      <div class="track-card-progress-row">
+        <span class="track-card-time" data-track-current>0:00</span>
+        <div class="track-card-progress" aria-hidden="true">
+          <span class="track-card-progress-fill" data-track-progress></span>
+        </div>
+        <span class="track-card-time" data-track-duration>0:00</span>
+        <div class="track-card-actions">
+          <button class="track-card-action track-card-action-prev" id="trackPrevButton" type="button" aria-label="Previous track" disabled>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6.75 5.75h1.75v12.5H6.75zM17.35 6.02l-8.1 5.29a.82.82 0 0 0 0 1.38l8.1 5.29c.55.36 1.28-.04 1.28-.69V6.71c0-.65-.73-1.05-1.28-.69Z"></path>
+            </svg>
+          </button>
+          <button class="track-card-action track-card-action-toggle" id="trackToggleButton" type="button" aria-label="Pause track">
+            <svg class="track-card-icon-pause" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M7.5 5.75a1 1 0 0 1 1 1v10.5a1 1 0 1 1-2 0V6.75a1 1 0 0 1 1-1Zm9 0a1 1 0 0 1 1 1v10.5a1 1 0 1 1-2 0V6.75a1 1 0 0 1 1-1Z"></path>
+            </svg>
+            <svg class="track-card-icon-play" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M8.76 5.36A1 1 0 0 1 10.3 4.5l7.75 6.5a1.3 1.3 0 0 1 0 2l-7.75 6.5A1 1 0 0 1 8.5 18.74V6.26a1 1 0 0 1 .26-.9Z"></path>
+            </svg>
+          </button>
+          <button class="track-card-action track-card-action-next" id="trackNextButton" type="button" aria-label="Next track" disabled>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M15.5 5.75h1.75v12.5H15.5zM6.65 6.02c-.55-.36-1.28.04-1.28.69v10.58c0 .65.73 1.05 1.28.69l8.1-5.29a.82.82 0 0 0 0-1.38l-8.1-5.29Z"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+  <script>
+    const bootstrapBody = document.body;
+    const bootstrapOverlay = document.getElementById("entryOverlay");
+
+    function revealFallbackUi() {
+      bootstrapBody.classList.add("no-js", "is-entered");
+      if (bootstrapOverlay) {
+        bootstrapOverlay.classList.add("is-hidden");
+      }
+    }
+
+    window.addEventListener("error", revealFallbackUi, { once: true });
+    window.addEventListener("unhandledrejection", revealFallbackUi, { once: true });
+
+    document.body.classList.remove("no-js");
+
+    const bodyElement = document.body;
+    const entryOverlay = document.getElementById("entryOverlay");
+    const entryButton = document.getElementById("entryButton");
+    const bgAudio = document.getElementById("bgAudio");
+    const audioToggle = document.getElementById("audioToggle");
+    const discordCopyButtons = document.querySelectorAll("[data-discord-copy]");
+    const audioLabel = audioToggle ? audioToggle.querySelector("[data-audio-label]") : null;
+    const trackToggleButton = document.getElementById("trackToggleButton");
+    const trackPrevButton = document.getElementById("trackPrevButton");
+    const trackNextButton = document.getElementById("trackNextButton");
+    const trackTitle = document.querySelector("[data-track-title]");
+    const trackCurrentTime = document.querySelector("[data-track-current]");
+    const trackDuration = document.querySelector("[data-track-duration]");
+    const trackProgressFill = document.querySelector("[data-track-progress]");
+    const viewCount = document.querySelector("[data-view-count]");
+    const nameText = document.querySelector(".name-text");
+    const nameElement = document.querySelector(".name");
+    const fullName = nameText.dataset.text;
+    const tabTitlePrefix = "shakzy";
+    const tabTitleSuffix = " | iwtxz.ru";
+    const prefersReducedMotion = typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const searchParams = typeof window.URLSearchParams === "function"
+      ? new URLSearchParams(window.location.search)
+      : { get: () => null };
+    const shouldSkipEnter = searchParams.get("demo") === "1" || window.location.hash === "#demo";
+    const isLocalFile = window.location.protocol === "file:";
+    const audioTargetVolume = 0.45;
+    const viewCountCacheKey = "iwtxz-shakzy-entry-views";
+    const audioPreferenceKey = "iwtxz-shakzy-audio-enabled";
+    const discordUserId = "788045714571132928";
+    const discordAvatarRefreshMs = 60 * 1000;
+    const discordAvatarTarget = document.querySelector("[data-discord-avatar-target]");
+    const discordAvatarImage = document.querySelector("[data-discord-avatar-image]");
+    const playlist = [
+      { title: "RJ Pasin - Chad", src: "sound/sound2.mp3" }
+    ];
+    let animationStarted = false;
+    let audioFadeFrame = 0;
+    let audioFadeRunId = 0;
+    let audioFadeState = "idle";
+    let audioShouldPlay = true;
+    let audioIntentRunId = 0;
+    let audioRetryListening = false;
+    let currentTrackIndex = 0;
+
+    function readCachedViewCount() {
+      try {
+        const cachedValue = window.localStorage.getItem(viewCountCacheKey);
+        return cachedValue && /^\d+$/.test(cachedValue) ? cachedValue : null;
+      } catch {
+        return null;
+      }
+    }
+
+    function writeCachedViewCount(value) {
+      try {
+        window.localStorage.setItem(viewCountCacheKey, String(value));
+      } catch {}
+    }
+
+    function readStoredAudioPreference() {
+      try {
+        const cachedValue = window.localStorage.getItem(audioPreferenceKey);
+        if (cachedValue === "true") {
+          return true;
+        }
+        if (cachedValue === "false") {
+          return false;
+        }
+      } catch {}
+
+      return true;
+    }
+
+    function writeStoredAudioPreference(shouldPlay) {
+      try {
+        window.localStorage.setItem(audioPreferenceKey, String(Boolean(shouldPlay)));
+      } catch {}
+    }
+
+    async function fetchDiscordAvatar() {
+      if (isLocalFile) {
+        return null;
+      }
+
+      const controller = typeof window.AbortController === "function" ? new AbortController() : null;
+      const timeoutId = controller ? window.setTimeout(() => controller.abort(), 4500) : 0;
+
+      try {
+        const response = await fetch(`/api/discord/avatar/${discordUserId}`, {
+          cache: "no-store",
+          ...(controller ? { signal: controller.signal } : {})
+        });
+
+        if (!response.ok) {
+          throw new Error("discord avatar unavailable");
+        }
+
+        const data = await response.json();
+        return typeof data.avatarUrl === "string" ? data.avatarUrl : null;
+      } catch {
+        return null;
+      } finally {
+        if (timeoutId) {
+          window.clearTimeout(timeoutId);
+        }
+      }
+    }
+
+    async function syncDiscordAvatar() {
+      const avatarUrl = await fetchDiscordAvatar();
+
+      if (!avatarUrl || !discordAvatarTarget) {
+        return;
+      }
+
+      if (discordAvatarTarget) {
+        discordAvatarTarget.style.backgroundImage = `url("${avatarUrl}")`;
+      }
+
+      if (discordAvatarImage) {
+        discordAvatarImage.src = avatarUrl;
+      }
+    }
+
+    function formatTrackTime(value) {
+      if (!Number.isFinite(value) || value < 0) {
+        return "0:00";
+      }
+
+      const minutes = Math.floor(value / 60);
+      const seconds = Math.floor(value % 60).toString().padStart(2, "0");
+      return `${minutes}:${seconds}`;
+    }
+
+    function syncTrackMeta() {
+      const activeTrack = playlist[currentTrackIndex];
+
+      if (trackTitle && activeTrack) {
+        trackTitle.textContent = activeTrack.title;
+      }
+
+      if (trackPrevButton) {
+        trackPrevButton.disabled = true;
+      }
+
+      if (trackNextButton) {
+        trackNextButton.disabled = true;
+      }
+    }
+
+    function loadTrack(index, { autoplay = false } = {}) {
+      if (!playlist.length || index < 0 || index >= playlist.length) {
+        return;
+      }
+
+      currentTrackIndex = index;
+      cancelAudioFade();
+      setAudioRetryListening(false);
+      bgAudio.pause();
+      bgAudio.volume = 0;
+      bgAudio.src = playlist[index].src;
+      bgAudio.load();
+      syncTrackMeta();
+      syncTrackCard();
+
+      if (autoplay && audioShouldPlay && bodyElement.classList.contains("is-entered")) {
+        window.setTimeout(() => {
+          applyAudioState({ fadeInDuration: 180 });
+        }, 0);
+      } else {
+        syncAudioToggle();
+      }
+    }
+
+    function syncTrackCard() {
+      if (!trackCurrentTime || !trackDuration || !trackProgressFill || !trackToggleButton) {
+        return;
+      }
+
+      const current = Number.isFinite(bgAudio.currentTime) ? bgAudio.currentTime : 0;
+      const duration = Number.isFinite(bgAudio.duration) ? bgAudio.duration : 0;
+      const progress = duration > 0 ? Math.min((current / duration) * 100, 100) : 0;
+      const isPlaying = !bgAudio.paused && !bgAudio.ended;
+
+      trackCurrentTime.textContent = formatTrackTime(current);
+      trackDuration.textContent = formatTrackTime(duration);
+      trackProgressFill.style.width = `${progress}%`;
+      trackToggleButton.classList.toggle("is-paused", !isPlaying);
+      trackToggleButton.setAttribute("aria-label", isPlaying ? "Pause track" : "Play track");
+      syncTrackMeta();
+    }
+
+    async function fetchViewCount(url) {
+      const controller = typeof window.AbortController === "function" ? new AbortController() : null;
+      const timeoutId = controller ? window.setTimeout(() => controller.abort(), 4500) : 0;
+
+      try {
+        const response = await fetch(url, {
+          cache: "no-store",
+          ...(controller ? { signal: controller.signal } : {})
+        });
+
+        if (!response.ok) {
+          throw new Error("counter unavailable");
+        }
+
+        const data = await response.json();
+        if (typeof data.value !== "number") {
+          throw new Error("invalid counter response");
+        }
+
+        return data.value;
+      } finally {
+        if (timeoutId) {
+          window.clearTimeout(timeoutId);
+        }
+      }
+    }
+
+    async function registerEnterView() {
+      const cachedCount = readCachedViewCount();
+      if (cachedCount !== null) {
+        viewCount.textContent = cachedCount;
+      }
+
+      if (isLocalFile) {
+        viewCount.textContent = cachedCount ?? "0";
+        return;
+      }
+
+      try {
+        const nextCount = await fetchViewCount("/api/views/shakzy/hit");
+        viewCount.textContent = String(nextCount);
+        writeCachedViewCount(nextCount);
+        return;
+      } catch {}
+
+      try {
+        const currentCount = await fetchViewCount("/api/views/shakzy/get");
+        viewCount.textContent = String(currentCount);
+        writeCachedViewCount(currentCount);
+        return;
+      } catch {}
+
+      viewCount.textContent = cachedCount ?? "0";
+    }
+
+    function syncAudioToggle() {
+      const playing = !bgAudio.paused && !bgAudio.ended;
+      if (audioToggle) {
+        audioToggle.classList.toggle("is-muted", !playing);
+        audioToggle.setAttribute("aria-pressed", String(playing));
+        audioToggle.setAttribute("aria-label", playing ? "Turn music off" : "Turn music on");
+      }
+      if (audioLabel) {
+        audioLabel.textContent = playing ? "music on" : "music off";
+      }
+      syncTrackCard();
+    }
+
+    function cancelAudioFade() {
+      audioFadeRunId += 1;
+      if (audioFadeFrame) {
+        window.cancelAnimationFrame(audioFadeFrame);
+        audioFadeFrame = 0;
+      }
+      audioFadeState = "idle";
+    }
+
+    function retryAudioAfterInteraction() {
+      if (!audioShouldPlay || !bodyElement.classList.contains("is-entered")) {
+        setAudioRetryListening(false);
+        return;
+      }
+
+      window.setTimeout(() => {
+        if (audioShouldPlay && bodyElement.classList.contains("is-entered") && bgAudio.paused) {
+          applyAudioState({ fadeInDuration: 240 });
+        }
+      }, 0);
+    }
+
+    function setAudioRetryListening(shouldListen) {
+      if (audioRetryListening === shouldListen) {
+        return;
+      }
+
+      audioRetryListening = shouldListen;
+      const method = shouldListen ? "addEventListener" : "removeEventListener";
+
+      window[method]("pointerdown", retryAudioAfterInteraction, true);
+      window[method]("keydown", retryAudioAfterInteraction, true);
+      window[method]("touchstart", retryAudioAfterInteraction, true);
+      window[method]("click", retryAudioAfterInteraction, true);
+    }
+
+    function fadeAudioTo(targetVolume, duration, { playOnStart = false, pauseOnEnd = false } = {}) {
+      cancelAudioFade();
+      const runId = audioFadeRunId;
+      const startVolume = bgAudio.volume;
+      const startTime = performance.now();
+
+      audioFadeState = targetVolume > startVolume ? "fading-in" : "fading-out";
+
+      if (playOnStart && bgAudio.paused) {
+        bgAudio.play().catch(() => {});
+      }
+
+      function step(now) {
+        if (runId !== audioFadeRunId) {
+          return;
+        }
+
+        const progress = Math.min((now - startTime) / duration, 1);
+        bgAudio.volume = startVolume + (targetVolume - startVolume) * progress;
+
+        if (progress < 1) {
+          audioFadeFrame = window.requestAnimationFrame(step);
+          return;
+        }
+
+        audioFadeFrame = 0;
+        audioFadeState = "idle";
+        bgAudio.volume = targetVolume;
+
+        if (pauseOnEnd) {
+          bgAudio.pause();
+        } else {
+          syncAudioToggle();
+        }
+      }
+
+      audioFadeFrame = window.requestAnimationFrame(step);
+    }
+
+    async function applyAudioState({ fadeInDuration = 380, fadeOutDuration = 320 } = {}) {
+      const intentRunId = ++audioIntentRunId;
+      cancelAudioFade();
+
+      if (!audioShouldPlay) {
+        setAudioRetryListening(false);
+        fadeAudioTo(0, fadeOutDuration, { pauseOnEnd: true });
+        return;
+      }
+
+      if (bgAudio.paused) {
+        if (Number.isFinite(bgAudio.duration) && bgAudio.duration > 0 && bgAudio.currentTime >= bgAudio.duration) {
+          bgAudio.currentTime = 0;
+        }
+
+        bgAudio.volume = 0;
+
+        try {
+          await bgAudio.play();
+          setAudioRetryListening(false);
+        } catch {
+          if (intentRunId !== audioIntentRunId) {
+            return;
+          }
+
+          bgAudio.volume = 0;
+          bgAudio.pause();
+          setAudioRetryListening(true);
+          syncAudioToggle();
+          return;
+        }
+      }
+
+      if (intentRunId !== audioIntentRunId) {
+        if (!audioShouldPlay) {
+          bgAudio.volume = 0;
+          bgAudio.pause();
+        }
+        return;
+      }
+
+      fadeAudioTo(audioTargetVolume, fadeInDuration);
+    }
+
+    function lockNameSize() {
+      const previousText = nameText.textContent;
+      nameText.textContent = fullName;
+      const { width, height } = nameElement.getBoundingClientRect();
+      nameElement.style.setProperty("--name-lock-width", `${Math.ceil(width)}px`);
+      nameElement.style.setProperty("--name-lock-height", `${Math.ceil(height)}px`);
+      nameText.textContent = previousText;
+    }
+
+    function startNameAnimation() {
+      if (animationStarted) {
+        return;
+      }
+      animationStarted = true;
+
+      nameText.textContent = fullName;
+
+      if (!prefersReducedMotion) {
+        nameElement.classList.add("is-animated");
+      }
+    }
+
+    function startTabTitleAnimation() {
+      if (prefersReducedMotion) {
+        document.title = tabTitlePrefix + tabTitleSuffix;
+        return;
+      }
+
+      let visibleCount = tabTitlePrefix.length;
+      let deleting = true;
+
+      function tickTitle() {
+        document.title = tabTitlePrefix.slice(0, visibleCount) + tabTitleSuffix;
+
+        let delay = deleting ? 120 : 145;
+
+        if (deleting && visibleCount > 0) {
+          visibleCount -= 1;
+        } else if (deleting && visibleCount === 0) {
+          deleting = false;
+          delay = 300;
+        } else if (!deleting && visibleCount < tabTitlePrefix.length) {
+          visibleCount += 1;
+        } else {
+          deleting = true;
+          delay = 1200;
+        }
+
+        window.setTimeout(tickTitle, delay);
+      }
+
+      tickTitle();
+    }
+
+    function enterSite() {
+      if (bodyElement.classList.contains("is-entered")) {
+        return;
+      }
+      bodyElement.classList.add("is-entered");
+      entryOverlay.classList.add("is-hidden");
+      syncAudioToggle();
+      if (audioShouldPlay) {
+        applyAudioState({ fadeInDuration: 650 });
+      } else {
+        cancelAudioFade();
+        bgAudio.volume = 0;
+        bgAudio.pause();
+      }
+      registerEnterView();
+      startNameAnimation();
+    }
+
+    if (audioToggle) {
+      audioToggle.addEventListener("click", () => {
+        audioShouldPlay = bgAudio.paused ? true : !audioShouldPlay;
+        writeStoredAudioPreference(audioShouldPlay);
+        syncAudioToggle();
+        applyAudioState();
+      });
+    }
+
+    if (trackToggleButton) {
+      trackToggleButton.addEventListener("click", () => {
+        audioShouldPlay = bgAudio.paused ? true : !audioShouldPlay;
+        writeStoredAudioPreference(audioShouldPlay);
+        syncAudioToggle();
+        applyAudioState();
+      });
+    }
+
+    bgAudio.addEventListener("play", syncAudioToggle);
+    bgAudio.addEventListener("pause", syncAudioToggle);
+    bgAudio.addEventListener("timeupdate", syncTrackCard);
+    bgAudio.addEventListener("loadedmetadata", syncTrackCard);
+    bgAudio.addEventListener("durationchange", syncTrackCard);
+    bgAudio.addEventListener("emptied", syncTrackCard);
+    bgAudio.addEventListener("ended", () => {
+      audioShouldPlay = false;
+      syncAudioToggle();
+      syncTrackCard();
+    });
+    bgAudio.addEventListener("playing", () => {
+      setAudioRetryListening(false);
+    });
+    window.addEventListener("resize", lockNameSize);
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden || !bodyElement.classList.contains("is-entered") || !audioShouldPlay || !bgAudio.paused) {
+        return;
+      }
+
+      setAudioRetryListening(true);
+      applyAudioState({ fadeInDuration: 220 });
+    });
+    window.addEventListener("pageshow", (event) => {
+      if (!event.persisted || !bodyElement.classList.contains("is-entered") || !audioShouldPlay || !bgAudio.paused) {
+        syncAudioToggle();
+        return;
+      }
+
+      setAudioRetryListening(true);
+      applyAudioState({ fadeInDuration: 280 });
+    });
+
+    discordCopyButtons.forEach((discordCopyButton) => {
+      discordCopyButton.addEventListener("click", async () => {
+        const discordName = discordCopyButton.dataset.discordCopy;
+
+        try {
+          await navigator.clipboard.writeText(discordName);
+          discordCopyButton.setAttribute("title", "copied");
+        } catch {
+          discordCopyButton.setAttribute("title", discordName);
+        }
+
+        window.setTimeout(() => {
+          discordCopyButton.setAttribute("title", discordName);
+        }, 1200);
+      });
+    });
+
+    entryOverlay.addEventListener("click", enterSite);
+    entryButton.addEventListener("click", enterSite);
+    window.addEventListener("keydown", (event) => {
+      if (!bodyElement.classList.contains("is-entered") && (event.key === "Enter" || event.key === " ")) {
+        event.preventDefault();
+        enterSite();
+      }
+    });
+
+    audioShouldPlay = readStoredAudioPreference();
+    lockNameSize();
+    loadTrack(0);
+    syncAudioToggle();
+    syncDiscordAvatar();
+    startTabTitleAnimation();
+
+    if (shouldSkipEnter) {
+      enterSite();
+    }
+
+    setAudioRetryListening(false);
+    window.setInterval(syncDiscordAvatar, discordAvatarRefreshMs);
+    window.removeEventListener("error", revealFallbackUi);
+    window.removeEventListener("unhandledrejection", revealFallbackUi);
+  </script>
+</body>
+</html>

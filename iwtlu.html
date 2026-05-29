@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>iwtlu | iwtxz</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px 24px 112px;
+      overflow: hidden;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      color: #fff;
+      background:
+        linear-gradient(rgba(0,0,0,.58), rgba(0,0,0,.58)),
+        url("") center center / cover no-repeat #09090c;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      backdrop-filter: blur(.75px);
+      pointer-events: none;
+    }
+    .profile {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      justify-items: center;
+      gap: 12px;
+      text-align: center;
+    }
+    .avatar {
+      width: 112px;
+      height: 112px;
+      border-radius: 50%;
+      object-fit: cover;
+      box-shadow: 0 0 22px rgba(255,255,255,.28);
+    }
+    .name {
+      margin: 0;
+      font-size: clamp(34px, 6vw, 58px);
+      line-height: .95;
+      text-shadow: 0 0 18px rgba(255,255,255,.82);
+    }
+    .desc {
+      margin: 0;
+      max-width: 640px;
+      font-weight: 700;
+      white-space: pre-line;
+      text-shadow: 0 2px 10px rgba(0,0,0,.72);
+    }
+    .socials {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 4px;
+    }
+    .social {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      filter: drop-shadow(0 0 8px rgba(255,255,255,.68));
+    }
+    .social img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .discord {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 6px;
+      padding: 8px 12px 8px 8px;
+      border-radius: 16px;
+      background: rgba(0,0,0,.28);
+      backdrop-filter: blur(7px);
+      text-align: left;
+    }
+    .discord img {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .discord strong {
+      display: block;
+      font-size: 14px;
+    }
+    .discord span {
+      display: block;
+      margin-top: 2px;
+      font-size: 12px;
+      color: rgba(255,255,255,.86);
+    }
+    .discord b {
+      color: #4ade80;
+    }
+    .music {
+      position: fixed;
+      left: 50%;
+      bottom: 28px;
+      z-index: 2;
+      transform: translateX(-50%);
+      width: min(620px, calc(100% - 32px));
+      font-weight: 700;
+      text-shadow: 0 2px 10px rgba(0,0,0,.7);
+    }
+    .music-line {
+      height: 4px;
+      margin-top: 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.28);
+    }
+  </style>
+</head>
+<body>
+  <main class="profile">
+    <img class="avatar" src="" alt="">
+    <h1 class="name">iwtlu</h1>
+    <p class="desc">Я где-то на небесах, и мои сиппеты тоже</p>
+    <div class="socials">
+      <span class="social"><img src="img/discord.png" alt=""></span>
+      <a class="social" href="https://t.me/iwtluz" target="_blank" rel="noreferrer"><img src="img/telegram.png" alt=""></a>
+      <a class="social" href="https://steamcommunity.com/id/meintofores" target="_blank" rel="noreferrer"><img src="img/steam.png" alt=""></a>
+    </div>
+    <div class="discord">
+      <img src="" alt="">
+      <div>
+        <strong>meowixzz</strong>
+        <span><b>♫</b> • status</span>
+      </div>
+    </div>
+  </main>
+  <div class="music">
+    <div>ща кабудта фильм</div>
+    <div class="music-line"></div>
+  </div>
+  <audio src="" autoplay loop></audio>
+</body>
+</html>
