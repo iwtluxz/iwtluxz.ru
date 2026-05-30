@@ -1392,6 +1392,7 @@
     const discordAvatarRefreshMs = 60 * 1000;
     const discordAvatarTarget = document.querySelector("[data-discord-avatar-target]");
     const discordAvatarImage = document.querySelector("[data-discord-avatar-image]");
+    const staticDiscordAvatarUrl = discordAvatarImage ? discordAvatarImage.getAttribute("src").split("?")[0] : "";
     const playlist = [
       { title: "whitek3d - STATUS", src: "sound/sound1.mp3" }
     ];
@@ -1440,8 +1441,12 @@
     }
 
     async function fetchDiscordAvatar() {
-      if (isLocalFile || !window.location.hostname.includes("netlify")) {
+      if (isLocalFile) {
         return null;
+      }
+
+      if (!window.location.hostname.includes("netlify")) {
+        return staticDiscordAvatarUrl ? `${staticDiscordAvatarUrl}?v=${Date.now()}` : null;
       }
 
       const controller = typeof window.AbortController === "function" ? new AbortController() : null;
