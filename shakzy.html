@@ -1440,7 +1440,7 @@
     }
 
     async function fetchDiscordAvatar() {
-      if (isLocalFile) {
+      if (isLocalFile || !window.location.hostname.includes("netlify")) {
         return null;
       }
 

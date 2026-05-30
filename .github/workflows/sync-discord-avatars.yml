@@ -1,0 +1,32 @@
+name: Sync Discord avatars
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/30 * * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Sync avatars
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+        run: node scripts/sync-discord-avatars.mjs
+
+      - name: Commit updated avatars
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Sync Discord avatars
+          file_pattern: img/avatar.jpg img/discordimg.png img/avatar1.jpg img/avatar_shakzy.jpg
