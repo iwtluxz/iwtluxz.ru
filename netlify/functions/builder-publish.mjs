@@ -248,6 +248,90 @@ function renderProfile(site) {
 </html>`;
 }
 
+function toBase64(value) {
+  return Buffer.from(value, "utf8").toString("base64");
+}
+
+function githubPath(path) {
+  return path.split("/").map(encodeURIComponent).join("/");
+}
+
+async function githubApi(path, options = {}) {
+  const token = process.env.GITHUB_TOKEN;
+  const repo = process.env.GITHUB_REPO;
+
+  if (!token || !repo) {
+    throw new Error("github env missing");
+  }
+
+  const response = await fetch(`https://api.github.com/repos/${repo}${path}`, {
+    ...options,
+    headers: {
+      accept: "application/vnd.github+json",
+      authorization: `Bearer ${token}`,
+      "content-type": "application/json",
+      "x-github-api-version": "2022-11-28",
+      ...(options.headers ?? {})
+    }
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const error = new Error(data.message || "github request failed");
+    error.status = response.status;
+    throw error;
+  }
+
+  return data;
+}
+
+async function readGithubFile(path, branch) {
+  try {
+    return await githubApi(`/contents/${githubPath(path)}?ref=${encodeURIComponent(branch)}`);
+  } catch (error) {
+    if (error.status === 404) {
+      return null;
+    }
+
+    throw error;
+  }
+}
+
+async function writeGithubFile(path, content, message, branch) {
+  const existing = await readGithubFile(path, branch);
+  await githubApi(`/contents/${githubPath(path)}`, {
+    method: "PUT",
+    body: JSON.stringify({
+      message,
+      content: toBase64(content),
+      branch,
+      ...(existing?.sha ? { sha: existing.sha } : {})
+    })
+  });
+}
+
+async function ensureGithubRedirect(slug, branch) {
+  const path = "_redirects";
+  const existing = await readGithubFile(path, branch);
+  const currentText = existing?.content
+    ? Buffer.from(existing.content.replace(/\s/g, ""), "base64").toString("utf8")
+    : "";
+  const lines = currentText.split(/\r?\n/).filter(Boolean);
+  const wanted = [`/${slug} /${slug}.html 200`, `/${slug}/ /${slug}.html 200`];
+
+  for (const line of wanted) {
+    if (!lines.includes(line)) {
+      lines.push(line);
+    }
+  }
+
+  const nextText = `${lines.join("\n")}\n`;
+  if (nextText !== currentText) {
+    await writeGithubFile(path, nextText, `Update redirect for ${slug}`, branch);
+  }
+}
+
 async function ensureRedirect(root, slug) {
   const redirectsPath = join(root, "_redirects");
   let text = "";
@@ -270,13 +354,46 @@ async function ensureRedirect(root, slug) {
   await writeFile(redirectsPath, `${lines.join("\n")}\n`, "utf8");
 }
 
+async function publishLocal(site, slug) {
+  const root = resolve(process.cwd());
+  const filePath = resolve(root, `${slug}.html`);
+
+  if (!filePath.startsWith(`${root}\\`) && !filePath.startsWith(`${root}/`)) {
+    return json({ error: "invalid file path" }, 400);
+  }
+
+  await writeFile(filePath, renderProfile(site), "utf8");
+  await ensureRedirect(root, slug);
+
+  return {
+    ok: true,
+    mode: "local",
+    slug,
+    file: `${slug}.html`,
+    url: `/${slug}`
+  };
+}
+
+async function publishGithub(site, slug) {
+  const branch = process.env.GITHUB_BRANCH || process.env.BRANCH || "main";
+  const file = `${slug}.html`;
+
+  await writeGithubFile(file, renderProfile(site), `Publish ${slug} profile`, branch);
+  await ensureGithubRedirect(slug, branch);
+
+  return {
+    ok: true,
+    mode: "github",
+    branch,
+    slug,
+    file,
+    url: `/${slug}`
+  };
+}
+
 export default async (req) => {
   if (req.method !== "POST") {
     return json({ error: "method not allowed" }, 405);
-  }
-
-  if (!process.env.NETLIFY_DEV && process.env.BUILDER_ENABLE_FILE_PUBLISH !== "true") {
-    return json({ error: "file publish works only in local dev" }, 403);
   }
 
   const username = await requireUser(req);
@@ -288,24 +405,14 @@ export default async (req) => {
     const body = await req.json().catch(() => ({}));
     const site = normalizeSite(body.site ?? body, username);
     const slug = fixedSlugs[username] ?? slugify(site.id || site.nickname, username);
-    const root = resolve(process.cwd());
-    const filePath = resolve(root, `${slug}.html`);
 
-    if (!filePath.startsWith(`${root}\\`) && !filePath.startsWith(`${root}/`)) {
-      return json({ error: "invalid file path" }, 400);
+    if (process.env.NETLIFY_DEV) {
+      return json(await publishLocal(site, slug));
     }
 
-    await writeFile(filePath, renderProfile(site), "utf8");
-    await ensureRedirect(root, slug);
-
-    return json({
-      ok: true,
-      slug,
-      file: `${slug}.html`,
-      url: `/${slug}`
-    });
-  } catch {
-    return json({ error: "project file publish failed" }, 503);
+    return json(await publishGithub(site, slug));
+  } catch (error) {
+    return json({ error: error.message || "project file publish failed" }, 503);
   }
 };
 

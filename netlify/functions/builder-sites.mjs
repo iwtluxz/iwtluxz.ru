@@ -103,7 +103,13 @@ function cleanText(value, fallback, max = 120) {
 
 function cleanAsset(value) {
   const text = String(value ?? "");
-  return text.startsWith("data:") || text.startsWith("http://") || text.startsWith("https://") ? text : "";
+  return text.startsWith("data:")
+    || text.startsWith("http://")
+    || text.startsWith("https://")
+    || text.startsWith("img/")
+    || text.startsWith("sound/")
+    ? text
+    : "";
 }
 
 function normalizeSite(input, username) {
