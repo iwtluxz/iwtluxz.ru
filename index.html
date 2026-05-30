@@ -615,6 +615,8 @@
     let currentUser = null;
     let currentSite = { ...defaultSite };
     let authMode = "login";
+    const backendAvailable = ["localhost", "127.0.0.1"].includes(window.location.hostname) || window.location.hostname.includes("netlify");
+    const staticStorageKey = "iwtxz-builder-static-sites";
 
     const $ = (selector) => document.querySelector(selector);
     const authForm = $("#authForm");
@@ -635,6 +637,10 @@
     }
 
     async function api(path, options = {}) {
+      if (!backendAvailable) {
+        throw new Error("backend unavailable");
+      }
+
       const response = await fetch(path, {
         headers: { "content-type": "application/json", ...(options.headers ?? {}) },
         credentials: "same-origin",
@@ -646,6 +652,18 @@
         throw new Error(data.error || "request failed");
       }
       return data;
+    }
+
+    function readStaticSites() {
+      try {
+        return JSON.parse(localStorage.getItem(staticStorageKey) || "[]");
+      } catch {
+        return [];
+      }
+    }
+
+    function writeStaticSites(sites) {
+      localStorage.setItem(staticStorageKey, JSON.stringify(sites));
     }
 
     function readEditor() {
@@ -703,6 +721,19 @@
     }
 
     async function checkMe() {
+      if (!backendAvailable) {
+        currentUser = { username: "static" };
+        userLine.textContent = "static";
+        logoutButton.classList.add("hidden");
+        document.body.classList.remove("auth-locked");
+        setStatus(authStatus, "GitHub Pages: вход и база недоступны, включён статический режим", "ok");
+        [...authForm.querySelectorAll("input, button")].forEach((element) => {
+          element.disabled = true;
+        });
+        await loadSites();
+        return;
+      }
+
       try {
         const data = await api("/api/builder/auth/me");
         currentUser = data.user;
@@ -724,6 +755,30 @@
     async function loadSites() {
       if (!currentUser) return;
       sitesList.innerHTML = "";
+
+      if (!backendAvailable) {
+        const sites = readStaticSites();
+        if (!sites.length) {
+          sitesList.innerHTML = '<p class="status">Пока нет сохранённых сайтов в этом браузере.</p>';
+          return;
+        }
+
+        sites.forEach((site) => {
+          const button = document.createElement("button");
+          button.className = "site-item";
+          button.type = "button";
+          button.innerHTML = `<strong></strong><span></span>`;
+          button.querySelector("strong").textContent = site.title;
+          button.querySelector("span").textContent = site.nickname;
+          button.addEventListener("click", () => {
+            writeEditor(site);
+            setStatus(editorStatus, "проект открыт", "ok");
+          });
+          sitesList.appendChild(button);
+        });
+        return;
+      }
+
       const data = await api("/api/builder/sites/list");
 
       if (!data.sites.length) {
@@ -758,6 +813,17 @@
       }
 
       setStatus(editorStatus, "сохраняю...");
+
+      if (!backendAvailable) {
+        const sites = readStaticSites().filter((entry) => entry.id !== site.id);
+        sites.unshift(site);
+        writeStaticSites(sites);
+        writeEditor(site);
+        await loadSites();
+        setStatus(editorStatus, "сохранено в этом браузере", "ok");
+        return;
+      }
+
       const data = await api("/api/builder/sites/save", {
         method: "POST",
         body: JSON.stringify({ site })
@@ -769,6 +835,15 @@
 
     async function deleteSite() {
       if (!currentUser || !currentSite.id) return;
+
+      if (!backendAvailable) {
+        writeStaticSites(readStaticSites().filter((entry) => entry.id !== currentSite.id));
+        writeEditor({ ...defaultSite, id: "" });
+        await loadSites();
+        setStatus(editorStatus, "удалено из этого браузера", "ok");
+        return;
+      }
+
       await api("/api/builder/sites/delete", {
         method: "POST",
         body: JSON.stringify({ id: currentSite.id })
@@ -823,6 +898,11 @@
         return;
       }
 
+      if (!backendAvailable) {
+        setStatus(editorStatus, "на GitHub Pages запись в проект недоступна, используй экспорт HTML", "error");
+        return;
+      }
+
       setStatus(editorStatus, "записываю файл проекта...");
       await saveSite();
       const site = readEditor();
@@ -835,6 +915,12 @@
 
     authForm.addEventListener("submit", async (event) => {
       event.preventDefault();
+
+      if (!backendAvailable) {
+        setStatus(authStatus, "на GitHub Pages вход невозможен без отдельного backend", "error");
+        return;
+      }
+
       const button = event.submitter;
       authMode = button?.dataset.authMode ?? authMode;
       try {
