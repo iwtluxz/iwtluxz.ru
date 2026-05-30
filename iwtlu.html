@@ -21,6 +21,14 @@
       --text: #f5f5f7;
       --muted: rgba(255, 255, 255, 0.84);
       --shadow: 0 24px 64px rgba(0, 0, 0, 0.34);
+      --cursor-default: url("img/cursor.png") 0 0, auto;
+      --cursor-pointer: url("img/cursor1.png") 0 0, pointer;
+    }
+
+    @font-face {
+      font-family: "Minecraft";
+      src: url("font/minecraft.ttf") format("truetype");
+      font-display: swap;
     }
 
     * {
@@ -42,8 +50,9 @@
       place-items: center;
       place-content: center;
       overflow: hidden;
-      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      font-family: "Minecraft", "Trebuchet MS", "Segoe UI", sans-serif;
       color: var(--text);
+      cursor: var(--cursor-default);
       background:
         linear-gradient(rgba(0, 0, 0, 0.58), rgba(0, 0, 0, 0.58)),
         url("img/photo.gif") center center / cover no-repeat;
@@ -113,7 +122,7 @@
       display: grid;
       place-items: center;
       padding: 24px;
-      background: rgba(0, 0, 0, 0.48);
+      background: rgba(0, 0, 0, 0.72);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       cursor: pointer;
@@ -192,7 +201,7 @@
         0 12px 24px rgba(0, 0, 0, 0.32);
       position: relative;
       overflow: visible;
-      cursor: default;
+      cursor: pointer;
       outline: none;
       transform: translateY(var(--avatar-offset));
       margin-bottom: -10px;
@@ -203,13 +212,15 @@
       content: none;
     }
 
-    .avatar::after {
-      content: attr(data-hover);
+    .avatar-badge {
       position: absolute;
       left: 50%;
       bottom: calc(100% + 10px);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
       transform: translateX(-50%) translateY(6px);
-      padding: 6px 9px;
+      padding: 5px 8px 5px 6px;
       border-radius: 8px;
       background: rgba(12, 12, 16, 0.88);
       border: 1px solid rgba(255, 255, 255, 0.08);
@@ -225,8 +236,16 @@
       transition: opacity 180ms ease, transform 180ms ease;
     }
 
-    .avatar:hover::after,
-    .avatar:focus-visible::after {
+    .avatar-badge img {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      object-fit: cover;
+      flex: 0 0 auto;
+    }
+
+    .avatar:hover .avatar-badge,
+    .avatar:focus-visible .avatar-badge {
       opacity: 1;
       transform: translateX(-50%) translateY(0);
     }
@@ -407,7 +426,7 @@
       border: 0;
       padding: 0;
       background: none;
-      cursor: pointer;
+      cursor: var(--cursor-pointer);
       font: inherit;
     }
 
@@ -478,6 +497,36 @@
       width: 30px;
       height: 30px;
       flex: 0 0 auto;
+    }
+
+    .copy-toast {
+      position: fixed;
+      left: 50%;
+      bottom: max(104px, calc(env(safe-area-inset-bottom) + 92px));
+      z-index: 7;
+      max-width: min(360px, calc(100vw - 32px));
+      padding: 9px 13px;
+      border-radius: 999px;
+      background: rgba(8, 8, 12, 0.72);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.96);
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.2;
+      text-align: center;
+      white-space: nowrap;
+      opacity: 0;
+      transform: translateX(-50%) translateY(8px);
+      pointer-events: none;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .copy-toast.is-visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
     }
 
     .audio-toggle [data-audio-label] {
@@ -786,6 +835,11 @@
         padding: 6px 9px;
         font-size: 11px;
       }
+
+      .copy-toast {
+        bottom: max(88px, calc(env(safe-area-inset-bottom) + 76px));
+        font-size: 11px;
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -836,7 +890,7 @@
       background: rgba(0, 0, 0, 0.18);
       color: rgba(255, 255, 255, 0.95);
       font: inherit;
-      font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+      font-family: inherit;
       text-align: left;
       text-decoration: none;
       cursor: pointer;
@@ -1034,8 +1088,45 @@
       align-items: center;
       gap: 14px;
       color: rgba(255, 255, 255, 0.95);
-      font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+      font-family: inherit;
       transition: opacity 180ms ease;
+    }
+
+    .track-card-cover-wrap {
+      position: relative;
+      width: 50px;
+      height: 50px;
+      display: block;
+      transform: translateY(-3px);
+      cursor: pointer;
+    }
+
+    .track-card-cover-wrap::after {
+      content: attr(data-track-owner);
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 8px);
+      transform: translateX(-50%) translateY(6px);
+      padding: 5px 8px;
+      border-radius: 8px;
+      background: rgba(12, 12, 16, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.96);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .track-card-cover-wrap:hover::after,
+    .track-card-cover-wrap:focus-visible::after {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
     }
 
     .track-card-cover {
@@ -1044,7 +1135,6 @@
       display: block;
       border-radius: 10px;
       object-fit: contain;
-      transform: translateY(-3px);
       filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.08));
     }
 
@@ -1163,6 +1253,61 @@
       display: block;
     }
 
+    .entry-volume {
+      position: fixed;
+      right: 30px;
+      bottom: max(30px, calc(env(safe-area-inset-bottom) + 24px));
+      z-index: 4;
+      width: 36px;
+      min-height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 6px;
+      padding: 6px 9px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.28);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.82);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      overflow: hidden;
+      transition: width 180ms ease, color 180ms ease, background 180ms ease, opacity 180ms ease;
+    }
+
+    .entry-volume:hover,
+    .entry-volume:focus-within {
+      width: 126px;
+      background: rgba(0, 0, 0, 0.38);
+      color: rgba(255, 255, 255, 0.96);
+    }
+
+    .entry-volume svg {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 auto;
+      fill: currentColor;
+    }
+
+    .entry-volume input {
+      width: 82px;
+      flex: 0 0 auto;
+      accent-color: rgba(255, 255, 255, 0.92);
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 160ms ease;
+    }
+
+    .entry-volume:hover input,
+    .entry-volume:focus-within input {
+      opacity: 1;
+    }
+
+    .entry-volume input:focus-visible {
+      outline: 1px solid rgba(255, 255, 255, 0.65);
+      outline-offset: 3px;
+    }
+
     @keyframes name-flicker {
       0%,
       13%,
@@ -1213,6 +1358,7 @@
         gap: 10px;
       }
 
+      .track-card-cover-wrap,
       .track-card-cover {
         width: 42px;
         height: 42px;
@@ -1253,6 +1399,44 @@
         left: 20px;
         bottom: max(20px, calc(env(safe-area-inset-bottom) + 16px));
       }
+
+      .entry-volume {
+        right: 20px;
+        bottom: max(20px, calc(env(safe-area-inset-bottom) + 16px));
+        width: 34px;
+        min-height: 32px;
+        padding: 6px 8px;
+      }
+
+      .entry-volume:hover,
+      .entry-volume:focus-within {
+        width: 104px;
+      }
+
+      .entry-volume input {
+        width: 64px;
+      }
+    }
+
+    a,
+    button,
+    input,
+    .entry-overlay,
+    .entry-button,
+    .avatar,
+    .social-link,
+    .social-link img,
+    .social-button,
+    .discord-card,
+    .discord-card *,
+    .track-card-cover-wrap,
+    .track-card-action,
+    .entry-volume {
+      cursor: var(--cursor-pointer);
+    }
+
+    .track-card-action:disabled {
+      cursor: var(--cursor-default);
     }
   </style>
 </head>
@@ -1263,12 +1447,17 @@
   <audio id="bgAudio" src="sound/sound.mp3" preload="auto"></audio>
   <main class="panel" aria-label="Profile card">
     <section class="identity">
-      <div class="avatar" data-discord-avatar-target data-hover="Разработчик" tabindex="0" role="img" aria-label="avatar Разработчик"></div>
+      <div class="avatar" data-discord-avatar-target tabindex="0" role="img" aria-label="avatar Разработчик">
+        <span class="avatar-badge" aria-hidden="true">
+          <span>Разработчик</span>
+          <img src="img/curomi.gif" alt="">
+        </span>
+      </div>
       <h1 class="name" aria-label="iwtlu">
         <span class="name-text" data-text="iwtlu">iwtlu</span>
       </h1>
       <p class="tagline">
-        <span class="tagline-text">Я где-то на небесах, и мои сиппеты тоже</span>
+        <span class="tagline-text">Ты знаешь номера, ты знаешь наши ники</span>
       </p>
     </section>
     <div class="socials" aria-label="Social links">
@@ -1307,14 +1496,23 @@
       </span>
     </button>
   </main>
+  <div class="copy-toast" id="copyToast" role="status" aria-live="polite"></div>
   <div class="entry-views" aria-live="polite" aria-label="Entry views">
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d="M12 5c5.2 0 9.38 3.67 10.7 6.48a1.2 1.2 0 0 1 0 1.04C21.38 15.33 17.2 19 12 19S2.62 15.33 1.3 12.52a1.2 1.2 0 0 1 0-1.04C2.62 8.67 6.8 5 12 5Zm0 2C7.9 7 4.45 9.87 3.33 12 4.45 14.13 7.9 17 12 17s7.55-2.87 8.67-5C19.55 9.87 16.1 7 12 7Zm0 1.75A3.25 3.25 0 1 1 8.75 12 3.25 3.25 0 0 1 12 8.75Zm0 2A1.25 1.25 0 1 0 13.25 12 1.25 1.25 0 0 0 12 10.75Z"></path>
     </svg>
     <span data-view-count>0</span>
   </div>
+  <label class="entry-volume" aria-label="Volume">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4.5 9.25h3.35l4.3-3.5c.66-.54 1.65-.07 1.65.78v10.94c0 .85-.99 1.32-1.65.78l-4.3-3.5H4.5a1 1 0 0 1-1-1v-3.5a1 1 0 0 1 1-1Zm13.38-1.02a1 1 0 0 1 1.41 0 5.32 5.32 0 0 1 0 7.54 1 1 0 1 1-1.41-1.42 3.32 3.32 0 0 0 0-4.7 1 1 0 0 1 0-1.42Z"></path>
+    </svg>
+    <input id="trackVolume" type="range" min="0" max="100" step="1" value="45">
+  </label>
   <section class="track-card" aria-label="Current track">
-    <img class="track-card-cover" src="img/mysoundicon.png" alt="" aria-hidden="true">
+    <div class="track-card-cover-wrap" data-track-owner="Юпи" tabindex="0" aria-label="Трек Юпи">
+      <img class="track-card-cover" src="img/mysoundicon.png" alt="" aria-hidden="true">
+    </div>
     <div class="track-card-main">
       <div class="track-card-title" data-track-title>sound</div>
       <div class="track-card-progress-row">
@@ -1368,10 +1566,12 @@
     const bgAudio = document.getElementById("bgAudio");
     const audioToggle = document.getElementById("audioToggle");
     const discordCopyButtons = document.querySelectorAll("[data-discord-copy]");
+    const copyToast = document.getElementById("copyToast");
     const audioLabel = audioToggle ? audioToggle.querySelector("[data-audio-label]") : null;
     const trackToggleButton = document.getElementById("trackToggleButton");
     const trackPrevButton = document.getElementById("trackPrevButton");
     const trackNextButton = document.getElementById("trackNextButton");
+    const trackVolume = document.getElementById("trackVolume");
     const trackTitle = document.querySelector("[data-track-title]");
     const trackCurrentTime = document.querySelector("[data-track-current]");
     const trackDuration = document.querySelector("[data-track-duration]");
@@ -1388,14 +1588,14 @@
       : { get: () => null };
     const shouldSkipEnter = searchParams.get("demo") === "1" || window.location.hash === "#demo";
     const isLocalFile = window.location.protocol === "file:";
-    const audioTargetVolume = 0.45;
+    let audioTargetVolume = 0.45;
     const viewCountCacheKey = "iwtxz-iwtlu-entry-views";
     const audioPreferenceKey = "iwtxz-iwtlu-audio-enabled";
+    const audioVolumeKey = "iwtxz-iwtlu-audio-volume";
     const discordUserId = "1105558423359205489";
     const discordAvatarRefreshMs = 60 * 1000;
     const discordAvatarTarget = document.querySelector("[data-discord-avatar-target]");
     const discordAvatarImage = document.querySelector("[data-discord-avatar-image]");
-    const staticDiscordAvatarUrl = discordAvatarImage ? discordAvatarImage.getAttribute("src").split("?")[0] : "";
     const playlist = [
       { title: "ща кабудта фильм", src: "sound/sound.mp3" }
     ];
@@ -1443,13 +1643,71 @@
       } catch {}
     }
 
+    function readStoredAudioVolume() {
+      try {
+        const cachedValue = Number(window.localStorage.getItem(audioVolumeKey));
+        if (Number.isFinite(cachedValue)) {
+          return Math.min(Math.max(cachedValue, 0), 1);
+        }
+      } catch {}
+
+      return 0.45;
+    }
+
+    function writeStoredAudioVolume(value) {
+      try {
+        window.localStorage.setItem(audioVolumeKey, String(value));
+      } catch {}
+    }
+
+    function syncVolumeControl() {
+      if (!trackVolume) {
+        return;
+      }
+
+      const percent = Math.round(audioTargetVolume * 100);
+      trackVolume.value = String(percent);
+      trackVolume.setAttribute("aria-valuetext", `${percent}%`);
+    }
+
+    async function copyTextToClipboard(text) {
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+        await navigator.clipboard.writeText(text);
+        return;
+      }
+
+      const copyField = document.createElement("textarea");
+      copyField.value = text;
+      copyField.setAttribute("readonly", "");
+      copyField.style.position = "fixed";
+      copyField.style.left = "-9999px";
+      copyField.style.top = "0";
+      document.body.appendChild(copyField);
+      copyField.select();
+
+      try {
+        document.execCommand("copy");
+      } finally {
+        copyField.remove();
+      }
+    }
+
+    function showCopyToast(message) {
+      if (!copyToast) {
+        return;
+      }
+
+      copyToast.textContent = message;
+      copyToast.classList.add("is-visible");
+      window.clearTimeout(showCopyToast.hideTimer);
+      showCopyToast.hideTimer = window.setTimeout(() => {
+        copyToast.classList.remove("is-visible");
+      }, 1600);
+    }
+
     async function fetchDiscordAvatar() {
       if (isLocalFile) {
         return null;
-      }
-
-      if (!window.location.hostname.includes("netlify")) {
-        return staticDiscordAvatarUrl ? `${staticDiscordAvatarUrl}?v=${Date.now()}` : null;
       }
 
       const controller = typeof window.AbortController === "function" ? new AbortController() : null;
@@ -1801,6 +2059,21 @@
       tickTitle();
     }
 
+    function startEntryButtonDots() {
+      const dotFrames = [".", "..", "...", ".."];
+      let dotFrameIndex = 0;
+
+      entryButton.textContent = `click to enter${dotFrames[dotFrameIndex]}`;
+      window.setInterval(() => {
+        if (bodyElement.classList.contains("is-entered")) {
+          return;
+        }
+
+        dotFrameIndex = (dotFrameIndex + 1) % dotFrames.length;
+        entryButton.textContent = `click to enter${dotFrames[dotFrameIndex]}`;
+      }, 420);
+    }
+
     function enterSite() {
       if (bodyElement.classList.contains("is-entered")) {
         return;
@@ -1834,6 +2107,19 @@
         writeStoredAudioPreference(audioShouldPlay);
         syncAudioToggle();
         applyAudioState();
+      });
+    }
+
+    if (trackVolume) {
+      trackVolume.addEventListener("input", () => {
+        audioTargetVolume = Math.min(Math.max(Number(trackVolume.value) / 100, 0), 1);
+        writeStoredAudioVolume(audioTargetVolume);
+        syncVolumeControl();
+
+        if (!bgAudio.paused && audioShouldPlay) {
+          cancelAudioFade();
+          bgAudio.volume = audioTargetVolume;
+        }
       });
     }
 
@@ -1875,10 +2161,12 @@
         const discordName = discordCopyButton.dataset.discordCopy;
 
         try {
-          await navigator.clipboard.writeText(discordName);
-          discordCopyButton.setAttribute("title", "copied");
+          await copyTextToClipboard(discordName);
+          discordCopyButton.setAttribute("title", "имя пользователя успешно скопировано");
+          showCopyToast("имя пользователя успешно скопировано");
         } catch {
           discordCopyButton.setAttribute("title", discordName);
+          showCopyToast("не удалось скопировать");
         }
 
         window.setTimeout(() => {
@@ -1896,11 +2184,14 @@
       }
     });
 
-    audioShouldPlay = readStoredAudioPreference();
+    audioShouldPlay = true;
+    audioTargetVolume = readStoredAudioVolume();
+    syncVolumeControl();
     lockNameSize();
     loadTrack(0);
     syncAudioToggle();
     syncDiscordAvatar();
+    startEntryButtonDots();
     startTabTitleAnimation();
 
     if (shouldSkipEnter) {

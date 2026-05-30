@@ -113,7 +113,7 @@
       display: grid;
       place-items: center;
       padding: 24px;
-      background: rgba(0, 0, 0, 0.48);
+      background: rgba(0, 0, 0, 0.72);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       cursor: pointer;
@@ -1798,6 +1798,21 @@
       tickTitle();
     }
 
+    function startEntryButtonDots() {
+      const dotFrames = [".", "..", "...", ".."];
+      let dotFrameIndex = 0;
+
+      entryButton.textContent = `click to enter${dotFrames[dotFrameIndex]}`;
+      window.setInterval(() => {
+        if (bodyElement.classList.contains("is-entered")) {
+          return;
+        }
+
+        dotFrameIndex = (dotFrameIndex + 1) % dotFrames.length;
+        entryButton.textContent = `click to enter${dotFrames[dotFrameIndex]}`;
+      }, 420);
+    }
+
     function enterSite() {
       if (bodyElement.classList.contains("is-entered")) {
         return;
@@ -1898,6 +1913,7 @@
     loadTrack(0);
     syncAudioToggle();
     syncDiscordAvatar();
+    startEntryButtonDots();
     startTabTitleAnimation();
 
     if (shouldSkipEnter) {
