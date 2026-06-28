@@ -49,7 +49,8 @@
       display: grid;
       place-items: center;
       place-content: center;
-      overflow: hidden;
+      overflow-x: hidden;
+      overflow-y: auto;
       font-family: "Minecraft", "Trebuchet MS", "Segoe UI", sans-serif;
       color: var(--text);
       cursor: var(--cursor-default);
@@ -858,6 +859,7 @@
 
     body {
       padding: 24px 24px 128px;
+      align-content: center;
     }
 
     .panel {
@@ -1606,6 +1608,7 @@
     let audioShouldPlay = true;
     let audioIntentRunId = 0;
     let audioRetryListening = false;
+    let viewRegistered = false;
     let currentTrackIndex = 0;
 
     function readCachedViewCount() {
@@ -1734,10 +1737,44 @@
       }
     }
 
+    function preloadImage(src) {
+      return new Promise((resolve, reject) => {
+        if (!src) {
+          reject(new Error("missing image"));
+          return;
+        }
+
+        const image = new Image();
+        const timeoutId = window.setTimeout(() => {
+          image.onload = null;
+          image.onerror = null;
+          reject(new Error("image load timeout"));
+        }, 3000);
+
+        image.onload = () => {
+          window.clearTimeout(timeoutId);
+          resolve(src);
+        };
+
+        image.onerror = () => {
+          window.clearTimeout(timeoutId);
+          reject(new Error("image unavailable"));
+        };
+
+        image.src = src;
+      });
+    }
+
     async function syncDiscordAvatar() {
       const avatarUrl = await fetchDiscordAvatar();
 
       if (!avatarUrl || !discordAvatarTarget) {
+        return;
+      }
+
+      try {
+        await preloadImage(avatarUrl);
+      } catch {
         return;
       }
 
@@ -1846,6 +1883,11 @@
     }
 
     async function registerEnterView() {
+      if (!viewCount || viewRegistered) {
+        return;
+      }
+
+      viewRegistered = true;
       const cachedCount = readCachedViewCount();
       if (cachedCount !== null) {
         viewCount.textContent = cachedCount;
