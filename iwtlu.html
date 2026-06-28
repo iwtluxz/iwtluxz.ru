@@ -1010,6 +1010,8 @@
     .tagline-text {
       display: block;
       white-space: pre-line;
+      animation: tagline-float 5.8s ease-in-out infinite;
+      will-change: transform;
     }
 
     .tagline-box {
@@ -1280,6 +1282,16 @@
           0 0 10px rgba(255, 255, 255, 0.82),
           0 0 24px rgba(255, 255, 255, 0.62),
           0 0 44px rgba(255, 255, 255, 0.34);
+      }
+    }
+
+    @keyframes tagline-float {
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-3px);
       }
     }
 
