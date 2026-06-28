@@ -1008,9 +1008,11 @@
     }
 
     .tagline-text {
-      display: block;
+      display: inline-block;
       white-space: pre-line;
-      animation: tagline-float 5.8s ease-in-out infinite;
+      max-width: 100%;
+      transform-origin: center center;
+      animation: tagline-breathe 4.8s ease-in-out infinite;
       will-change: transform;
     }
 
@@ -1285,13 +1287,13 @@
       }
     }
 
-    @keyframes tagline-float {
+    @keyframes tagline-breathe {
       0%,
       100% {
-        transform: translateY(0);
+        transform: scale(1);
       }
       50% {
-        transform: translateY(-3px);
+        transform: scale(1.025);
       }
     }
 
