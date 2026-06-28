@@ -1011,8 +1011,6 @@
       display: inline-block;
       white-space: pre-line;
       max-width: 100%;
-      animation: tagline-shimmer 5.6s ease-in-out infinite;
-      will-change: opacity, filter, text-shadow;
     }
 
     .tagline-box {
@@ -1286,25 +1284,6 @@
       }
     }
 
-    @keyframes tagline-shimmer {
-      0%,
-      100% {
-        opacity: 0.88;
-        filter: brightness(1);
-        text-shadow:
-          0 0 10px rgba(255, 255, 255, 0.16),
-          0 0 18px rgba(255, 255, 255, 0.08);
-      }
-      50% {
-        opacity: 1;
-        filter: brightness(1.14);
-        text-shadow:
-          0 0 10px rgba(255, 255, 255, 0.58),
-          0 0 22px rgba(255, 255, 255, 0.34),
-          0 0 38px rgba(255, 255, 255, 0.16);
-      }
-    }
-
     @media (max-width: 640px) {
       body {
         padding: 12px 12px 104px;
@@ -1403,7 +1382,7 @@
         <span class="name-text" data-text="iwtlu">iwtlu</span>
       </h1>
       <p class="tagline">
-        <span class="tagline-text">Ты знаешь номера, ты знаешь наши ники</span>
+        <span class="tagline-text">мне надоело трахаться и ссориться, извини</span>
       </p>
     </section>
     <div class="socials" aria-label="Social links">
@@ -1535,7 +1514,7 @@
     const discordAvatarTarget = document.querySelector("[data-discord-avatar-target]");
     const discordAvatarImage = document.querySelector("[data-discord-avatar-image]");
     const playlist = [
-      { title: "ща кабудта фильм", src: "sound/sound.mp3" }
+      { title: "сожги мосты трахай мозг", src: "sound/sound.mp3" }
     ];
     let animationStarted = false;
     let audioFadeFrame = 0;
