@@ -828,6 +828,7 @@
     }
 
     .discord-card {
+      position: relative;
       width: min(286px, calc(100vw - 32px));
       display: flex;
       align-items: center;
@@ -848,12 +849,12 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.025);
       backdrop-filter: blur(6px);
       -webkit-backdrop-filter: blur(6px);
-      transition: width 180ms ease, transform 180ms ease, background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+      overflow: visible;
+      transition: transform 180ms ease, background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
     }
 
     .discord-card:hover,
     .discord-card:focus-visible {
-      width: min(430px, calc(100vw - 32px));
       transform: translateY(-2px);
       background: rgba(0, 0, 0, 0.26);
       border-color: rgba(255, 255, 255, 0.06);
@@ -944,23 +945,42 @@
 
     .discord-card-status [data-discord-status-text] {
       min-width: 0;
-      flex: 1 1 auto;
+      flex: 0 1 auto;
+      max-width: 148px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
 
-    .discord-card:hover .discord-card-status,
-    .discord-card:focus-visible .discord-card-status {
-      align-items: flex-start;
-      white-space: normal;
+    .discord-card-status::after {
+      content: attr(data-status-tooltip);
+      position: absolute;
+      left: 18px;
+      top: calc(100% + 8px);
+      width: 182px;
+      padding: 10px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 11px;
+      background: rgba(28, 30, 38, 0.98);
+      color: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.34);
+      font-size: 13px;
+      font-weight: 650;
+      line-height: 1.28;
+      white-space: pre-line;
+      word-break: break-word;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-4px) scale(0.98);
+      transform-origin: 28px 0;
+      transition: opacity 140ms ease, transform 140ms ease;
+      z-index: 20;
     }
 
-    .discord-card:hover .discord-card-status [data-discord-status-text],
-    .discord-card:focus-visible .discord-card-status [data-discord-status-text] {
-      overflow: visible;
-      white-space: normal;
-      word-break: break-word;
+    .discord-card:hover .discord-card-status::after,
+    .discord-card:focus-visible .discord-card-status::after {
+      opacity: 1;
+      transform: translateY(0) scale(1);
     }
 
     .discord-card-status-note {
@@ -1507,6 +1527,8 @@
     const bgAudio = document.getElementById("bgAudio");
     const audioToggle = document.getElementById("audioToggle");
     const discordCopyButtons = document.querySelectorAll("[data-discord-copy]");
+    const discordStatus = document.querySelector(".discord-card-status");
+    const discordStatusText = document.querySelector("[data-discord-status-text]");
     const copyToast = document.getElementById("copyToast");
     const audioLabel = audioToggle ? audioToggle.querySelector("[data-audio-label]") : null;
     const trackToggleButton = document.getElementById("trackToggleButton");
@@ -1546,6 +1568,16 @@
     let audioIntentRunId = 0;
     let audioRetryListening = false;
     let currentTrackIndex = 0;
+
+    function syncDiscordStatusTooltip() {
+      if (!discordStatus || !discordStatusText) {
+        return;
+      }
+
+      discordStatus.dataset.statusTooltip = discordStatusText.textContent.trim();
+    }
+
+    syncDiscordStatusTooltip();
 
     function readStoredAudioPreference() {
       try {
