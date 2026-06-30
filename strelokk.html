@@ -886,6 +886,8 @@
     .discord-card-badge-icon {
       width: 17px;
       height: 17px;
+      min-width: 0;
+      flex: 1 1 17px;
       display: block;
       object-fit: contain;
     }
@@ -1156,6 +1158,61 @@
       display: block;
     }
 
+    .entry-volume {
+      position: fixed;
+      right: 30px;
+      bottom: max(30px, calc(env(safe-area-inset-bottom) + 24px));
+      z-index: 4;
+      width: 36px;
+      min-height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 6px;
+      padding: 6px 9px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.28);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.82);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      overflow: hidden;
+      transition: width 180ms ease, color 180ms ease, background 180ms ease, opacity 180ms ease;
+    }
+
+    .entry-volume:hover,
+    .entry-volume:focus-within {
+      width: 126px;
+      background: rgba(0, 0, 0, 0.38);
+      color: rgba(255, 255, 255, 0.96);
+    }
+
+    .entry-volume svg {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 auto;
+      fill: currentColor;
+    }
+
+    .entry-volume input {
+      width: 82px;
+      flex: 0 0 auto;
+      accent-color: rgba(255, 255, 255, 0.92);
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 160ms ease;
+    }
+
+    .entry-volume:hover input,
+    .entry-volume:focus-within input {
+      opacity: 1;
+    }
+
+    .entry-volume input:focus-visible {
+      outline: 1px solid rgba(255, 255, 255, 0.65);
+      outline-offset: 3px;
+    }
+
     @keyframes name-flicker {
       0%,
       13%,
@@ -1220,6 +1277,23 @@
         width: 34px;
         height: 34px;
       }
+
+      .entry-volume {
+        right: 20px;
+        bottom: max(20px, calc(env(safe-area-inset-bottom) + 16px));
+        width: 34px;
+        min-height: 32px;
+        padding: 6px 8px;
+      }
+
+      .entry-volume:hover,
+      .entry-volume:focus-within {
+        width: 104px;
+      }
+
+      .entry-volume input {
+        width: 64px;
+      }
     }
 
     .controls {
@@ -1232,13 +1306,6 @@
   <div class="entry-overlay" id="entryOverlay">
     <button class="entry-button" id="entryButton" type="button">click to enter...</button>
   </div>
-  <button class="audio-toggle" id="audioToggle" type="button" aria-label="Turn music off" aria-pressed="true">
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path class="audio-icon-speaker" d="M4.5 9.25h3.35l4.3-3.5c.66-.54 1.65-.07 1.65.78v10.94c0 .85-.99 1.32-1.65.78l-4.3-3.5H4.5a1 1 0 0 1-1-1v-3.5a1 1 0 0 1 1-1Zm13.38-1.02a1 1 0 0 1 1.41 0 5.32 5.32 0 0 1 0 7.54 1 1 0 1 1-1.41-1.42 3.32 3.32 0 0 0 0-4.7 1 1 0 0 1 0-1.42Z"></path>
-      <path class="audio-icon-off" d="M4.5 4.5 19.5 19.5"></path>
-    </svg>
-    <span data-audio-label>music on</span>
-  </button>
   <audio id="bgAudio" src="sound/sound1.mp3" preload="auto"></audio>
   <main class="panel" aria-label="Profile card">
     <section class="identity">
@@ -1283,6 +1350,12 @@
       </span>
     </button>
   </main>
+  <label class="entry-volume" aria-label="Volume">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4.5 9.25h3.35l4.3-3.5c.66-.54 1.65-.07 1.65.78v10.94c0 .85-.99 1.32-1.65.78l-4.3-3.5H4.5a1 1 0 0 1-1-1v-3.5a1 1 0 0 1 1-1Zm13.38-1.02a1 1 0 0 1 1.41 0 5.32 5.32 0 0 1 0 7.54 1 1 0 1 1-1.41-1.42 3.32 3.32 0 0 0 0-4.7 1 1 0 0 1 0-1.42Z"></path>
+    </svg>
+    <input id="trackVolume" type="range" min="0" max="100" step="1" value="45">
+  </label>
   <section class="track-card" aria-label="Current track">
     <img class="track-card-cover" src="img/strelokksoundicon.png?v=20260628b" alt="" aria-hidden="true">
     <div class="track-card-main">
@@ -1344,6 +1417,7 @@
     const trackToggleButton = document.getElementById("trackToggleButton");
     const trackPrevButton = document.getElementById("trackPrevButton");
     const trackNextButton = document.getElementById("trackNextButton");
+    const trackVolume = document.getElementById("trackVolume");
     const trackTitle = document.querySelector("[data-track-title]");
     const trackCurrentTime = document.querySelector("[data-track-current]");
     const trackDuration = document.querySelector("[data-track-duration]");
@@ -1359,8 +1433,9 @@
       : { get: () => null };
     const shouldSkipEnter = searchParams.get("demo") === "1" || window.location.hash === "#demo";
     const isLocalFile = window.location.protocol === "file:";
-    const audioTargetVolume = 0.45;
+    let audioTargetVolume = 0.45;
     const audioPreferenceKey = "iwtxz-strelokk-audio-enabled";
+    const audioVolumeKey = "iwtxz-strelokk-audio-volume";
     const discordUserId = "958595335037542450";
     const discordAvatarRefreshMs = 60 * 1000;
     const discordAvatarTarget = document.querySelector("[data-discord-avatar-target]");
@@ -1406,6 +1481,33 @@
       try {
         window.localStorage.setItem(audioPreferenceKey, String(Boolean(shouldPlay)));
       } catch {}
+    }
+
+    function readStoredAudioVolume() {
+      try {
+        const cachedValue = Number(window.localStorage.getItem(audioVolumeKey));
+        if (Number.isFinite(cachedValue)) {
+          return Math.min(Math.max(cachedValue, 0), 1);
+        }
+      } catch {}
+
+      return 0.45;
+    }
+
+    function writeStoredAudioVolume(value) {
+      try {
+        window.localStorage.setItem(audioVolumeKey, String(value));
+      } catch {}
+    }
+
+    function syncVolumeControl() {
+      if (!trackVolume) {
+        return;
+      }
+
+      const percent = Math.round(audioTargetVolume * 100);
+      trackVolume.value = String(percent);
+      trackVolume.setAttribute("aria-valuetext", `${percent}%`);
     }
 
     async function fetchDiscordAvatar() {
@@ -1795,6 +1897,19 @@
       });
     }
 
+    if (trackVolume) {
+      trackVolume.addEventListener("input", () => {
+        audioTargetVolume = Math.min(Math.max(Number(trackVolume.value) / 100, 0), 1);
+        writeStoredAudioVolume(audioTargetVolume);
+        syncVolumeControl();
+
+        if (!bgAudio.paused && audioShouldPlay) {
+          cancelAudioFade();
+          bgAudio.volume = audioTargetVolume;
+        }
+      });
+    }
+
     bgAudio.addEventListener("play", syncAudioToggle);
     bgAudio.addEventListener("pause", syncAudioToggle);
     bgAudio.addEventListener("timeupdate", syncTrackCard);
@@ -1855,6 +1970,8 @@
     });
 
     audioShouldPlay = readStoredAudioPreference();
+    audioTargetVolume = readStoredAudioVolume();
+    syncVolumeControl();
     lockNameSize();
     loadTrack(0);
     syncAudioToggle();
