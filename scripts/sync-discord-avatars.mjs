@@ -16,7 +16,8 @@ const profiles = [
   {
     name: "strelokk",
     userId: "958595335037542450",
-    outputs: ["img/avatar1.jpg"]
+    outputs: ["img/avatar1.jpg"],
+    htmlPath: "strelokk.html"
   },
   {
     name: "shakzy",

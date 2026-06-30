@@ -37,4 +37,4 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Sync Discord avatars
-          file_pattern: iwtlu.html img/discordimg.png img/avatar1.jpg img/avatar_shakzy.jpg
+          file_pattern: iwtlu.html strelokk.html img/discordimg.png img/avatar1.jpg img/avatar_shakzy.jpg

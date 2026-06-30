@@ -23,6 +23,12 @@
       --shadow: 0 24px 64px rgba(0, 0, 0, 0.34);
     }
 
+    @font-face {
+      font-family: "Minecraft";
+      src: url("font/minecraft.ttf") format("truetype");
+      font-display: swap;
+    }
+
     * {
       box-sizing: border-box;
     }
@@ -43,7 +49,7 @@
       place-content: center;
       overflow-x: hidden;
       overflow-y: auto;
-      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      font-family: "Minecraft", "Trebuchet MS", "Segoe UI", sans-serif;
       color: var(--text);
       background:
         linear-gradient(rgba(0, 0, 0, 0.58), rgba(0, 0, 0, 0.58)),
@@ -186,11 +192,9 @@
       --avatar-offset: -10px;
       width: 114px;
       height: 114px;
-      border-radius: 50%;
-      background: url("img/avatar1.jpg?v=20260628b") center center / cover no-repeat;
-      box-shadow:
-        0 0 0 1px rgba(255, 255, 255, 0.06),
-        0 12px 24px rgba(0, 0, 0, 0.32);
+      border-radius: 0;
+      background: url("img/strelokkavatar.gif?v=20260630a") center center / contain no-repeat;
+      box-shadow: none;
       position: relative;
       overflow: visible;
       cursor: default;
@@ -771,6 +775,7 @@
     }
 
     .discord-card {
+      position: relative;
       width: min(286px, calc(100vw - 32px));
       display: flex;
       align-items: center;
@@ -791,6 +796,7 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.025);
       backdrop-filter: blur(6px);
       -webkit-backdrop-filter: blur(6px);
+      overflow: visible;
       transition: transform 180ms ease, background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
     }
 
@@ -831,6 +837,7 @@
 
     .discord-card-body {
       min-width: 0;
+      flex: 1 1 auto;
       display: flex;
       flex-direction: column;
       gap: 3px;
@@ -881,8 +888,46 @@
       line-height: 1.2;
       color: rgba(255, 255, 255, 0.92);
       white-space: nowrap;
+    }
+
+    .discord-card-status [data-discord-status-text] {
+      min-width: 0;
+      flex: 0 1 auto;
+      max-width: 148px;
       overflow: hidden;
       text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .discord-card-status::after {
+      content: attr(data-status-tooltip);
+      position: absolute;
+      left: 18px;
+      top: calc(100% + 8px);
+      width: 182px;
+      padding: 10px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 11px;
+      background: rgba(28, 30, 38, 0.98);
+      color: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.34);
+      font-size: 13px;
+      font-weight: 650;
+      line-height: 1.28;
+      white-space: pre-line;
+      word-break: break-word;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-4px) scale(0.98);
+      transform-origin: 28px 0;
+      transition: opacity 140ms ease, transform 140ms ease;
+      z-index: 20;
+    }
+
+    .discord-card:hover .discord-card-status::after,
+    .discord-card:focus-visible .discord-card-status::after {
+      opacity: 1;
+      transform: translateY(0) scale(1);
     }
 
     .discord-card-status-note {
@@ -1179,7 +1224,7 @@
   <audio id="bgAudio" src="sound/sound1.mp3" preload="auto"></audio>
   <main class="panel" aria-label="Profile card">
     <section class="identity">
-      <div class="avatar" data-discord-avatar-target data-hover="UID: #1" tabindex="0" role="img" aria-label="avatar UID: #1"></div>
+      <div class="avatar" data-hover="UID: #1" tabindex="0" role="img" aria-label="avatar UID: #1"></div>
       <h1 class="name" aria-label="strelokk">
         <span class="name-text" data-text="strelokk">strelokk</span>
       </h1>
@@ -1200,12 +1245,12 @@
     </div>
     <button class="discord-card" id="discordCardCopy" type="button" data-discord-copy="phantom576." aria-label="Copy Discord: phantom576." title="phantom576.">
       <span class="discord-card-media" aria-hidden="true">
-        <img class="discord-card-avatar" data-discord-avatar-image src="img/avatar1.jpg?v=20260628b" alt="">
+        <img class="discord-card-avatar" src="img/avatar1.jpg?v=20260628b" alt="">
         <span class="discord-card-dot"></span>
       </span>
       <span class="discord-card-body">
         <span class="discord-card-top">
-          <span class="discord-card-name">phantom576</span>
+          <span class="discord-card-name" data-discord-display-name>phantom576</span>
           <span class="discord-card-badges" aria-hidden="true">
             <img class="discord-card-badge-icon" src="img/nitro.png?v=20260628b" alt="">
             <img class="discord-card-badge-icon" src="img/hypesquad.png?v=20260628b" alt="">
@@ -1215,7 +1260,7 @@
           <span class="discord-card-status-note" aria-hidden="true">♫</span>
           <span class="discord-card-status-dot" aria-hidden="true">•</span>
           <img class="discord-card-status-heart" src="img/hearrsss.gif?v=20260628b" alt="">
-          <span>просветление достигнуто</span>
+          <span data-discord-status-text>просветление достигнуто</span>
         </span>
       </span>
     </button>
@@ -1275,6 +1320,8 @@
     const bgAudio = document.getElementById("bgAudio");
     const audioToggle = document.getElementById("audioToggle");
     const discordCopyButtons = document.querySelectorAll("[data-discord-copy]");
+    const discordStatus = document.querySelector(".discord-card-status");
+    const discordStatusText = document.querySelector("[data-discord-status-text]");
     const audioLabel = audioToggle ? audioToggle.querySelector("[data-audio-label]") : null;
     const trackToggleButton = document.getElementById("trackToggleButton");
     const trackPrevButton = document.getElementById("trackPrevButton");
@@ -1312,6 +1359,16 @@
     let audioIntentRunId = 0;
     let audioRetryListening = false;
     let currentTrackIndex = 0;
+
+    function syncDiscordStatusTooltip() {
+      if (!discordStatus || !discordStatusText) {
+        return;
+      }
+
+      discordStatus.dataset.statusTooltip = discordStatusText.textContent.trim();
+    }
+
+    syncDiscordStatusTooltip();
 
     function readStoredAudioPreference() {
       try {
