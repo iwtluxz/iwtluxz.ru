@@ -777,6 +777,7 @@
     .discord-card {
       position: relative;
       width: min(286px, calc(100vw - 32px));
+      min-height: 60px;
       display: flex;
       align-items: center;
       gap: 10px;
@@ -795,7 +796,7 @@
       backdrop-filter: blur(6px);
       -webkit-backdrop-filter: blur(6px);
       overflow: visible;
-      transition: transform 180ms ease, background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+      transition: transform 180ms ease, border-color 180ms ease;
     }
 
     .discord-card:hover,
@@ -808,7 +809,10 @@
 
     .discord-card-media {
       position: relative;
-      flex: 0 0 auto;
+      flex: 0 0 42px;
+      width: 42px;
+      height: 42px;
+      display: block;
     }
 
     .discord-card-avatar {
@@ -835,6 +839,7 @@
 
     .discord-card-body {
       min-width: 0;
+      height: 41px;
       flex: 1 1 auto;
       display: flex;
       flex-direction: column;
@@ -850,7 +855,10 @@
 
     .discord-card-top {
       gap: 5px;
+      width: 100%;
       min-height: 24px;
+      max-height: 24px;
+      overflow: hidden;
     }
 
     .discord-card-name {
@@ -871,6 +879,7 @@
       align-items: center;
       gap: 6px;
       flex: 0 0 auto;
+      overflow: hidden;
     }
 
     .discord-card-badge-icon {
@@ -887,6 +896,9 @@
       line-height: 1.2;
       color: rgba(255, 255, 255, 0.92);
       white-space: nowrap;
+      width: 100%;
+      min-height: 14px;
+      max-height: 14px;
     }
 
     .discord-card-status [data-discord-status-text] {
