@@ -161,9 +161,15 @@ function formatPresenceStatus(presence) {
   return activity.details || activity.state || activity.name || "";
 }
 
-function waitForGatewayMessage(socket) {
+function waitForGatewayMessage(socket, timeoutMs = 15000) {
   return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error("Discord gateway message timeout"));
+    }, timeoutMs);
+
     const cleanup = () => {
+      clearTimeout(timer);
       socket.removeEventListener("message", onMessage);
       socket.removeEventListener("error", onError);
       socket.removeEventListener("close", onClose);
@@ -199,7 +205,7 @@ async function fetchPresence(token, guildId, userId) {
   const timer = setTimeout(() => socket.close(), 15000);
 
   try {
-    const hello = await waitForGatewayMessage(socket);
+    const hello = await waitForGatewayMessage(socket, 5000);
     const heartbeatInterval = hello.d?.heartbeat_interval ?? 45000;
     const heartbeat = setInterval(() => {
       if (socket.readyState === WebSocket.OPEN) {
@@ -222,7 +228,7 @@ async function fetchPresence(token, guildId, userId) {
 
     const deadline = Date.now() + 14000;
     while (Date.now() < deadline) {
-      const message = await waitForGatewayMessage(socket);
+      const message = await waitForGatewayMessage(socket, Math.max(1000, deadline - Date.now()));
       const presence = findPresenceInGatewayPayload(message, guildId, userId);
 
       if (presence) {
