@@ -23,10 +23,11 @@ jobs:
       - name: Sync avatars
         env:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          DISCORD_GUILD_ID: ${{ secrets.DISCORD_GUILD_ID }}
         run: node scripts/sync-discord-avatars.mjs
 
       - name: Commit updated avatars
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Sync Discord avatars
-          file_pattern: img/avatar.jpg img/discordimg.png img/avatar1.jpg img/avatar_shakzy.jpg
+          file_pattern: iwtlu.html img/discordimg.png img/avatar1.jpg img/avatar_shakzy.jpg
