@@ -43,6 +43,7 @@ async function getToken() {
 
 async function fetchJson(url, token) {
   const response = await fetch(url, {
+    signal: AbortSignal.timeout(15000),
     headers: {
       authorization: `Bot ${token}`,
       "user-agent": "iwtlu-profile-sync"
@@ -57,7 +58,9 @@ async function fetchJson(url, token) {
 }
 
 async function fetchBytes(url) {
-  const response = await fetch(url);
+  const response = await fetch(url, {
+    signal: AbortSignal.timeout(20000)
+  });
 
   if (!response.ok) {
     throw new Error(`Avatar download failed: ${response.status} ${await response.text()}`);
@@ -203,11 +206,12 @@ async function fetchPresence(token, guildId, userId) {
 
   const socket = new WebSocket(DISCORD_GATEWAY);
   const timer = setTimeout(() => socket.close(), 15000);
+  let heartbeat = 0;
 
   try {
     const hello = await waitForGatewayMessage(socket, 5000);
     const heartbeatInterval = hello.d?.heartbeat_interval ?? 45000;
-    const heartbeat = setInterval(() => {
+    heartbeat = setInterval(() => {
       if (socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify({ op: 1, d: null }));
       }
@@ -232,17 +236,16 @@ async function fetchPresence(token, guildId, userId) {
       const presence = findPresenceInGatewayPayload(message, guildId, userId);
 
       if (presence) {
-        clearInterval(heartbeat);
         return presence;
       }
     }
 
-    clearInterval(heartbeat);
     return null;
   } catch (error) {
     console.warn(`presence unavailable for ${userId}: ${error.message}`);
     return null;
   } finally {
+    clearInterval(heartbeat);
     clearTimeout(timer);
     if (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING) {
       socket.close();
