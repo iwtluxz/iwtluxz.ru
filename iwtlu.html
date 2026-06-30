@@ -55,11 +55,20 @@
       color: var(--text);
       cursor: var(--cursor-default);
       background:
-        linear-gradient(rgba(0, 0, 0, 0.58), rgba(0, 0, 0, 0.58)),
-        url("img/photo.gif?v=20260628c") center center / cover no-repeat;
+        linear-gradient(rgba(0, 0, 0, 0.58), rgba(0, 0, 0, 0.58));
       background-color: var(--bg);
       position: relative;
       isolation: isolate;
+    }
+
+    .page-bg-video {
+      position: fixed;
+      inset: 0;
+      z-index: -3;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
     }
 
     body::before,
@@ -72,20 +81,16 @@
     body::before {
       inset: 0;
       z-index: -2;
-      background: rgba(0, 0, 0, 0.01);
-      backdrop-filter: blur(0.75px);
-      -webkit-backdrop-filter: blur(0.75px);
+      background: rgba(0, 0, 0, 0.08);
     }
 
     body::after {
       inset: -12%;
       z-index: -1;
       background:
-        radial-gradient(circle at 50% 50%, transparent 20%, rgba(0, 0, 0, 0.24) 62%, rgba(0, 0, 0, 0.58) 100%),
-        linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.08) 14%, transparent 24%, transparent 76%, rgba(255, 255, 255, 0.06) 86%, transparent 100%),
-        linear-gradient(180deg, rgba(0, 0, 0, 0.42), transparent 40%, transparent 60%, rgba(0, 0, 0, 0.48));
-      opacity: 0.4;
-      filter: blur(12px);
+        radial-gradient(circle at 50% 50%, transparent 18%, rgba(0, 0, 0, 0.16) 66%, rgba(0, 0, 0, 0.42) 100%),
+        linear-gradient(180deg, rgba(0, 0, 0, 0.22), transparent 42%, transparent 62%, rgba(0, 0, 0, 0.34));
+      opacity: 0.55;
     }
 
     body.no-js .entry-overlay {
@@ -1416,6 +1421,7 @@
   </style>
 </head>
 <body class="no-js">
+  <video class="page-bg-video" src="img/background.mp4" autoplay muted loop playsinline aria-hidden="true"></video>
   <div class="entry-overlay" id="entryOverlay">
     <button class="entry-button" id="entryButton" type="button">click to enter...</button>
   </div>
@@ -1424,7 +1430,7 @@
     <section class="identity">
       <div class="avatar" tabindex="0" role="img" aria-label="avatar Разработчик">
         <span class="avatar-badge" aria-hidden="true">
-          <span>Разработчик</span>
+          <span>Дианка</span>
           <img src="img/curomi.gif?v=20260628c" alt="">
         </span>
       </div>
@@ -1432,7 +1438,7 @@
         <span class="name-text" data-text="iwtlu">iwtlu</span>
       </h1>
       <p class="tagline">
-        <span class="tagline-text">мне надоело трахаться и ссориться, извини</span>
+        <span class="tagline-text">Мне кажется что я проживаю не самое лучшее время.</span>
       </p>
     </section>
     <div class="socials" aria-label="Social links">
@@ -1567,7 +1573,7 @@
     const discordAvatarTarget = document.querySelector("[data-discord-avatar-target]");
     const discordAvatarImage = document.querySelector("[data-discord-avatar-image]");
     const playlist = [
-      { title: "сожги мосты трахай мозг", src: "sound/sound.mp3" }
+      { title: "Miss You", src: "sound/sound.mp3" }
     ];
     let animationStarted = false;
     let audioFadeFrame = 0;
