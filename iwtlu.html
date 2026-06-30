@@ -848,11 +848,12 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.025);
       backdrop-filter: blur(6px);
       -webkit-backdrop-filter: blur(6px);
-      transition: transform 180ms ease, background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+      transition: width 180ms ease, transform 180ms ease, background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
     }
 
     .discord-card:hover,
     .discord-card:focus-visible {
+      width: min(430px, calc(100vw - 32px));
       transform: translateY(-2px);
       background: rgba(0, 0, 0, 0.26);
       border-color: rgba(255, 255, 255, 0.06);
@@ -888,6 +889,7 @@
 
     .discord-card-body {
       min-width: 0;
+      flex: 1 1 auto;
       display: flex;
       flex-direction: column;
       gap: 3px;
@@ -938,8 +940,27 @@
       line-height: 1.2;
       color: rgba(255, 255, 255, 0.92);
       white-space: nowrap;
+    }
+
+    .discord-card-status [data-discord-status-text] {
+      min-width: 0;
+      flex: 1 1 auto;
       overflow: hidden;
       text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .discord-card:hover .discord-card-status,
+    .discord-card:focus-visible .discord-card-status {
+      align-items: flex-start;
+      white-space: normal;
+    }
+
+    .discord-card:hover .discord-card-status [data-discord-status-text],
+    .discord-card:focus-visible .discord-card-status [data-discord-status-text] {
+      overflow: visible;
+      white-space: normal;
+      word-break: break-word;
     }
 
     .discord-card-status-note {
@@ -1430,7 +1451,7 @@
     <input id="trackVolume" type="range" min="0" max="100" step="1" value="45">
   </label>
   <section class="track-card" aria-label="Current track">
-    <div class="track-card-cover-wrap" data-track-owner="Юпи" tabindex="0" aria-label="Трек Юпи">
+    <div class="track-card-cover-wrap" data-track-owner="ivycraft" tabindex="0" aria-label="Трек ivycraft'a">
       <img class="track-card-cover" src="img/mysoundicon.png?v=20260628c" alt="" aria-hidden="true">
     </div>
     <div class="track-card-main">
