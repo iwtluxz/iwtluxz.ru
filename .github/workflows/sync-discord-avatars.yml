@@ -12,7 +12,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: sync-discord-avatars
+  group: sync-discord-avatars-${{ github.sha }}
   cancel-in-progress: true
 
 jobs:
