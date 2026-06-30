@@ -45,7 +45,7 @@
       width: 100%;
       min-height: 100vh;
       min-height: 100dvh;
-      padding: 24px;
+      padding: clamp(12px, 3vw, 24px);
       display: grid;
       place-items: center;
       place-content: center;
@@ -808,12 +808,13 @@
     }
 
     body {
-      padding: 24px 24px 128px;
+      padding: clamp(12px, 3vw, 24px) clamp(12px, 3vw, 24px) clamp(112px, 18vh, 150px);
       align-content: center;
     }
 
     .panel {
       width: min(560px, calc(100vw - 48px));
+      max-width: 100%;
       margin-inline: auto;
       text-align: center;
       justify-content: center;
@@ -832,7 +833,7 @@
 
     .discord-card {
       position: relative;
-      width: min(286px, calc(100vw - 32px));
+      width: min(286px, calc(100vw - 24px));
       min-height: 60px;
       display: flex;
       align-items: center;
@@ -1078,7 +1079,7 @@
       right: 0;
       bottom: max(30px, calc(env(safe-area-inset-bottom) + 24px));
       z-index: 4;
-      width: min(640px, calc(100vw - 32px));
+      width: min(640px, calc(100vw - 24px));
       margin-inline: auto;
       display: grid;
       grid-template-columns: 50px minmax(0, 1fr);
@@ -1155,7 +1156,7 @@
 
     .track-card-progress-row {
       display: grid;
-      grid-template-columns: auto minmax(320px, 1fr) auto auto;
+      grid-template-columns: auto minmax(0, 1fr) auto auto;
       align-items: center;
       gap: 12px;
     }
@@ -1190,7 +1191,7 @@
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      margin-left: 10px;
+      margin-left: 4px;
     }
 
     .track-card-action {
@@ -1346,6 +1347,48 @@
 
       .panel {
         width: min(420px, calc(100vw - 24px));
+        gap: 12px;
+      }
+
+      .identity {
+        gap: 7px;
+      }
+
+      .avatar {
+        width: 96px;
+        height: 96px;
+        margin-bottom: -8px;
+      }
+
+      .name {
+        font-size: clamp(28px, 10vw, 36px);
+      }
+
+      .tagline {
+        width: min(420px, calc(100vw - 24px));
+        max-width: calc(100vw - 24px);
+        max-height: min(24vh, 150px);
+        font-size: 10px;
+      }
+
+      .socials {
+        gap: 6px;
+      }
+
+      .social-link {
+        width: 40px;
+        height: 40px;
+      }
+
+      .social-link img,
+      .social-link svg {
+        width: 36px;
+        height: 36px;
+      }
+
+      .discord-card {
+        width: min(286px, calc(100vw - 24px));
+        margin-top: -18px;
       }
 
       .track-card {
@@ -1362,11 +1405,25 @@
       }
 
       .track-card-progress-row {
-        grid-template-columns: auto minmax(150px, 1fr) auto auto;
-        gap: 10px;
+        grid-template-columns: auto minmax(0, 1fr) auto auto;
+        gap: 8px;
+      }
+
+      .track-card-time {
+        font-size: 12px;
       }
 
       .track-card-action {
+        width: 32px;
+        height: 32px;
+      }
+
+      .track-card-action svg {
+        width: 21px;
+        height: 21px;
+      }
+
+      .track-card-action-toggle {
         width: 34px;
         height: 34px;
       }
@@ -1395,6 +1452,100 @@
 
       .entry-volume input {
         width: 64px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      body {
+        padding-bottom: 118px;
+      }
+
+      .panel {
+        gap: 10px;
+      }
+
+      .avatar {
+        width: 84px;
+        height: 84px;
+      }
+
+      .name {
+        font-size: clamp(25px, 10vw, 31px);
+      }
+
+      .discord-card {
+        width: calc(100vw - 18px);
+        gap: 8px;
+        padding: 7px 9px 7px 7px;
+      }
+
+      .discord-card-media,
+      .discord-card-avatar {
+        width: 38px;
+        height: 38px;
+      }
+
+      .discord-card-media {
+        flex-basis: 38px;
+      }
+
+      .discord-card-name {
+        font-size: 13px;
+      }
+
+      .discord-card-badge-icon {
+        width: 14px;
+        height: 14px;
+        flex-basis: 14px;
+      }
+
+      .discord-card-status {
+        font-size: 11px;
+      }
+
+      .track-card {
+        grid-template-columns: 36px minmax(0, 1fr);
+        gap: 8px;
+      }
+
+      .track-card-cover-wrap,
+      .track-card-cover {
+        width: 36px;
+        height: 36px;
+      }
+
+      .track-card-title {
+        font-size: 13px;
+      }
+
+      .track-card-progress-row {
+        gap: 6px;
+      }
+
+      .track-card-action-prev,
+      .track-card-action-next {
+        display: none;
+      }
+    }
+
+    @media (max-height: 700px) and (min-width: 641px) {
+      body {
+        align-content: start;
+        padding-top: 18px;
+      }
+
+      .panel {
+        gap: 10px;
+      }
+
+      .avatar {
+        width: 92px;
+        height: 92px;
+        margin-bottom: -8px;
+      }
+
+      .tagline {
+        max-height: min(22vh, 120px);
       }
     }
 
