@@ -102,6 +102,29 @@ function getAvatarUrl(user) {
   return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${extension}?size=256`;
 }
 
+function escapeHtml(text) {
+  return text.replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[char]));
+}
+
+async function fetchDisplayName(profile, user, token, guildId) {
+  if (guildId) {
+    try {
+      const member = await fetchJson(`${DISCORD_API}/guilds/${guildId}/members/${profile.userId}`, token);
+      return member.nick || member.user?.global_name || member.user?.username || user.global_name || user.username || profile.name;
+    } catch (error) {
+      console.warn(`display name unavailable for ${profile.userId}: ${error.message}`);
+    }
+  }
+
+  return user.global_name || user.username || profile.name;
+}
+
 function formatPresenceStatus(presence) {
   const activities = Array.isArray(presence?.activities) ? presence.activities : [];
   const customStatus = activities.find((activity) => activity.type === 4 && activity.state);
@@ -248,17 +271,20 @@ function updateDiscordStatusHtml(html, statusText) {
     return html;
   }
 
-  const escaped = statusText.replace(/[&<>"']/g, (char) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  }[char]));
-
   return html.replace(
     /(<span\s+data-discord-status-text>)([\s\S]*?)(<\/span>)/,
-    `$1${escaped}$3`
+    `$1${escapeHtml(statusText)}$3`
+  );
+}
+
+function updateDiscordDisplayNameHtml(html, displayName) {
+  if (!displayName) {
+    return html;
+  }
+
+  return html.replace(
+    /(<span\s+class="discord-card-name"\s+data-discord-display-name>)([\s\S]*?)(<\/span>)/,
+    `$1${escapeHtml(displayName)}$3`
   );
 }
 
@@ -273,12 +299,20 @@ async function syncProfile(profile, token, guildId) {
   }
 
   if (profile.htmlPath) {
+    const displayName = await fetchDisplayName(profile, user, token, guildId);
+    let currentHtml = await readFile(profile.htmlPath, "utf8");
+    let nextHtml = updateDiscordDisplayNameHtml(currentHtml, displayName);
+
+    changed = await writeTextIfChanged(profile.htmlPath, nextHtml) || changed;
+    console.log(`display name ${profile.name}: ${displayName}`);
+
     const presence = await fetchPresence(token, guildId, profile.userId);
     const statusText = formatPresenceStatus(presence);
 
     if (statusText) {
-      const currentHtml = await readFile(profile.htmlPath, "utf8");
-      changed = await writeTextIfChanged(profile.htmlPath, updateDiscordStatusHtml(currentHtml, statusText)) || changed;
+      currentHtml = await readFile(profile.htmlPath, "utf8");
+      nextHtml = updateDiscordStatusHtml(currentHtml, statusText);
+      changed = await writeTextIfChanged(profile.htmlPath, nextHtml) || changed;
       console.log(`status ${profile.name}: ${statusText}`);
     } else {
       console.log(`status ${profile.name}: unchanged`);
