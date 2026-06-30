@@ -827,7 +827,8 @@
 
     .discord-card {
       position: relative;
-      width: min(286px, calc(100vw - 32px));
+      width: fit-content;
+      max-width: calc(100vw - 32px);
       display: flex;
       align-items: center;
       gap: 10px;
@@ -886,7 +887,8 @@
 
     .discord-card-body {
       min-width: 0;
-      flex: 1 1 auto;
+      flex: 0 1 auto;
+      max-width: calc(100vw - 112px);
       display: flex;
       flex-direction: column;
       gap: 3px;
@@ -901,6 +903,8 @@
 
     .discord-card-top {
       gap: 5px;
+      width: fit-content;
+      max-width: 100%;
       min-height: 24px;
     }
 
@@ -914,6 +918,10 @@
         0 0 10px rgba(255, 255, 255, 0.42),
         0 0 18px rgba(255, 255, 255, 0.22);
       white-space: nowrap;
+      min-width: 0;
+      max-width: min(220px, max(96px, calc(100vw - 220px)));
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .discord-card-badges {
@@ -942,7 +950,7 @@
     .discord-card-status [data-discord-status-text] {
       min-width: 0;
       flex: 0 1 auto;
-      max-width: 148px;
+      max-width: min(260px, max(120px, calc(100vw - 160px)));
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
