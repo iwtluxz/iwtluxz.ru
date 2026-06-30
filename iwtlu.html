@@ -827,8 +827,7 @@
 
     .discord-card {
       position: relative;
-      width: fit-content;
-      max-width: calc(100vw - 32px);
+      width: min(286px, calc(100vw - 32px));
       display: flex;
       align-items: center;
       gap: 10px;
@@ -843,9 +842,7 @@
       text-align: left;
       text-decoration: none;
       cursor: pointer;
-      box-shadow:
-        0 6px 18px rgba(0, 0, 0, 0.14),
-        inset 0 1px 0 rgba(255, 255, 255, 0.025);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14);
       backdrop-filter: blur(6px);
       -webkit-backdrop-filter: blur(6px);
       overflow: visible;
@@ -855,7 +852,7 @@
     .discord-card:hover,
     .discord-card:focus-visible {
       transform: translateY(-2px);
-      background: rgba(0, 0, 0, 0.26);
+      background: rgba(0, 0, 0, 0.18);
       border-color: rgba(255, 255, 255, 0.06);
       outline: none;
     }
@@ -887,8 +884,7 @@
 
     .discord-card-body {
       min-width: 0;
-      flex: 0 1 auto;
-      max-width: calc(100vw - 112px);
+      flex: 1 1 auto;
       display: flex;
       flex-direction: column;
       gap: 3px;
@@ -903,8 +899,6 @@
 
     .discord-card-top {
       gap: 5px;
-      width: fit-content;
-      max-width: 100%;
       min-height: 24px;
     }
 
@@ -913,13 +907,10 @@
       font-weight: 700;
       line-height: 1;
       color: rgba(244, 244, 255, 0.96);
-      text-shadow:
-        0 0 4px rgba(255, 255, 255, 0.78),
-        0 0 10px rgba(255, 255, 255, 0.42),
-        0 0 18px rgba(255, 255, 255, 0.22);
+      text-shadow: none;
       white-space: nowrap;
       min-width: 0;
-      max-width: min(220px, max(96px, calc(100vw - 220px)));
+      max-width: 134px;
       overflow: hidden;
       text-overflow: ellipsis;
     }
@@ -949,8 +940,7 @@
 
     .discord-card-status [data-discord-status-text] {
       min-width: 0;
-      flex: 0 1 auto;
-      max-width: min(260px, max(120px, calc(100vw - 160px)));
+      flex: 1 1 auto;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;

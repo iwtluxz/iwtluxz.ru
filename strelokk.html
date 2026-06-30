@@ -776,8 +776,7 @@
 
     .discord-card {
       position: relative;
-      width: fit-content;
-      max-width: calc(100vw - 32px);
+      width: min(286px, calc(100vw - 32px));
       display: flex;
       align-items: center;
       gap: 10px;
@@ -788,13 +787,11 @@
       background: rgba(0, 0, 0, 0.18);
       color: rgba(255, 255, 255, 0.95);
       font: inherit;
-      font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+      font-family: inherit;
       text-align: left;
       text-decoration: none;
       cursor: pointer;
-      box-shadow:
-        0 6px 18px rgba(0, 0, 0, 0.14),
-        inset 0 1px 0 rgba(255, 255, 255, 0.025);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14);
       backdrop-filter: blur(6px);
       -webkit-backdrop-filter: blur(6px);
       overflow: visible;
@@ -804,7 +801,7 @@
     .discord-card:hover,
     .discord-card:focus-visible {
       transform: translateY(-2px);
-      background: rgba(0, 0, 0, 0.26);
+      background: rgba(0, 0, 0, 0.18);
       border-color: rgba(255, 255, 255, 0.06);
       outline: none;
     }
@@ -838,8 +835,7 @@
 
     .discord-card-body {
       min-width: 0;
-      flex: 0 1 auto;
-      max-width: calc(100vw - 112px);
+      flex: 1 1 auto;
       display: flex;
       flex-direction: column;
       gap: 3px;
@@ -854,8 +850,6 @@
 
     .discord-card-top {
       gap: 5px;
-      width: fit-content;
-      max-width: 100%;
       min-height: 24px;
     }
 
@@ -864,13 +858,10 @@
       font-weight: 700;
       line-height: 1;
       color: rgba(244, 244, 255, 0.96);
-      text-shadow:
-        0 0 4px rgba(255, 255, 255, 0.78),
-        0 0 10px rgba(255, 255, 255, 0.42),
-        0 0 18px rgba(255, 255, 255, 0.22);
+      text-shadow: none;
       white-space: nowrap;
       min-width: 0;
-      max-width: min(220px, max(96px, calc(100vw - 220px)));
+      max-width: 176px;
       overflow: hidden;
       text-overflow: ellipsis;
     }
@@ -900,8 +891,7 @@
 
     .discord-card-status [data-discord-status-text] {
       min-width: 0;
-      flex: 0 1 auto;
-      max-width: min(260px, max(120px, calc(100vw - 160px)));
+      flex: 1 1 auto;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -1229,6 +1219,13 @@
   <div class="entry-overlay" id="entryOverlay">
     <button class="entry-button" id="entryButton" type="button">click to enter...</button>
   </div>
+  <button class="audio-toggle" id="audioToggle" type="button" aria-label="Turn music off" aria-pressed="true">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path class="audio-icon-speaker" d="M4.5 9.25h3.35l4.3-3.5c.66-.54 1.65-.07 1.65.78v10.94c0 .85-.99 1.32-1.65.78l-4.3-3.5H4.5a1 1 0 0 1-1-1v-3.5a1 1 0 0 1 1-1Zm13.38-1.02a1 1 0 0 1 1.41 0 5.32 5.32 0 0 1 0 7.54 1 1 0 1 1-1.41-1.42 3.32 3.32 0 0 0 0-4.7 1 1 0 0 1 0-1.42Z"></path>
+      <path class="audio-icon-off" d="M4.5 4.5 19.5 19.5"></path>
+    </svg>
+    <span data-audio-label>music on</span>
+  </button>
   <audio id="bgAudio" src="sound/sound1.mp3" preload="auto"></audio>
   <main class="panel" aria-label="Profile card">
     <section class="identity">
