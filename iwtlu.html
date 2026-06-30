@@ -917,17 +917,18 @@
       color: rgba(244, 244, 255, 0.96);
       text-shadow: none;
       white-space: nowrap;
-      min-width: 0;
-      max-width: 134px;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      flex: 0 0 auto;
+      max-width: none;
+      overflow: visible;
+      text-overflow: clip;
     }
 
     .discord-card-badges {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      flex: 0 0 auto;
+      flex: 0 1 auto;
+      min-width: 0;
       overflow: hidden;
     }
 
