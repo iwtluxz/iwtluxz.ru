@@ -9,9 +9,9 @@
     documentBase.href = window.location.protocol === "file:" ? "./" : "/";
     document.head.appendChild(documentBase);
   </script>
-  <link rel="icon" type="image/png" sizes="32x32" href="img/tree.png?v=20260628b">
-  <link rel="icon" type="image/png" sizes="192x192" href="img/tree.png?v=20260628b">
-  <link rel="apple-touch-icon" href="img/tree.png?v=20260628b">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/tree.png?v=c1b9e2495da8">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/tree.png?v=c1b9e2495da8">
+  <link rel="apple-touch-icon" href="img/tree.png?v=c1b9e2495da8">
   <title>shakzy | iwtxz.ru</title>
   <style>
     :root {
@@ -47,7 +47,7 @@
       color: var(--text);
       background:
         linear-gradient(rgba(0, 0, 0, 0.58), rgba(0, 0, 0, 0.58)),
-        url("img/gif_shakzy.gif?v=20260628b") center center / cover no-repeat;
+        url("img/gif_shakzy.gif?v=c31cf27189f1") center center / cover no-repeat;
       background-color: var(--bg);
       position: relative;
       isolation: isolate;
@@ -178,7 +178,7 @@
       gap: 10px;
       position: relative;
       z-index: 1;
-      opacity: 0;
+      opacity: 1;
       transform: translateY(var(--identity-offset));
     }
 
@@ -187,7 +187,7 @@
       width: 114px;
       height: 114px;
       border-radius: 50%;
-      background: url("img/avatar_shakzy.jpg?v=20260628b") center center / cover no-repeat;
+      background: url("img/avatar_shakzy.jpg?v=ed2552accd88") center center / cover no-repeat;
       box-shadow:
         0 0 0 1px rgba(255, 255, 255, 0.06),
         0 12px 24px rgba(0, 0, 0, 0.32);
@@ -307,7 +307,7 @@
       -webkit-backdrop-filter: blur(22px);
       position: relative;
       overflow: hidden;
-      opacity: 0;
+      opacity: 1;
       animation: box-breathe 6.8s ease-in-out infinite;
     }
 
@@ -354,7 +354,7 @@
       justify-content: center;
       gap: 8px;
       margin-top: 0;
-      opacity: 0;
+      opacity: 1;
       transform: translateY(var(--socials-offset));
     }
 
@@ -365,7 +365,7 @@
       gap: 10px;
       flex-wrap: wrap;
       margin-top: 0;
-      opacity: 0;
+      opacity: 1;
     }
 
     .social-link {
@@ -512,7 +512,7 @@
     body.no-js .socials,
     body.no-js .controls {
       opacity: 1;
-      animation: none;
+      animation: none !important;
     }
 
     body.is-entered .identity {
@@ -825,7 +825,7 @@
       width: 15px;
       height: 15px;
       border-radius: 50%;
-      background: rgba(22, 22, 26, 0.98) url("img/neaktiv.png?v=20260628b") center center / cover no-repeat;
+      background: rgba(22, 22, 26, 0.98) url("img/neaktiv.png?v=89b99579b122") center center / cover no-repeat;
       border: 2px solid rgba(8, 8, 12, 0.96);
     }
 
@@ -1023,7 +1023,7 @@
       height: 4px;
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.2);
-      overflow: hidden;
+      overflow: visible;
     }
 
     .track-card-progress-fill {
@@ -1034,6 +1034,67 @@
       border-radius: inherit;
       background: rgba(255, 255, 255, 0.94);
       box-shadow: 0 0 8px rgba(255, 255, 255, 0.18);
+    }
+
+    .track-card-seek {
+      position: absolute;
+      top: 50%;
+      left: -6px;
+      width: calc(100% + 12px);
+      height: 32px;
+      margin: 0;
+      padding: 0;
+      transform: translateY(-50%);
+      appearance: none;
+      -webkit-appearance: none;
+      background: transparent;
+      cursor: var(--cursor-pointer, pointer);
+    }
+
+    .track-card-seek::-webkit-slider-runnable-track {
+      height: 4px;
+      background: transparent;
+    }
+
+    .track-card-seek::-moz-range-track {
+      height: 4px;
+      background: transparent;
+    }
+
+    .track-card-seek::-moz-range-progress {
+      background: transparent;
+    }
+
+    .track-card-seek::-webkit-slider-thumb {
+      width: 12px;
+      height: 12px;
+      margin-top: -4px;
+      border: 0;
+      border-radius: 50%;
+      appearance: none;
+      -webkit-appearance: none;
+      background: #fff;
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+    }
+
+    .track-card-seek::-moz-range-thumb {
+      width: 12px;
+      height: 12px;
+      border: 0;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+    }
+
+    .track-card-seek:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.75);
+      outline-offset: 2px;
+      border-radius: 8px;
+    }
+
+    .track-card-seek:disabled {
+      opacity: 0.5;
+      cursor: default;
     }
 
     .track-card-actions {
@@ -1176,7 +1237,7 @@
   <div class="entry-overlay" id="entryOverlay">
     <button class="entry-button" id="entryButton" type="button">click to enter...</button>
   </div>
-  <audio id="bgAudio" src="sound/sound2.mp3" preload="auto"></audio>
+  <audio id="bgAudio" src="sound/sound2.mp3?v=b2f5af07f875" preload="metadata"></audio>
   <main class="panel" aria-label="Profile card">
     <section class="identity">
       <div class="avatar" data-discord-avatar-target data-hover="UID: #2" tabindex="0" role="img" aria-label="avatar UID: #2"></div>
@@ -1189,45 +1250,46 @@
     </section>
     <div class="socials" aria-label="Social links">
       <a class="social-link" href="https://www.faceit.com/ru/players/Shakzyy" target="_blank" rel="noreferrer" aria-label="Faceit">
-        <img src="img/faceit.png?v=20260628b" alt="" aria-hidden="true">
+        <img src="img/faceit.png?v=715caad712de" alt="" aria-hidden="true">
       </a>
       <a class="social-link" href="https://t.me/yfixeris" target="_blank" rel="noreferrer" aria-label="Telegram">
-        <img src="img/telegram.png?v=20260628b" alt="" aria-hidden="true">
+        <img src="img/telegram.png?v=b3f1aa267043" alt="" aria-hidden="true">
       </a>
       <a class="social-link" href="https://steamcommunity.com/id/765611991050022167" target="_blank" rel="noreferrer" aria-label="Steam">
-        <img src="img/steam.png?v=20260628b" alt="" aria-hidden="true">
+        <img src="img/steam.png?v=e2386dfe1d03" alt="" aria-hidden="true">
       </a>
     </div>
     <button class="discord-card" id="discordCardCopy" type="button" data-discord-copy="mrshakzzy" aria-label="Copy Discord: mrshakzzy" title="mrshakzzy">
       <span class="discord-card-media" aria-hidden="true">
-        <img class="discord-card-avatar" data-discord-avatar-image src="img/avatar_shakzy.jpg?v=20260628b" alt="">
+        <img class="discord-card-avatar" data-discord-avatar-image src="img/avatar_shakzy.jpg?v=ed2552accd88" alt="">
         <span class="discord-card-dot"></span>
       </span>
       <span class="discord-card-body">
         <span class="discord-card-top">
           <span class="discord-card-name">mrshakzzy</span>
           <span class="discord-card-badges" aria-hidden="true">
-            <img class="discord-card-badge-icon" src="img/nitro.png?v=20260628b" alt="">
-            <img class="discord-card-badge-icon" src="img/hypesquad.png?v=20260628b" alt="">
+            <img class="discord-card-badge-icon" src="img/nitro.png?v=0b23412acbd2" alt="">
+            <img class="discord-card-badge-icon" src="img/hypesquad.png?v=aa6f77a0de7a" alt="">
           </span>
         </span>
         <span class="discord-card-status">
           <span class="discord-card-status-note" aria-hidden="true">♫</span>
           <span class="discord-card-status-dot" aria-hidden="true">•</span>
-          <img class="discord-card-status-heart" src="img/hearrsss.gif?v=20260628b" alt="">
+          <img class="discord-card-status-heart" src="img/hearrsss.gif?v=0b671abddad9" alt="">
           <span>дальше меньше владик</span>
         </span>
       </span>
     </button>
   </main>
   <section class="track-card" aria-label="Current track">
-    <img class="track-card-cover" src="img/shakzysoundicon.png?v=20260628b" alt="" aria-hidden="true">
+    <img class="track-card-cover" src="img/shakzysoundicon.png?v=8d20aea7752d" alt="" aria-hidden="true">
     <div class="track-card-main">
       <div class="track-card-title" data-track-title>sound</div>
       <div class="track-card-progress-row">
         <span class="track-card-time" data-track-current>0:00</span>
-        <div class="track-card-progress" aria-hidden="true">
-          <span class="track-card-progress-fill" data-track-progress></span>
+        <div class="track-card-progress">
+          <span class="track-card-progress-fill" data-track-progress aria-hidden="true"></span>
+          <input class="track-card-seek" data-track-seek type="range" min="0" max="100" step="0.1" value="0" aria-label="Перемотка трека" disabled>
         </div>
         <span class="track-card-time" data-track-duration>0:00</span>
         <div class="track-card-actions">
@@ -1267,8 +1329,6 @@
     window.addEventListener("error", revealFallbackUi, { once: true });
     window.addEventListener("unhandledrejection", revealFallbackUi, { once: true });
 
-    document.body.classList.remove("no-js");
-
     const bodyElement = document.body;
     const entryOverlay = document.getElementById("entryOverlay");
     const entryButton = document.getElementById("entryButton");
@@ -1283,6 +1343,7 @@
     const trackCurrentTime = document.querySelector("[data-track-current]");
     const trackDuration = document.querySelector("[data-track-duration]");
     const trackProgressFill = document.querySelector("[data-track-progress]");
+    const trackSeek = document.querySelector("[data-track-seek]");
     const nameText = document.querySelector(".name-text");
     const nameElement = document.querySelector(".name");
     const fullName = nameText.dataset.text;
@@ -1302,7 +1363,7 @@
     const discordAvatarImage = document.querySelector("[data-discord-avatar-image]");
     const staticDiscordAvatarUrl = discordAvatarImage ? discordAvatarImage.getAttribute("src").split("?")[0] : "";
     const playlist = [
-      { title: "RJ Pasin - Chad", src: "sound/sound2.mp3" }
+      { title: "RJ Pasin - Chad", src: "sound/sound2.mp3?v=b2f5af07f875" }
     ];
     let animationStarted = false;
     let audioFadeFrame = 0;
@@ -1479,6 +1540,11 @@
       trackCurrentTime.textContent = formatTrackTime(current);
       trackDuration.textContent = formatTrackTime(duration);
       trackProgressFill.style.width = `${progress}%`;
+      if (trackSeek) {
+        trackSeek.disabled = duration <= 0;
+        trackSeek.value = String(progress);
+        trackSeek.setAttribute("aria-valuetext", `${formatTrackTime(current)} / ${formatTrackTime(duration)}`);
+      }
       trackToggleButton.classList.toggle("is-paused", !isPlaying);
       trackToggleButton.setAttribute("aria-label", isPlaying ? "Pause track" : "Play track");
       syncTrackMeta();
@@ -1722,7 +1788,24 @@
 
     bgAudio.addEventListener("play", syncAudioToggle);
     bgAudio.addEventListener("pause", syncAudioToggle);
+    if (trackSeek) {
+      const seekTrack = () => {
+        const duration = bgAudio.duration;
+        if (!Number.isFinite(duration) || duration <= 0) return;
+        const position = Math.min(Math.max(Number(trackSeek.value) / 100, 0), 1);
+        try {
+          bgAudio.currentTime = position * duration;
+        } catch {
+          // Restore the handle if the media is not ready to seek yet.
+        }
+        syncTrackCard();
+      };
+      trackSeek.addEventListener("input", seekTrack);
+      trackSeek.addEventListener("change", seekTrack);
+    }
+
     bgAudio.addEventListener("timeupdate", syncTrackCard);
+    bgAudio.addEventListener("seeked", syncTrackCard);
     bgAudio.addEventListener("loadedmetadata", syncTrackCard);
     bgAudio.addEventListener("durationchange", syncTrackCard);
     bgAudio.addEventListener("emptied", syncTrackCard);
@@ -1793,6 +1876,8 @@
 
     setAudioRetryListening(false);
     window.setInterval(syncDiscordAvatar, discordAvatarRefreshMs);
+    // Enable the entry screen only after its controls are ready.
+    document.body.classList.remove("no-js");
     window.removeEventListener("error", revealFallbackUi);
     window.removeEventListener("unhandledrejection", revealFallbackUi);
   </script>

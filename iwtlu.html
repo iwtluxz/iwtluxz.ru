@@ -9,9 +9,9 @@
     documentBase.href = window.location.protocol === "file:" ? "./" : "/";
     document.head.appendChild(documentBase);
   </script>
-  <link rel="icon" type="image/png" sizes="32x32" href="img/tree.png?v=20260628c">
-  <link rel="icon" type="image/png" sizes="192x192" href="img/tree.png?v=20260628c">
-  <link rel="apple-touch-icon" href="img/tree.png?v=20260628c">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/tree.png?v=c1b9e2495da8">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/tree.png?v=c1b9e2495da8">
+  <link rel="apple-touch-icon" href="img/tree.png?v=c1b9e2495da8">
   <title>iwtlu | iwtxz.ru</title>
   <style>
     :root {
@@ -21,13 +21,13 @@
       --text: #f5f5f7;
       --muted: rgba(255, 255, 255, 0.84);
       --shadow: 0 24px 64px rgba(0, 0, 0, 0.34);
-      --cursor-default: url("img/cursor.png?v=20260628c") 0 0, auto;
-      --cursor-pointer: url("img/cursor1.png?v=20260628c") 0 0, pointer;
+      --cursor-default: url("img/cursor.png?v=4c8ae6d9cc61") 0 0, auto;
+      --cursor-pointer: url("img/cursor1.png?v=0a9f4ceeb9f8") 0 0, pointer;
     }
 
     @font-face {
       font-family: "Minecraft";
-      src: url("font/minecraft.ttf") format("truetype");
+      src: url("font/minecraft.ttf?v=0978efb8361f") format("truetype");
       font-display: swap;
     }
 
@@ -192,7 +192,7 @@
       gap: 10px;
       position: relative;
       z-index: 1;
-      opacity: 0;
+      opacity: 1;
       transform: translateY(var(--identity-offset));
     }
 
@@ -201,7 +201,7 @@
       width: 114px;
       height: 114px;
       border-radius: 0;
-      background: url("img/mainavatar.gif?v=20260630b") center center / contain no-repeat;
+      background: url("img/mainavatar.gif?v=09465e6cc2f2") center center / contain no-repeat;
       box-shadow: none;
       position: relative;
       overflow: visible;
@@ -329,7 +329,7 @@
       -webkit-backdrop-filter: blur(22px);
       position: relative;
       overflow: hidden;
-      opacity: 0;
+      opacity: 1;
       animation: box-breathe 6.8s ease-in-out infinite;
     }
 
@@ -376,7 +376,7 @@
       justify-content: center;
       gap: 8px;
       margin-top: 0;
-      opacity: 0;
+      opacity: 1;
       transform: translateY(var(--socials-offset));
     }
 
@@ -387,7 +387,7 @@
       gap: 10px;
       flex-wrap: wrap;
       margin-top: 0;
-      opacity: 0;
+      opacity: 1;
     }
 
     .social-link {
@@ -565,7 +565,7 @@
     body.no-js .socials,
     body.no-js .controls {
       opacity: 1;
-      animation: none;
+      animation: none !important;
     }
 
     body.is-entered .identity {
@@ -889,7 +889,7 @@
       width: 15px;
       height: 15px;
       border-radius: 50%;
-      background: rgba(22, 22, 26, 0.98) url("img/neaktiv.png?v=20260628c") center center / cover no-repeat;
+      background: rgba(22, 22, 26, 0.98) url("img/neaktiv.png?v=89b99579b122") center center / cover no-repeat;
       border: 2px solid rgba(8, 8, 12, 0.96);
     }
 
@@ -1236,7 +1236,7 @@
       height: 4px;
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.2);
-      overflow: hidden;
+      overflow: visible;
     }
 
     .track-card-progress-fill {
@@ -1247,6 +1247,67 @@
       border-radius: inherit;
       background: rgba(255, 255, 255, 0.94);
       box-shadow: 0 0 8px rgba(255, 255, 255, 0.18);
+    }
+
+    .track-card-seek {
+      position: absolute;
+      top: 50%;
+      left: -6px;
+      width: calc(100% + 12px);
+      height: 32px;
+      margin: 0;
+      padding: 0;
+      transform: translateY(-50%);
+      appearance: none;
+      -webkit-appearance: none;
+      background: transparent;
+      cursor: var(--cursor-pointer, pointer);
+    }
+
+    .track-card-seek::-webkit-slider-runnable-track {
+      height: 4px;
+      background: transparent;
+    }
+
+    .track-card-seek::-moz-range-track {
+      height: 4px;
+      background: transparent;
+    }
+
+    .track-card-seek::-moz-range-progress {
+      background: transparent;
+    }
+
+    .track-card-seek::-webkit-slider-thumb {
+      width: 12px;
+      height: 12px;
+      margin-top: -4px;
+      border: 0;
+      border-radius: 50%;
+      appearance: none;
+      -webkit-appearance: none;
+      background: #fff;
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+    }
+
+    .track-card-seek::-moz-range-thumb {
+      width: 12px;
+      height: 12px;
+      border: 0;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+    }
+
+    .track-card-seek:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.75);
+      outline-offset: 2px;
+      border-radius: 8px;
+    }
+
+    .track-card-seek:disabled {
+      opacity: 0.5;
+      cursor: default;
     }
 
     .track-card-actions {
@@ -1643,17 +1704,17 @@
   </style>
 </head>
 <body class="no-js">
-  <video class="page-bg-video" src="img/background.mp4" autoplay muted loop playsinline aria-hidden="true"></video>
+  <video class="page-bg-video" src="img/background.mp4?v=e5c42788b6d0" autoplay muted loop playsinline aria-hidden="true"></video>
   <div class="entry-overlay" id="entryOverlay">
     <button class="entry-button" id="entryButton" type="button">click to enter...</button>
   </div>
-  <audio id="bgAudio" src="sound/sound.mp3" preload="auto"></audio>
+  <audio id="bgAudio" src="sound/sound.mp3?v=9f27cc385ddc" preload="metadata"></audio>
   <main class="panel" aria-label="Profile card">
     <section class="identity">
       <div class="avatar" tabindex="0" role="img" aria-label="avatar Разработчик">
         <span class="avatar-badge" aria-hidden="true">
           <span>Дианка</span>
-          <img src="img/curomi.gif?v=20260628c" alt="">
+          <img src="img/curomi.gif?v=9e789b221b97" alt="">
         </span>
       </div>
       <h1 class="name" aria-label="Ɨ ω ŧ Ł υ">
@@ -1665,35 +1726,35 @@
     </section>
     <div class="socials" aria-label="Social links">
       <button class="social-link social-button" id="discordCopy" type="button" data-discord-copy="iwtluz" aria-label="Copy Discord: iwtluz" title="iwtluz">
-        <img src="img/discord.png?v=20260628c" alt="" aria-hidden="true">
+        <img src="img/discord.png?v=3fc8cc87107e" alt="" aria-hidden="true">
       </button>
       <a class="social-link" href="https://t.me/iwtluz" target="_blank" rel="noreferrer" aria-label="Telegram">
-        <img src="img/telegram.png?v=20260628c" alt="" aria-hidden="true">
+        <img src="img/telegram.png?v=b3f1aa267043" alt="" aria-hidden="true">
       </a>
       <a class="social-link" href="https://steamcommunity.com/id/meintofores" target="_blank" rel="noreferrer" aria-label="Steam">
-        <img src="img/steam.png?v=20260628c" alt="" aria-hidden="true">
+        <img src="img/steam.png?v=e2386dfe1d03" alt="" aria-hidden="true">
       </a>
     </div>
     <button class="discord-card" id="discordCardCopy" type="button" data-discord-copy="iwtlu" aria-label="Copy Discord: iwtlu" title="iwtlu">
       <span class="discord-card-media" aria-hidden="true">
-        <img class="discord-card-avatar" data-discord-avatar-image src="img/discordimg.png?v=20261007" alt="">
+        <img class="discord-card-avatar" data-discord-avatar-image src="img/discordimg.png?v=e186c7adb6d4" alt="">
         <span class="discord-card-dot"></span>
       </span>
       <span class="discord-card-body">
         <span class="discord-card-top">
           <span class="discord-card-name" data-discord-display-name>322</span>
           <span class="discord-card-badges" aria-hidden="true">
-            <img class="discord-card-badge-icon" src="img/butterfly.png?v=20260628c" alt="">
-            <img class="discord-card-badge-icon" src="img/nitro.png?v=20260628c" alt="">
-            <img class="discord-card-badge-icon" src="img/hypesquad.png?v=20260628c" alt="">
-            <img class="discord-card-badge-icon" src="img/server_booster.png?v=20260628c" alt="">
-            <img class="discord-card-badge-icon" src="img/developer.png?v=20260628c" alt="">
+            <img class="discord-card-badge-icon" src="img/butterfly.png?v=4c3390cec8b5" alt="">
+            <img class="discord-card-badge-icon" src="img/nitro.png?v=0b23412acbd2" alt="">
+            <img class="discord-card-badge-icon" src="img/hypesquad.png?v=aa6f77a0de7a" alt="">
+            <img class="discord-card-badge-icon" src="img/server_booster.png?v=9dcc53375378" alt="">
+            <img class="discord-card-badge-icon" src="img/developer.png?v=961bdfdb806e" alt="">
           </span>
         </span>
         <span class="discord-card-status">
           <span class="discord-card-status-note" aria-hidden="true">♫</span>
           <span class="discord-card-status-dot" aria-hidden="true">•</span>
-          <img class="discord-card-status-heart" src="img/hearrsss.gif?v=20260628c" alt="">
+          <img class="discord-card-status-heart" src="img/hearrsss.gif?v=0b671abddad9" alt="">
           <span data-discord-status-text aria-live="polite" aria-atomic="true">я бы ещё сто один раз сделал тупой вид
 но ты, конечно, не заметишь, кинь с обрыва ключи</span>
           <span class="discord-status-tooltip" aria-hidden="true">
@@ -1715,15 +1776,16 @@
     <input id="trackVolume" type="range" min="0" max="100" step="1" value="45">
   </label>
   <section class="track-card" aria-label="Current track">
-    <div class="track-card-cover-wrap" data-track-owner="ivycraft" tabindex="0" aria-label="Трек ivycraft'a">
-      <img class="track-card-cover" src="img/mysoundicon.png?v=20260628c" alt="" aria-hidden="true">
+    <div class="track-card-cover-wrap" data-track-owner="Fortuna 812" tabindex="0" aria-label="Трек Fortuna 812">
+      <img class="track-card-cover" src="img/mysoundicon.png?v=c936b3d13e18" alt="" aria-hidden="true">
     </div>
     <div class="track-card-main">
       <div class="track-card-title" data-track-title>sound</div>
       <div class="track-card-progress-row">
         <span class="track-card-time" data-track-current>0:00</span>
-        <div class="track-card-progress" aria-hidden="true">
-          <span class="track-card-progress-fill" data-track-progress></span>
+        <div class="track-card-progress">
+          <span class="track-card-progress-fill" data-track-progress aria-hidden="true"></span>
+          <input class="track-card-seek" data-track-seek type="range" min="0" max="100" step="0.1" value="0" aria-label="Перемотка трека" disabled>
         </div>
         <span class="track-card-time" data-track-duration>0:00</span>
         <div class="track-card-actions">
@@ -1763,8 +1825,6 @@
     window.addEventListener("error", revealFallbackUi, { once: true });
     window.addEventListener("unhandledrejection", revealFallbackUi, { once: true });
 
-    document.body.classList.remove("no-js");
-
     const bodyElement = document.body;
     const entryOverlay = document.getElementById("entryOverlay");
     const entryButton = document.getElementById("entryButton");
@@ -1783,6 +1843,7 @@
     const trackCurrentTime = document.querySelector("[data-track-current]");
     const trackDuration = document.querySelector("[data-track-duration]");
     const trackProgressFill = document.querySelector("[data-track-progress]");
+    const trackSeek = document.querySelector("[data-track-seek]");
     const nameText = document.querySelector(".name-text");
     const nameElement = document.querySelector(".name");
     const fullName = nameText.dataset.text;
@@ -1808,7 +1869,7 @@
     let discordApiAvailable = true;
     let loadedDiscordAvatarUrl = "";
     const playlist = [
-      { title: "sexy supra", src: "sound/sound.mp3" }
+      { title: "sexy supra", src: "sound/sound.mp3?v=9f27cc385ddc" }
     ];
     let animationStarted = false;
     let audioFadeFrame = 0;
@@ -2103,6 +2164,11 @@
       trackCurrentTime.textContent = formatTrackTime(current);
       trackDuration.textContent = formatTrackTime(duration);
       trackProgressFill.style.width = `${progress}%`;
+      if (trackSeek) {
+        trackSeek.disabled = duration <= 0;
+        trackSeek.value = String(progress);
+        trackSeek.setAttribute("aria-valuetext", `${formatTrackTime(current)} / ${formatTrackTime(duration)}`);
+      }
       trackToggleButton.classList.toggle("is-paused", !isPlaying);
       trackToggleButton.setAttribute("aria-label", isPlaying ? "Pause track" : "Play track");
       syncTrackMeta();
@@ -2361,7 +2427,24 @@
 
     bgAudio.addEventListener("play", syncAudioToggle);
     bgAudio.addEventListener("pause", syncAudioToggle);
+    if (trackSeek) {
+      const seekTrack = () => {
+        const duration = bgAudio.duration;
+        if (!Number.isFinite(duration) || duration <= 0) return;
+        const position = Math.min(Math.max(Number(trackSeek.value) / 100, 0), 1);
+        try {
+          bgAudio.currentTime = position * duration;
+        } catch {
+          // Restore the handle if the media is not ready to seek yet.
+        }
+        syncTrackCard();
+      };
+      trackSeek.addEventListener("input", seekTrack);
+      trackSeek.addEventListener("change", seekTrack);
+    }
+
     bgAudio.addEventListener("timeupdate", syncTrackCard);
+    bgAudio.addEventListener("seeked", syncTrackCard);
     bgAudio.addEventListener("loadedmetadata", syncTrackCard);
     bgAudio.addEventListener("durationchange", syncTrackCard);
     bgAudio.addEventListener("emptied", syncTrackCard);
@@ -2439,6 +2522,8 @@
     window.setInterval(() => { if (!document.hidden) syncDiscordProfile(); }, discordProfileRefreshMs);
     document.addEventListener("visibilitychange", () => { if (!document.hidden) syncDiscordProfile(); });
     window.addEventListener("online", syncDiscordProfile);
+    // Enable the entry screen only after its controls are ready.
+    document.body.classList.remove("no-js");
     window.removeEventListener("error", revealFallbackUi);
     window.removeEventListener("unhandledrejection", revealFallbackUi);
   </script>
