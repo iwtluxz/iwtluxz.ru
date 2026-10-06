@@ -1,7 +1,7 @@
 param(
   [ValidateSet("iwtlu", "strelokk", "shakzy", "shakzyy", "all")]
   [string]$Profile = "iwtlu",
-  [string]$UserId = "1105558423359205489",
+  [string]$UserId = "484816707798564894",
   [string[]]$Output = @("img/avatar.jpg", "img/discordimg.png"),
   [int]$WatchSeconds = 0
 )
@@ -12,7 +12,7 @@ $root = Split-Path -Parent $PSScriptRoot
 $envPath = Join-Path $root ".env"
 $profiles = @{
   iwtlu = @{
-    UserId = "1105558423359205489"
+    UserId = "484816707798564894"
     Output = @("img/avatar.jpg", "img/discordimg.png")
   }
   strelokk = @{

@@ -832,6 +832,7 @@
     }
 
     .discord-card {
+      --discord-card-surface: rgba(0, 0, 0, 0.18);
       position: relative;
       width: min(286px, calc(100vw - 24px));
       min-height: 60px;
@@ -842,7 +843,7 @@
       margin: -22px auto 0;
       border: 1px solid rgba(255, 255, 255, 0.035);
       border-radius: 16px;
-      background: rgba(0, 0, 0, 0.18);
+      background: var(--discord-card-surface);
       color: rgba(255, 255, 255, 0.95);
       font: inherit;
       font-family: inherit;
@@ -859,7 +860,7 @@
     .discord-card:hover,
     .discord-card:focus-visible {
       transform: translateY(-2px);
-      background: rgba(0, 0, 0, 0.18);
+      background: var(--discord-card-surface);
       border-color: rgba(255, 255, 255, 0.06);
       outline: none;
     }
@@ -876,8 +877,8 @@
       width: 42px;
       height: 42px;
       display: block;
-      border-radius: 0;
-      object-fit: contain;
+      border-radius: 50%;
+      object-fit: cover;
       box-shadow: none;
     }
 
@@ -967,35 +968,96 @@
       white-space: nowrap;
     }
 
-    .discord-card-status::after {
-      content: attr(data-status-tooltip);
+    .discord-status-tooltip {
+      --discord-tooltip-surface: rgba(0, 0, 0, 0.36);
+      --cloud-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 304 164' preserveAspectRatio='none'%3E%3Cpath fill='white' d='M32 132C14 132 2 120 8 104C0 90 0 72 14 64C3 42 18 22 39 25C45 4 69 0 89 13C104 0 130 0 145 11C165 0 192 3 202 18C222 2 253 12 256 34C282 32 298 51 289 73C304 90 298 116 277 122C274 145 251 158 227 146C210 164 183 161 172 148C152 164 128 162 116 149C93 163 64 157 59 140C47 146 35 144 32 132Z'/%3E%3C/svg%3E");
       position: absolute;
-      left: 18px;
-      top: calc(100% + 8px);
-      width: 182px;
-      padding: 10px 12px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 11px;
-      background: rgba(28, 30, 38, 0.98);
-      color: rgba(255, 255, 255, 0.94);
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.34);
-      font-size: 13px;
-      font-weight: 650;
-      line-height: 1.28;
-      white-space: pre-line;
-      word-break: break-word;
+      left: 50%;
+      top: calc(100% + 28px);
+      width: min(300px, calc(100vw - 32px));
+      color: rgba(255, 255, 255, 0.95);
+      filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.28)) drop-shadow(0 8px 22px rgba(0, 0, 0, 0.22));
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 1.6;
+      white-space: normal;
+      overflow-wrap: anywhere;
       opacity: 0;
+      visibility: hidden;
       pointer-events: none;
-      transform: translateY(-4px) scale(0.98);
-      transform-origin: 28px 0;
-      transition: opacity 140ms ease, transform 140ms ease;
+      transform: translateX(-50%) translateY(-6px) scale(0.96);
+      transform-origin: center top;
+      transition: opacity 220ms ease, transform 300ms cubic-bezier(0.2, 0.85, 0.2, 1), visibility 220ms;
       z-index: 20;
     }
 
-    .discord-card:hover .discord-card-status::after,
-    .discord-card:focus-visible .discord-card-status::after {
+    .discord-tooltip-cloud {
+      display: block;
+      min-height: 84px;
+      padding: 28px;
+      white-space: pre-wrap;
+      background: var(--discord-tooltip-surface);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      -webkit-mask-image: var(--cloud-mask);
+      mask-image: var(--cloud-mask);
+      -webkit-mask-size: 100% 100%;
+      mask-size: 100% 100%;
+      -webkit-mask-repeat: no-repeat;
+      mask-repeat: no-repeat;
+    }
+
+    .discord-tooltip-bubble {
+      position: absolute;
+      display: block;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 50%;
+      background: var(--discord-tooltip-surface);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+
+    .discord-tooltip-bubble:nth-child(1) {
+      top: -26px;
+      left: calc(50% - 20px);
+      width: 5px;
+      height: 5px;
+      --bubble-delay: 0ms;
+    }
+
+    .discord-tooltip-bubble:nth-child(2) {
+      top: -18px;
+      left: calc(50% - 12px);
+      width: 8px;
+      height: 8px;
+      --bubble-delay: 160ms;
+    }
+
+    .discord-tooltip-bubble:nth-child(3) {
+      top: -7px;
+      left: calc(50% - 3px);
+      width: 12px;
+      height: 12px;
+      --bubble-delay: 320ms;
+    }
+
+    .discord-card-status:hover .discord-status-tooltip,
+    .discord-card:focus-visible .discord-status-tooltip {
       opacity: 1;
-      transform: translateY(0) scale(1);
+      visibility: visible;
+      transform: translateX(-50%) translateY(0) scale(1);
+    }
+
+    .discord-card-status:hover .discord-tooltip-bubble,
+    .discord-card:focus-visible .discord-tooltip-bubble {
+      animation: discord-bubble-float 2.8s ease-in-out var(--bubble-delay) infinite;
+    }
+
+    .discord-card-status[hidden] { display: none; }
+
+    @keyframes discord-bubble-float {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-2px) scale(1.12); }
     }
 
     .discord-card-status-note {
@@ -1569,6 +1631,15 @@
     .track-card-action:disabled {
       cursor: var(--cursor-default);
     }
+
+    @media (prefers-reduced-motion: reduce) {
+      body.is-entered .identity,
+      body.is-entered .socials,
+      body.is-entered .controls {
+        opacity: 1;
+        transform: none;
+      }
+    }
   </style>
 </head>
 <body class="no-js">
@@ -1585,15 +1656,15 @@
           <img src="img/curomi.gif?v=20260628c" alt="">
         </span>
       </div>
-      <h1 class="name" aria-label="iwtlu">
-        <span class="name-text" data-text="iwtlu">iwtlu</span>
+      <h1 class="name" aria-label="Ɨ ω ŧ Ł υ">
+        <span class="name-text" data-text="Ɨ ω ŧ Ł υ">iwtlu</span>
       </h1>
       <p class="tagline">
-        <span class="tagline-text">Мне кажется что я проживаю не самое лучшее время.</span>
+        <span class="tagline-text">самый тёмный рыцарь, но не в самом тёмном замке</span>
       </p>
     </section>
     <div class="socials" aria-label="Social links">
-      <button class="social-link social-button" id="discordCopy" type="button" data-discord-copy="iwtlu" aria-label="Copy Discord: iwtlu" title="iwtlu">
+      <button class="social-link social-button" id="discordCopy" type="button" data-discord-copy="iwtluz" aria-label="Copy Discord: iwtluz" title="iwtluz">
         <img src="img/discord.png?v=20260628c" alt="" aria-hidden="true">
       </button>
       <a class="social-link" href="https://t.me/iwtluz" target="_blank" rel="noreferrer" aria-label="Telegram">
@@ -1605,7 +1676,7 @@
     </div>
     <button class="discord-card" id="discordCardCopy" type="button" data-discord-copy="iwtlu" aria-label="Copy Discord: iwtlu" title="iwtlu">
       <span class="discord-card-media" aria-hidden="true">
-        <img class="discord-card-avatar" src="img/discordgif.gif?v=20260630b" alt="">
+        <img class="discord-card-avatar" data-discord-avatar-image src="img/discordimg.png?v=20261007" alt="">
         <span class="discord-card-dot"></span>
       </span>
       <span class="discord-card-body">
@@ -1623,8 +1694,15 @@
           <span class="discord-card-status-note" aria-hidden="true">♫</span>
           <span class="discord-card-status-dot" aria-hidden="true">•</span>
           <img class="discord-card-status-heart" src="img/hearrsss.gif?v=20260628c" alt="">
-          <span data-discord-status-text>я бы ещё сто один раз сделал тупой вид
+          <span data-discord-status-text aria-live="polite" aria-atomic="true">я бы ещё сто один раз сделал тупой вид
 но ты, конечно, не заметишь, кинь с обрыва ключи</span>
+          <span class="discord-status-tooltip" aria-hidden="true">
+            <span class="discord-tooltip-bubble"></span>
+            <span class="discord-tooltip-bubble"></span>
+            <span class="discord-tooltip-bubble"></span>
+            <span class="discord-tooltip-cloud" data-discord-tooltip-text>я бы ещё сто один раз сделал тупой вид
+но ты, конечно, не заметишь, кинь с обрыва ключи</span>
+          </span>
         </span>
       </span>
     </button>
@@ -1719,12 +1797,18 @@
     let audioTargetVolume = 0.45;
     const audioPreferenceKey = "iwtxz-iwtlu-audio-enabled";
     const audioVolumeKey = "iwtxz-iwtlu-audio-volume";
-    const discordUserId = "1105558423359205489";
-    const discordAvatarRefreshMs = 60 * 1000;
-    const discordAvatarTarget = document.querySelector("[data-discord-avatar-target]");
+    const discordUserId = "484816707798564894";
+    const discordProfileRefreshMs = 60 * 1000;
     const discordAvatarImage = document.querySelector("[data-discord-avatar-image]");
+    const discordDisplayName = document.querySelector("[data-discord-display-name]");
+    const discordPresenceDot = document.querySelector(".discord-card-dot");
+    const discordProfileCacheKey = `iwtxz-discord-profile-${discordUserId}`;
+    let currentDiscordProfile = { id: discordUserId, identityUpdatedAt: 0, statusUpdatedAt: 0 };
+    let discordProfileSyncing = false;
+    let discordApiAvailable = true;
+    let loadedDiscordAvatarUrl = "";
     const playlist = [
-      { title: "Miss You", src: "sound/sound.mp3" }
+      { title: "sexy supra", src: "sound/sound.mp3" }
     ];
     let animationStarted = false;
     let audioFadeFrame = 0;
@@ -1741,6 +1825,8 @@
       }
 
       discordStatus.dataset.statusTooltip = discordStatusText.textContent.trim();
+      const tooltipText = discordStatus.querySelector("[data-discord-tooltip-text]");
+      if (tooltipText) tooltipText.textContent = discordStatus.dataset.statusTooltip;
     }
 
     syncDiscordStatusTooltip();
@@ -1827,30 +1913,20 @@
       }, 1600);
     }
 
-    async function fetchDiscordAvatar() {
-      if (isLocalFile) {
-        return null;
-      }
-
-      if (!window.location.hostname.includes("netlify")) {
-        return null;
-      }
-
+    async function fetchDiscordProfileJson(url, isApi = false) {
+      if (isLocalFile || (isApi && !discordApiAvailable)) return null;
       const controller = typeof window.AbortController === "function" ? new AbortController() : null;
-      const timeoutId = controller ? window.setTimeout(() => controller.abort(), 4500) : 0;
-
+      const timeoutId = controller ? window.setTimeout(() => controller.abort(), isApi ? 10000 : 4500) : 0;
       try {
-        const response = await fetch(`/api/discord/avatar/${discordUserId}`, {
+        const response = await fetch(url, {
           cache: "no-store",
           ...(controller ? { signal: controller.signal } : {})
         });
 
-        if (!response.ok) {
-          throw new Error("discord avatar unavailable");
-        }
-
+        if (isApi && response.status === 404) discordApiAvailable = false;
+        if (!response.ok || !response.headers.get("content-type")?.includes("application/json")) return null;
         const data = await response.json();
-        return typeof data.avatarUrl === "string" ? data.avatarUrl : null;
+        return data.id === discordUserId ? data : null;
       } catch {
         return null;
       } finally {
@@ -1888,25 +1964,79 @@
       });
     }
 
-    async function syncDiscordAvatar() {
-      const avatarUrl = await fetchDiscordAvatar();
-
-      if (!avatarUrl || !discordAvatarTarget) {
-        return;
+    function animateProfileText(element, text) {
+      if (!element || element.textContent === text) return;
+      element.textContent = text;
+      if (!prefersReducedMotion && bodyElement.classList.contains("is-entered") && typeof element.animate === "function") {
+        element.animate([{ opacity: 0.25, transform: "translateY(4px)" }, { opacity: 1, transform: "translateY(0)" }], {
+          duration: 320, easing: "ease-out"
+        });
       }
+    }
 
+    function applyDiscordProfile(profile) {
+      if (!profile || profile.id !== discordUserId) return;
+      const identityUpdatedAt = Number(profile.identityUpdatedAt ?? profile.updatedAt) || 0;
+      const statusUpdatedAt = Number(profile.statusUpdatedAt ?? profile.updatedAt) || 0;
+      if (identityUpdatedAt >= currentDiscordProfile.identityUpdatedAt) {
+        const displayName = profile.displayName || profile.globalName || profile.username;
+        if (typeof displayName === "string" && displayName.trim()) {
+          animateProfileText(discordDisplayName, displayName);
+          currentDiscordProfile.displayName = displayName;
+        }
+        if (typeof profile.username === "string" && profile.username.trim()) {
+          discordCopyButtons.forEach((button) => {
+            button.dataset.discordCopy = profile.username;
+            button.title = profile.username;
+            button.setAttribute("aria-label", `Copy Discord: ${profile.username}`);
+          });
+          currentDiscordProfile.username = profile.username;
+        }
+        if (typeof profile.avatarUrl === "string") {
+          try {
+            const url = new URL(profile.avatarUrl, document.baseURI);
+            if (url.protocol === "https:" && url.hostname === "cdn.discordapp.com") currentDiscordProfile.avatarUrl = url.href;
+          } catch {}
+        }
+        currentDiscordProfile.identityUpdatedAt = identityUpdatedAt;
+      }
+      if (statusUpdatedAt >= currentDiscordProfile.statusUpdatedAt) {
+        if (typeof profile.statusText === "string") {
+          animateProfileText(discordStatusText, profile.statusText);
+          if (discordStatus) discordStatus.hidden = !profile.statusText.trim();
+          syncDiscordStatusTooltip();
+          currentDiscordProfile.statusText = profile.statusText;
+          currentDiscordProfile.statusUpdatedAt = statusUpdatedAt;
+        }
+        if (["online", "idle", "dnd", "offline"].includes(profile.status)) {
+          if (discordPresenceDot) discordPresenceDot.dataset.status = profile.status;
+          currentDiscordProfile.status = profile.status;
+          currentDiscordProfile.statusUpdatedAt = statusUpdatedAt;
+        }
+      }
+      try { window.localStorage.setItem(discordProfileCacheKey, JSON.stringify(currentDiscordProfile)); } catch {}
+    }
+
+    async function syncDiscordProfile() {
+      if (discordProfileSyncing || isLocalFile) return;
+      discordProfileSyncing = true;
       try {
-        await preloadImage(avatarUrl);
+        const [snapshot, liveProfile] = await Promise.all([
+          fetchDiscordProfileJson(`data/discord-profiles/${discordUserId}.json`),
+          fetchDiscordProfileJson(`/api/discord/avatar/${discordUserId}`, true)
+        ]);
+        applyDiscordProfile(snapshot);
+        applyDiscordProfile(liveProfile);
+        const avatarUrl = currentDiscordProfile.avatarUrl;
+        if (avatarUrl && avatarUrl !== loadedDiscordAvatarUrl) {
+          await preloadImage(avatarUrl);
+          if (discordAvatarImage) discordAvatarImage.src = avatarUrl;
+          loadedDiscordAvatarUrl = avatarUrl;
+        }
       } catch {
-        return;
-      }
-
-      if (discordAvatarTarget) {
-        discordAvatarTarget.style.backgroundImage = `url("${avatarUrl}")`;
-      }
-
-      if (discordAvatarImage) {
-        discordAvatarImage.src = avatarUrl;
+        // Keep the visible profile and retry on the next refresh.
+      } finally {
+        discordProfileSyncing = false;
       }
     }
 
@@ -2112,6 +2242,8 @@
 
     function lockNameSize() {
       const previousText = nameText.textContent;
+      nameElement.style.removeProperty("--name-lock-width");
+      nameElement.style.removeProperty("--name-lock-height");
       nameText.textContent = fullName;
       const { width, height } = nameElement.getBoundingClientRect();
       nameElement.style.setProperty("--name-lock-width", `${Math.ceil(width)}px`);
@@ -2294,7 +2426,8 @@
     lockNameSize();
     loadTrack(0);
     syncAudioToggle();
-    syncDiscordAvatar();
+    try { applyDiscordProfile(JSON.parse(window.localStorage.getItem(discordProfileCacheKey))); } catch {}
+    syncDiscordProfile();
     startEntryButtonDots();
     startTabTitleAnimation();
 
@@ -2303,10 +2436,11 @@
     }
 
     setAudioRetryListening(false);
-    window.setInterval(syncDiscordAvatar, discordAvatarRefreshMs);
+    window.setInterval(() => { if (!document.hidden) syncDiscordProfile(); }, discordProfileRefreshMs);
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) syncDiscordProfile(); });
+    window.addEventListener("online", syncDiscordProfile);
     window.removeEventListener("error", revealFallbackUi);
     window.removeEventListener("unhandledrejection", revealFallbackUi);
   </script>
 </body>
 </html>
-

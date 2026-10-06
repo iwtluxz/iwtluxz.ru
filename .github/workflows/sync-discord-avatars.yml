@@ -1,19 +1,25 @@
-name: Sync Discord avatars
+name: Sync Discord profiles
 
 on:
   push:
     branches:
       - main
+    paths-ignore:
+      - 'data/discord-profiles/**'
+      - 'img/discordimg.png'
+      - 'img/avatar1.jpg'
+      - 'img/avatar_shakzy.jpg'
   workflow_dispatch:
   schedule:
     - cron: "*/5 * * * *"
 
 permissions:
   contents: write
+  pages: write
 
 concurrency:
-  group: sync-discord-avatars-${{ github.sha }}
-  cancel-in-progress: true
+  group: sync-discord-profiles-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   sync:
@@ -27,14 +33,25 @@ jobs:
         with:
           node-version: 22
 
-      - name: Sync avatars
+      - name: Check profile sync
+        run: node --test scripts/test-discord-profile.mjs
+
+      - name: Sync avatars, names and custom statuses
         env:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
           DISCORD_GUILD_ID: ${{ secrets.DISCORD_GUILD_ID }}
         run: node scripts/sync-discord-avatars.mjs
 
-      - name: Commit updated avatars
+      - name: Commit updated profiles
+        id: commit
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: Sync Discord avatars
-          file_pattern: iwtlu.html strelokk.html img/discordimg.png img/avatar1.jpg img/avatar_shakzy.jpg
+          commit_message: Sync Discord profiles
+          file_pattern: data/discord-profiles/*.json strelokk.html img/discordimg.png img/avatar1.jpg img/avatar_shakzy.jpg
+
+      # Commits made with GITHUB_TOKEN do not trigger a Pages build themselves.
+      - name: Rebuild GitHub Pages after profile changes
+        if: steps.commit.outputs.changes_detected == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh api --method POST "repos/$GITHUB_REPOSITORY/pages/builds" --jq '.status'

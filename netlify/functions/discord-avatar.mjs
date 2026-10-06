@@ -1,13 +1,12 @@
 import { getStore } from "@netlify/blobs";
+import { fetchDiscordIdentity } from "../../scripts/lib/discord-profile.mjs";
 
-const DISCORD_API_BASE = "https://discord.com/api/v10";
 const AVATAR_CACHE_MS = 60 * 1000;
 const allowedUsers = new Set([
-  "1105558423359205489",
+  "484816707798564894",
   "958595335037542450",
   "788045714571132928"
 ]);
-const store = getStore("discord-profiles");
 
 function json(data, status = 200, headers = {}) {
   return new Response(JSON.stringify(data), {
@@ -19,29 +18,15 @@ function json(data, status = 200, headers = {}) {
   });
 }
 
-function getDefaultAvatarUrl(userId) {
-  const index = Number((BigInt(userId) >> 22n) % 6n);
-  return `https://cdn.discordapp.com/embed/avatars/${index}.png`;
-}
-
-function getAvatarUrl(user) {
-  if (!user.avatar) {
-    return getDefaultAvatarUrl(user.id);
-  }
-
-  const extension = user.avatar.startsWith("a_") ? "gif" : "png";
-  return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${extension}?size=256`;
-}
-
 async function readCachedProfile(userId) {
-  return await store.get(`discord/${userId}`, {
+  return await getStore("discord-profiles").get(`discord/${userId}`, {
     consistency: "strong",
     type: "json"
   });
 }
 
 async function writeCachedProfile(userId, profile) {
-  await store.setJSON(`discord/${userId}`, profile);
+  await getStore("discord-profiles").setJSON(`discord/${userId}`, profile);
 }
 
 export default async (_req, context) => {
@@ -73,23 +58,8 @@ export default async (_req, context) => {
   }
 
   try {
-    const response = await fetch(`${DISCORD_API_BASE}/users/${userId}`, {
-      headers: {
-        authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}`
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`discord api returned ${response.status}`);
-    }
-
-    const user = await response.json();
     const profile = {
-      id: user.id,
-      username: user.username,
-      globalName: user.global_name ?? null,
-      avatarHash: user.avatar ?? null,
-      avatarUrl: getAvatarUrl(user),
+      ...await fetchDiscordIdentity(userId, process.env.DISCORD_BOT_TOKEN, process.env.DISCORD_GUILD_ID),
       updatedAt: now
     };
 
