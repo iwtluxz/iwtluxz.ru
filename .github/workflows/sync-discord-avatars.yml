@@ -33,8 +33,8 @@ jobs:
         with:
           node-version: 22
 
-      - name: Check profile sync
-        run: node --test scripts/test-discord-profile.mjs
+      - name: Check profile sync and addresses
+        run: node --test scripts/test-discord-profile.mjs scripts/test-profile-links.mjs scripts/test-profile-routes.mjs
 
       - name: Sync avatars, names and custom statuses
         env:
@@ -45,12 +45,16 @@ jobs:
       - name: Refresh media and application cache versions
         run: node scripts/version-assets.mjs
 
+      - name: Publish profile addresses
+        run: node scripts/sync-profile-routes.mjs
+
       - name: Commit updated profiles
         id: commit
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Sync Discord profiles
-          file_pattern: data/discord-profiles/*.json index.html iwtlu.html profile.html shakzy.html strelokk.html img/discordimg.png img/avatar1.jpg img/avatar_shakzy.jpg
+          file_pattern: data/discord-profiles/*.json *.html img/discordimg.png img/avatar1.jpg img/avatar_shakzy.jpg
+          disable_globbing: true
 
       # Commits made with GITHUB_TOKEN do not trigger a Pages build themselves.
       - name: Rebuild GitHub Pages after profile changes

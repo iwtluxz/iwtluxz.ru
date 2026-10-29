@@ -75,6 +75,10 @@ h3 { font-size: 13px; font-weight: 600; }
 .draft-state.unsaved { color: #f5ce84; }
 .page-address { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 11px 24px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: #09090c44; }
 #pageAddress { margin-right: auto; color: #cacbd4; font: 10px monospace; overflow-wrap: anywhere; }
+#pageAddress[href]:hover { color: var(--accent); }
+#pageAddress[aria-disabled="true"] { text-decoration: none; }
+.published-banner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding: 12px 24px; border-bottom: 1px solid var(--line); background: #4ade8008; }
+.published-banner > strong { color: #b9f9ce; font-size: 11px; font-weight: 500; }
 .settings-section { padding: 24px 24px 8px; }
 .upload-card { display: flex; align-items: center; gap: 12px; min-width: 0; padding: 13px; margin-bottom: 12px; border: 1px dashed #ffffff24; border-radius: 8px; background: #09090c55; }
 .upload-details { min-width: 0; flex: 1; }

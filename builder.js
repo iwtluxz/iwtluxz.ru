@@ -131,12 +131,21 @@
     previewTimer = setTimeout(sendPreview, 70);
   }
 
-  function profileUrl() { return `/profile.html?u=${encodeURIComponent(currentUser?.username || "")}`; }
+  function profileUrl() {
+    const username = currentUser?.username || "";
+    return window.IwtxzProfileLinks?.urlForUser(username) || `/profile.html?u=${encodeURIComponent(username)}`;
+  }
 
   function updatePublication() {
     if (!currentUser) return;
     const url = profileUrl();
     $("#pageAddress").textContent = `${location.host}${url}`;
+    if (currentSite.publishedAt) $("#pageAddress").href = url;
+    else $("#pageAddress").removeAttribute("href");
+    $("#pageAddress").setAttribute("aria-disabled", String(!currentSite.publishedAt));
+    $("#copyAddress").disabled = !currentSite.publishedAt;
+    $("#publishedBanner").classList.toggle("hidden", !currentSite.publishedAt);
+    $("#openProfileTop").href = url;
     $("#openProfile").href = url;
     $("#openProfile").classList.toggle("hidden", !currentSite.publishedAt);
     $("#publishedStatus").textContent = currentSite.publishedAt
@@ -180,6 +189,9 @@
     previewFrame.contentWindow?.postMessage({ type: "iwtxz-profile-preview", site: { ...defaults, avatar: "", background: "", music: "", title: "", nickname: "", showDiscord: false } }, location.origin);
     writeEditor(defaults);
     $("#pageAddress").textContent = "";
+    $("#pageAddress").removeAttribute("href");
+    $("#openProfileTop").removeAttribute("href");
+    $("#publishedBanner").classList.add("hidden");
     $("#accountName").textContent = "";
     $("#openProfile").removeAttribute("href");
   }

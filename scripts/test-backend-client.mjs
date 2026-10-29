@@ -8,6 +8,7 @@ import { webcrypto } from "node:crypto";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const source = await readFile(resolve(root, "backend-client.js"), "utf8");
+const linksSource = await readFile(resolve(root, "profile-links.js"), "utf8");
 const userId = "967385a2-8f95-4499-97b1-8ff92d973cfe";
 const project = "https://fixture.supabase.co";
 const goodConfig = { provider: "supabase", url: project, publishableKey: "sb_publishable_fixture", accountEmailDomain: "accounts.iwtxz.ru", bucket: "profile-assets" };
@@ -123,6 +124,7 @@ function load(overrides = {}) {
     } }
   };
   const context = vm.createContext({ window, URL, Headers, Blob, Uint8Array, AbortController, setTimeout, clearTimeout, queueMicrotask, atob, CustomEvent: class { constructor(type, details) { this.type = type; this.detail = details.detail; } } });
+  if (state.profileLinks) vm.runInContext(linksSource, context);
   vm.runInContext(source, context);
   return { api: window.IwtxzBackend, state, client };
 }
@@ -131,6 +133,20 @@ async function rejects(promise, status, code) {
   await assert.rejects(promise, (failure) => failure.status === status && failure.code === code);
 }
 const post = (body) => ({ method: "POST", body: JSON.stringify(body) });
+
+test("drafts, publication and public reads expose the same working profile URL", async () => {
+  for (const username of ["tshk", "builder"]) {
+    const { api } = load({ username, profileLinks: true });
+    const expected = username === "builder" ? "/profile.html?u=builder" : "/tshk";
+    const draft = (await api.request("/api/builder/sites/get")).site;
+    assert.equal(draft.publicUrl, expected);
+    const saved = await api.request("/api/builder/sites/save", post({ site: { ...draft, publicUrl: "/old-link" } }));
+    assert.equal(saved.site.publicUrl, expected);
+    assert.equal((await api.request("/api/builder/sites/list")).sites[0].publicUrl, expected);
+    assert.equal((await api.request("/api/builder/publish", post({}))).url, expected);
+    assert.equal((await api.getPublishedProfile(username)).publicUrl, expected);
+  }
+});
 
 test("missing configuration is explicit and never creates a fake local account", async () => {
   const { api, state } = load({ config: null });

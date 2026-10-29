@@ -56,7 +56,7 @@ function routeApi(pathname) {
 function publicFile(pathname) {
   if (pathname === "/") return "index.html";
   if (/^\/u\/[a-zA-Z0-9_-]+\/?$/.test(pathname)) return "profile.html";
-  if (/^\/(iwtlu|shakzy|strelokk)\/?$/.test(pathname)) return `${pathname.split("/")[1]}.html`;
+  if (/^\/[a-zA-Z0-9][a-zA-Z0-9_-]{2,31}\/?$/.test(pathname)) return `${pathname.split("/")[1]}.html`;
   if (/^\/[a-zA-Z0-9_-]+\.(html|css|js)$/.test(pathname)) return pathname.slice(1);
   if (/^\/vendor\/[a-zA-Z0-9_.-]+\.(js|txt)$/.test(pathname)) return pathname.slice(1);
   if (/^\/data\/discord-profiles\/\d+\.json$/.test(pathname)) return pathname.slice(1);
@@ -67,11 +67,11 @@ function publicFile(pathname) {
 
 async function serveFile(request, response, root, pathname) {
   const relativeFile = publicFile(pathname);
-  if (!relativeFile) return json(response, 404, { error: "not found" });
+  if (!relativeFile) return serveNotFound(request, response, root);
   const absoluteFile = resolve(root, relativeFile);
   if (!absoluteFile.startsWith(`${root}${sep}`)) return json(response, 404, { error: "not found" });
   let info;
-  try { info = await stat(absoluteFile); } catch { return json(response, 404, { error: "not found" }); }
+  try { info = await stat(absoluteFile); } catch { return serveNotFound(request, response, root); }
   if (!info.isFile()) return json(response, 404, { error: "not found" });
   const headers = {
     "content-type": types[extname(absoluteFile).toLowerCase()] ?? "application/octet-stream",
@@ -101,6 +101,15 @@ async function serveFile(request, response, root, pathname) {
   if (request.method === "HEAD" || !info.size) return response.end();
   try { await pipeline(createReadStream(absoluteFile, { start, end }), response); }
   catch (error) { if (error.code !== "ERR_STREAM_PREMATURE_CLOSE") throw error; }
+}
+
+async function serveNotFound(request, response, root) {
+  const file = resolve(root, "404.html");
+  let info;
+  try { info = await stat(file); } catch { return json(response, 404, { error: "not found" }); }
+  response.writeHead(404, { "content-type": types[".html"], "cache-control": "no-store", "content-length": info.size });
+  if (request.method === "HEAD") return response.end();
+  await pipeline(createReadStream(file), response);
 }
 
 async function sendWebResponse(response, result, method) {

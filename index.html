@@ -6,12 +6,13 @@
   <meta name="theme-color" content="#09090c">
   <meta name="description" content="Твоя страница iwtxz: аватар, музыка, фон и ссылки.">
   <link rel="icon" type="image/png" href="img/tree.png">
-  <link rel="stylesheet" href="builder.css">
+  <link rel="stylesheet" href="builder.css?v=996d552d628f">
   <title>Личный кабинет · iwtxz</title>
+  <script src="profile-links.js?v=a55d02ddb7c2" defer></script>
   <script src="vendor/supabase-2.102.0.min.js" defer></script>
   <script src="backend-config.js?v=78f8eb922108" defer></script>
-  <script src="backend-client.js?v=2b05e5295460" defer></script>
-  <script src="builder.js?v=a9349ce40719" defer></script>
+  <script src="backend-client.js?v=5fc9fdb16042" defer></script>
+  <script src="builder.js?v=f84c6e9e56a2" defer></script>
 </head>
 <body class="auth-locked">
   <header class="topbar">
@@ -47,7 +48,8 @@
 
     <section class="panel editor-panel requires-auth" aria-labelledby="editorHeading">
       <div class="panel-heading"><div><span class="eyebrow">сделай по-своему</span><h1 id="editorHeading">Моя страница</h1></div><span class="draft-state" id="draftState">Черновик</span></div>
-      <div class="page-address"><span class="hint">Адрес страницы</span><span id="pageAddress"></span><button class="text-button" id="copyAddress" type="button">Скопировать</button></div>
+      <div class="page-address"><span class="hint">Адрес страницы</span><a id="pageAddress" target="_blank" rel="noopener noreferrer"></a><button class="text-button" id="copyAddress" type="button">Скопировать</button></div>
+      <div class="published-banner hidden" id="publishedBanner"><strong>Страница опубликована</strong><a class="button primary small" id="openProfileTop" target="_blank" rel="noopener noreferrer">Открыть страницу ↗</a></div>
       <form id="editorForm" novalidate>
         <section class="settings-section" data-settings-section="profile" aria-labelledby="profileHeading">
           <h2 id="profileHeading">Профиль</h2>

@@ -250,6 +250,9 @@
       }
     }
     syncAudio();
+    if (!isPreview && window.parent !== window) {
+      window.parent.postMessage({ type: "iwtxz-public-profile-ready", title: document.title }, location.origin);
+    }
   }
 
   byId("discordButton").addEventListener("click", copyDiscord);
@@ -308,8 +311,9 @@
     });
     window.parent.postMessage({ type: "iwtxz-profile-ready" }, window.location.origin);
   } else {
-    const path = window.location.pathname.match(/^\/u\/([a-z0-9_-]{3,32})\/?$/i);
-    const selectedUsername = params.get("u") || path?.[1] || "";
+    const generatedUsername = document.querySelector('meta[name="iwtxz-profile"]')?.content;
+    const routeUsername = window.IwtxzProfileLinks?.usernameFromPath(location.pathname);
+    const selectedUsername = params.get("u") || generatedUsername || routeUsername || "";
     const username = /^[a-z0-9][a-z0-9_-]{2,31}$/i.test(selectedUsername) ? selectedUsername.toLowerCase() : "";
     if (!username) {
       pageMessage.textContent = "Профиль не выбран. Открой свою страницу из личного кабинета.";

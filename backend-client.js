@@ -89,7 +89,9 @@
     return value;
   }
 
-  function publicUrl(username) { return `/profile.html?u=${encodeURIComponent(username)}`; }
+  function publicUrl(username) {
+    return window.IwtxzProfileLinks?.urlForUser(username) || `/profile.html?u=${encodeURIComponent(username)}`;
+  }
 
   function translateFailure(cause, operation = "request") {
     if (cause?.status && cause?.code && cause instanceof Error && !cause.name?.startsWith("Auth")) return cause;
@@ -296,20 +298,20 @@
     }
     if (url.pathname === "/api/builder/sites/list" || url.pathname === "/api/builder/sites/get") {
       if (mode === "get" && url.searchParams.get("id") && url.searchParams.get("id") !== account.username) throw error(404, "Страница не найдена.", "not_found");
-      const site = await rpc("builder_get_profile");
+      const site = { ...await rpc("builder_get_profile"), publicUrl: publicUrl(account.username) };
       return mode === "list" ? { sites: [site] } : { site };
     }
     if (url.pathname === "/api/builder/sites/save") {
       const body = jsonBody(options);
       const site = body.site ?? body;
       ownership(site, account);
-      return { site: await rpc("builder_save_profile", { input: site }) };
+      return { site: { ...await rpc("builder_save_profile", { input: site }), publicUrl: publicUrl(account.username) } };
     }
     if (url.pathname === "/api/builder/sites/delete") {
       ownership(jsonBody(options), account);
       return rpc("builder_delete_profile");
     }
-    if (url.pathname === "/api/builder/publish") return rpc("builder_publish_profile");
+    if (url.pathname === "/api/builder/publish") return { ...await rpc("builder_publish_profile"), url: publicUrl(account.username) };
     if (url.pathname === "/api/builder/assets/upload") return uploadAsset(url, options, account);
     throw error(404, "Страница не найдена.", "not_found");
   }
