@@ -198,8 +198,8 @@
 
     .avatar {
       --avatar-offset: -10px;
-      width: 114px;
-      height: 114px;
+      width: 150px;
+      height: 150px;
       border-radius: 0;
       background: url("img/mainavatar.gif?v=09465e6cc2f2") center center / contain no-repeat;
       box-shadow: none;
@@ -725,8 +725,8 @@
 
       .avatar {
         --avatar-offset: -7px;
-        width: 114px;
-        height: 114px;
+        width: 128px;
+        height: 128px;
         transform: translateY(var(--avatar-offset));
         margin-bottom: -8px;
       }
@@ -1478,8 +1478,8 @@
       }
 
       .avatar {
-        width: 96px;
-        height: 96px;
+        width: 128px;
+        height: 128px;
         margin-bottom: -8px;
       }
 
@@ -1588,8 +1588,8 @@
       }
 
       .avatar {
-        width: 84px;
-        height: 84px;
+        width: 112px;
+        height: 112px;
       }
 
       .name {
@@ -1662,8 +1662,8 @@
       }
 
       .avatar {
-        width: 92px;
-        height: 92px;
+        width: 120px;
+        height: 120px;
         margin-bottom: -8px;
       }
 
@@ -1721,7 +1721,7 @@
         <span class="name-text" data-text="Ɨ ω ŧ Ł υ">iwtlu</span>
       </h1>
       <p class="tagline">
-        <span class="tagline-text">самый тёмный рыцарь, но не в самом тёмном замке</span>
+        <span class="tagline-text">малыш, ты знала, что все закончится так</span>
       </p>
     </section>
     <div class="socials" aria-label="Social links">
@@ -1776,7 +1776,7 @@
     <input id="trackVolume" type="range" min="0" max="100" step="1" value="45">
   </label>
   <section class="track-card" aria-label="Current track">
-    <div class="track-card-cover-wrap" data-track-owner="Fortuna 812" tabindex="0" aria-label="Трек Fortuna 812">
+    <div class="track-card-cover-wrap" data-track-owner="тёмный шпиц" tabindex="0" aria-label="Трек тёмный шпиц">
       <img class="track-card-cover" src="img/mysoundicon.png?v=c936b3d13e18" alt="" aria-hidden="true">
     </div>
     <div class="track-card-main">
@@ -1846,8 +1846,8 @@
     const trackSeek = document.querySelector("[data-track-seek]");
     const nameText = document.querySelector(".name-text");
     const nameElement = document.querySelector(".name");
-    const fullName = nameText.dataset.text;
-    const tabTitlePrefix = "iwtlu";
+    let fullName = nameText.dataset.text;
+    let tabTitlePrefix = "iwtlu";
     const tabTitleSuffix = " | iwtxz.ru";
     const prefersReducedMotion = typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const searchParams = typeof window.URLSearchParams === "function"
@@ -1869,7 +1869,7 @@
     let discordApiAvailable = true;
     let loadedDiscordAvatarUrl = "";
     const playlist = [
-      { title: "sexy supra", src: "sound/sound.mp3?v=9f27cc385ddc" }
+      { title: "one more time", src: "sound/sound.mp3?v=9f27cc385ddc" }
     ];
     let animationStarted = false;
     let audioFadeFrame = 0;
@@ -1914,7 +1914,9 @@
 
     function readStoredAudioVolume() {
       try {
-        const cachedValue = Number(window.localStorage.getItem(audioVolumeKey));
+        const storedValue = window.localStorage.getItem(audioVolumeKey);
+        if (storedValue === null || storedValue.trim() === "") return 0.45;
+        const cachedValue = Number(storedValue);
         if (Number.isFinite(cachedValue)) {
           return Math.min(Math.max(cachedValue, 0), 1);
         }
@@ -2036,6 +2038,7 @@
     }
 
     function applyDiscordProfile(profile) {
+      if (window.iwtxzPublishedSettings) return;
       if (!profile || profile.id !== discordUserId) return;
       const identityUpdatedAt = Number(profile.identityUpdatedAt ?? profile.updatedAt) || 0;
       const statusUpdatedAt = Number(profile.statusUpdatedAt ?? profile.updatedAt) || 0;
@@ -2089,9 +2092,9 @@
         applyDiscordProfile(snapshot);
         applyDiscordProfile(liveProfile);
         const avatarUrl = currentDiscordProfile.avatarUrl;
-        if (avatarUrl && avatarUrl !== loadedDiscordAvatarUrl) {
+        if (!window.iwtxzPublishedSettings && avatarUrl && avatarUrl !== loadedDiscordAvatarUrl) {
           await preloadImage(avatarUrl);
-          if (discordAvatarImage) discordAvatarImage.src = avatarUrl;
+          if (!window.iwtxzPublishedSettings && discordAvatarImage) discordAvatarImage.src = avatarUrl;
           loadedDiscordAvatarUrl = avatarUrl;
         }
       } catch {
@@ -2372,6 +2375,10 @@
           return;
         }
 
+        if (window.iwtxzPublishedSettings?.entryText) {
+          entryButton.textContent = window.iwtxzPublishedSettings.entryText;
+          return;
+        }
         dotFrameIndex = (dotFrameIndex + 1) % dotFrames.length;
         entryButton.textContent = `click to enter${dotFrames[dotFrameIndex]}`;
       }, 420);
@@ -2527,5 +2534,6 @@
     window.removeEventListener("error", revealFallbackUi);
     window.removeEventListener("unhandledrejection", revealFallbackUi);
   </script>
+  <script src="profile-settings.js" data-profile="iwtlu"></script>
 </body>
 </html>

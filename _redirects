@@ -8,3 +8,5 @@
 /icetearz/ /icetearz.html 200
 /eris /eris.html 200
 /eris/ /eris.html 200
+/u/:username /profile.html 200
+/u/:username/ /profile.html 200

@@ -2,6 +2,14 @@
   "name": "iwtxz-site",
   "private": true,
   "type": "module",
+  "scripts": {
+    "dev": "node scripts/dev-server.mjs",
+    "build": "node scripts/build-static.mjs",
+    "test:builder": "node --test scripts/test-builder.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
     "@netlify/blobs": "10.7.2"
   }
