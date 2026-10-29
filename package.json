@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "node scripts/dev-server.mjs",
     "build": "node scripts/build-static.mjs",
+    "version:assets": "node scripts/version-assets.mjs",
+    "test:backend-client": "node --test scripts/test-backend-client.mjs",
     "test:builder": "node --test scripts/test-builder.mjs"
   },
   "engines": {

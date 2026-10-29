@@ -8,7 +8,10 @@
   <link rel="icon" type="image/png" href="img/tree.png">
   <link rel="stylesheet" href="builder.css">
   <title>Личный кабинет · iwtxz</title>
-  <script src="builder.js" defer></script>
+  <script src="vendor/supabase-2.102.0.min.js" defer></script>
+  <script src="backend-config.js?v=78f8eb922108" defer></script>
+  <script src="backend-client.js?v=2b05e5295460" defer></script>
+  <script src="builder.js?v=a9349ce40719" defer></script>
 </head>
 <body class="auth-locked">
   <header class="topbar">
@@ -23,6 +26,7 @@
         <label class="field">Логин<input id="username" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="your_nickname" minlength="3" maxlength="32" pattern="[a-zA-Z0-9][a-zA-Z0-9_-]{2,31}" required><span class="hint">Латинские буквы, цифры, _ и - · от 3 до 32 символов</span></label>
         <label class="field">Пароль<span class="password-field"><input id="password" name="password" type="password" autocomplete="current-password" maxlength="128" required><button id="showPassword" class="password-eye" type="button" aria-label="Показать пароль" aria-pressed="false">Показать</button></span></label>
         <label class="field hidden" id="confirmPasswordField">Повтори пароль<input id="confirmPassword" type="password" autocomplete="new-password" maxlength="128"><span class="hint">Минимум 8 символов. Пароль нужен для входа в кабинет.</span></label>
+        <label class="field hidden" id="ownerClaimField">Код владельца страницы<input id="ownerClaim" type="password" autocomplete="off" maxlength="128"><span class="hint">Этот логин закреплён за существующей страницей. Для первого создания аккаунта нужен одноразовый код владельца.</span></label>
         <button class="button primary auth-submit" id="authSubmit" type="submit">Войти в кабинет</button>
         <p class="status" id="authStatus" role="status" aria-live="polite">Проверяем вход…</p>
       </form>

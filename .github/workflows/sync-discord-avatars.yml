@@ -42,12 +42,15 @@ jobs:
           DISCORD_GUILD_ID: ${{ secrets.DISCORD_GUILD_ID }}
         run: node scripts/sync-discord-avatars.mjs
 
+      - name: Refresh media and application cache versions
+        run: node scripts/version-assets.mjs
+
       - name: Commit updated profiles
         id: commit
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Sync Discord profiles
-          file_pattern: data/discord-profiles/*.json strelokk.html img/discordimg.png img/avatar1.jpg img/avatar_shakzy.jpg
+          file_pattern: data/discord-profiles/*.json index.html iwtlu.html profile.html shakzy.html strelokk.html img/discordimg.png img/avatar1.jpg img/avatar_shakzy.jpg
 
       # Commits made with GITHUB_TOKEN do not trigger a Pages build themselves.
       - name: Rebuild GitHub Pages after profile changes

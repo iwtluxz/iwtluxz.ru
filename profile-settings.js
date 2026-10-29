@@ -166,11 +166,17 @@
     }
   }
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 7000);
-  fetch(`/api/builder/profile/${encodeURIComponent(profile)}`, { credentials: "same-origin", cache: "no-store", signal: controller.signal })
-    .then((response) => response.ok ? response.json() : null)
-    .then((data) => { if (data?.site) apply(data.site); })
-    .catch(() => {})
-    .finally(() => clearTimeout(timeout));
+  if (window.IwtxzBackend?.isConfigured()) {
+    window.IwtxzBackend.request(`/api/builder/profile/${encodeURIComponent(profile)}`)
+      .then((data) => { if (data?.site) apply(data.site); })
+      .catch(() => {});
+  } else if (["localhost", "127.0.0.1", "[::1]"].includes(location.hostname)) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 7000);
+    fetch(`/api/builder/profile/${encodeURIComponent(profile)}`, { credentials: "same-origin", cache: "no-store", signal: controller.signal })
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => { if (data?.site) apply(data.site); })
+      .catch(() => {})
+      .finally(() => clearTimeout(timeout));
+  }
 })();

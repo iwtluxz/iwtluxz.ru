@@ -10,7 +10,7 @@
   const defaults = {
     title: "", nickname: "", description: "", entryText: "click to enter...", discord: "", telegram: "", steam: "",
     avatar: "img/mainavatar.gif", background: "img/background.mp4", backgroundType: "video",
-    music: "sound/sound.mp3", musicTitle: "sexy supra", musicCover: "img/mysoundicon.png",
+    music: "sound/sound.mp3", musicTitle: "one more time", musicCover: "img/mysoundicon.png",
     avatarSize: 150, backgroundDim: 58, accentColor: "#f5f5f7", font: "minecraft", musicLoop: true, showDiscord: true
   };
   const fileHints = Object.fromEntries(all("[data-file-note]").map((e) => [e.dataset.fileNote, e.textContent]));
@@ -48,6 +48,21 @@
 
   async function api(path, options = {}) {
     if (location.protocol === "file:") throw new Error("Для входа открой кабинет через локальный сервер, а не как файл. Инструкция — в README-BUILDER.md.");
+    if (window.IwtxzBackend?.isConfigured()) {
+      try { return await window.IwtxzBackend.request(path, options); }
+      catch (error) {
+        if (error.status === 401 && error.code === "unauthorized" && currentUser) {
+          resetSession();
+          status("#authStatus", "Время входа истекло. Войди ещё раз.", "error");
+        }
+        throw error;
+      }
+    }
+    if (!["localhost", "127.0.0.1", "[::1]"].includes(location.hostname)) {
+      const error = new Error("Сервер кабинета ещё не подключён. Владелец сайта должен указать настройки Supabase в backend-config.js.");
+      error.code = "backend_not_configured";
+      throw error;
+    }
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), options.upload ? 45000 : 15000);
     const headers = new Headers(options.headers);
@@ -116,7 +131,7 @@
     previewTimer = setTimeout(sendPreview, 70);
   }
 
-  function profileUrl() { return `/u/${encodeURIComponent(currentUser?.username || "")}`; }
+  function profileUrl() { return `/profile.html?u=${encodeURIComponent(currentUser?.username || "")}`; }
 
   function updatePublication() {
     if (!currentUser) return;
@@ -160,6 +175,7 @@
     $("#showPassword").setAttribute("aria-label", "Показать пароль");
     $("#showPassword").setAttribute("aria-pressed", "false");
     $("#confirmPassword").value = "";
+    $("#ownerClaim").value = "";
     $("#passwordForm").reset();
     previewFrame.contentWindow?.postMessage({ type: "iwtxz-profile-preview", site: { ...defaults, avatar: "", background: "", music: "", title: "", nickname: "", showDiscord: false } }, location.origin);
     writeEditor(defaults);
@@ -182,6 +198,7 @@
     document.body.classList.remove("auth-locked");
     $("#password").value = "";
     $("#confirmPassword").value = "";
+    $("#ownerClaim").value = "";
     setSection("profile");
     status("#editorStatus", "Черновик виден только тебе. Изменения появятся на странице после применения.");
     sendPreview();
@@ -265,6 +282,12 @@
     finally { input.disabled = false; input.value = ""; uploadCount -= 1; updateBusy(); }
   }
 
+  function updateOwnerClaimField() {
+    const username = $("#username").value.trim().toLowerCase();
+    const reserved = ["iwtlu", "shakzy", "strelok", "strelokk", "icetearz", "eris"].includes(username);
+    $("#ownerClaimField").classList.toggle("hidden", authMode !== "signup" || !reserved);
+  }
+  $("#username").addEventListener("input", updateOwnerClaimField);
   all("[data-auth-mode]").forEach((button) => button.addEventListener("click", () => {
     authMode = button.dataset.authMode;
     all("[data-auth-mode]").forEach((tab) => { const active = tab === button; tab.classList.toggle("active", active); tab.setAttribute("aria-pressed", String(active)); });
@@ -274,6 +297,7 @@
     $("#password").minLength = signup ? 8 : 1;
     $("#password").autocomplete = signup ? "new-password" : "current-password";
     $("#authSubmit").textContent = signup ? "Создать свою страницу" : "Войти в кабинет";
+    updateOwnerClaimField();
     status("#authStatus", signup ? "Регистрация открыта. У каждого аккаунта своя страница." : "Войди, чтобы продолжить настройку страницы.");
   }));
 
@@ -290,6 +314,7 @@
     if (authMode === "signup" && $("#password").value !== $("#confirmPassword").value) { status("#authStatus", "Пароли не совпадают.", "error"); return; }
     const mode = authMode;
     const credentials = { username: $("#username").value.trim(), password: $("#password").value };
+    if (mode === "signup" && $("#ownerClaim").value.trim()) credentials.ownerClaim = $("#ownerClaim").value.trim();
     all("#authForm button, [data-auth-mode]").forEach((button) => { button.disabled = true; });
     try {
       status("#authStatus", mode === "signup" ? "Создаём аккаунт…" : "Входим…");
@@ -362,6 +387,12 @@
     if (event.origin === location.origin && event.source === previewFrame.contentWindow && event.data?.type === "iwtxz-profile-ready") sendPreview();
   });
   previewFrame.addEventListener("load", sendPreview);
+  window.addEventListener("iwtxz-auth-change", (event) => {
+    if (event.detail?.event === "SIGNED_OUT" && currentUser) {
+      resetSession();
+      status("#authStatus", "Сеанс завершён. Войди ещё раз.");
+    }
+  });
   window.addEventListener("beforeunload", (event) => { if (dirty || uploadCount) { event.preventDefault(); event.returnValue = ""; } });
   ["#avatarThumbnail", "#accountAvatar", "#coverThumbnail"].forEach((selector) => $(selector).addEventListener("error", (event) => { if (!event.target.src.endsWith("/img/tree.png")) event.target.src = "img/tree.png"; }));
 

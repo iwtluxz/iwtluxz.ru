@@ -309,12 +309,16 @@
     window.parent.postMessage({ type: "iwtxz-profile-ready" }, window.location.origin);
   } else {
     const path = window.location.pathname.match(/^\/u\/([a-z0-9_-]{3,32})\/?$/i);
-    const username = path?.[1]?.toLowerCase();
+    const selectedUsername = params.get("u") || path?.[1] || "";
+    const username = /^[a-z0-9][a-z0-9_-]{2,31}$/i.test(selectedUsername) ? selectedUsername.toLowerCase() : "";
     if (!username) {
       pageMessage.textContent = "Профиль не выбран. Открой свою страницу из личного кабинета.";
       return;
     }
-    fetch(`/api/builder/profile/${encodeURIComponent(username)}`, { credentials: "same-origin", cache: "no-store" })
+    const loadProfile = window.IwtxzBackend?.isConfigured()
+      ? window.IwtxzBackend.request(`/api/builder/profile/${encodeURIComponent(username)}`)
+      : ["localhost", "127.0.0.1", "[::1]"].includes(location.hostname)
+        ? fetch(`/api/builder/profile/${encodeURIComponent(username)}`, { credentials: "same-origin", cache: "no-store" })
       .then(async (response) => {
         if (!response.ok) {
           const error = new Error(response.status === 404 ? "Страница пока не опубликована или не существует." : "Не удалось загрузить страницу. Попробуй позже.");
@@ -322,6 +326,8 @@
         }
         return response.json();
       })
+        : Promise.reject(new Error("Сервер профилей ещё не подключён владельцем сайта."));
+    loadProfile
       .then((data) => {
         if (!data.site) throw new Error("Страница пока не опубликована.");
         applySite(data.site);

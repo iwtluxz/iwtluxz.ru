@@ -58,6 +58,7 @@ function publicFile(pathname) {
   if (/^\/u\/[a-zA-Z0-9_-]+\/?$/.test(pathname)) return "profile.html";
   if (/^\/(iwtlu|shakzy|strelokk)\/?$/.test(pathname)) return `${pathname.split("/")[1]}.html`;
   if (/^\/[a-zA-Z0-9_-]+\.(html|css|js)$/.test(pathname)) return pathname.slice(1);
+  if (/^\/vendor\/[a-zA-Z0-9_.-]+\.(js|txt)$/.test(pathname)) return pathname.slice(1);
   if (/^\/data\/discord-profiles\/\d+\.json$/.test(pathname)) return pathname.slice(1);
   if (/^\/(img|sound|font)\/[a-zA-Z0-9_./-]+$/.test(pathname)
       && types[extname(pathname).toLowerCase()] && !pathname.split("/").includes("..")) return pathname.slice(1);

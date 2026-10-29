@@ -1346,8 +1346,8 @@
     const trackSeek = document.querySelector("[data-track-seek]");
     const nameText = document.querySelector(".name-text");
     const nameElement = document.querySelector(".name");
-    const fullName = nameText.dataset.text;
-    const tabTitlePrefix = "shakzy";
+    let fullName = nameText.dataset.text;
+    let tabTitlePrefix = "shakzy";
     const tabTitleSuffix = " | iwtxz.ru";
     const prefersReducedMotion = typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const searchParams = typeof window.URLSearchParams === "function"
@@ -1456,6 +1456,7 @@
     }
 
     async function syncDiscordAvatar() {
+      if (window.iwtxzPublishedSettings) return;
       const avatarUrl = await fetchDiscordAvatar();
 
       if (!avatarUrl || !discordAvatarTarget) {
@@ -1468,11 +1469,11 @@
         return;
       }
 
-      if (discordAvatarTarget) {
+      if (!window.iwtxzPublishedSettings && discordAvatarTarget) {
         discordAvatarTarget.style.backgroundImage = `url("${avatarUrl}")`;
       }
 
-      if (discordAvatarImage) {
+      if (!window.iwtxzPublishedSettings && discordAvatarImage) {
         discordAvatarImage.src = avatarUrl;
       }
     }
@@ -1746,6 +1747,10 @@
           return;
         }
 
+        if (window.iwtxzPublishedSettings?.entryText) {
+          entryButton.textContent = window.iwtxzPublishedSettings.entryText;
+          return;
+        }
         dotFrameIndex = (dotFrameIndex + 1) % dotFrames.length;
         entryButton.textContent = `click to enter${dotFrames[dotFrameIndex]}`;
       }, 420);
@@ -1881,5 +1886,9 @@
     window.removeEventListener("error", revealFallbackUi);
     window.removeEventListener("unhandledrejection", revealFallbackUi);
   </script>
+  <script src="vendor/supabase-2.102.0.min.js" defer></script>
+  <script src="backend-config.js?v=78f8eb922108" defer></script>
+  <script src="backend-client.js?v=2b05e5295460" defer></script>
+  <script src="profile-settings.js?v=b19cee7ae39c" data-profile="shakzy" defer></script>
 </body>
 </html>
