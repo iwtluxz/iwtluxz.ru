@@ -1,11 +1,20 @@
 {
   "id": "958595335037542450",
+  "guildId": "1557152366208229486",
+  "member": false,
   "username": "phantom576",
   "globalName": "artemka",
   "displayName": "artemka",
   "avatarHash": "3b73ebca5b62a2f02e72eb69fde1208d",
   "avatarUrl": "https://cdn.discordapp.com/avatars/958595335037542450/3b73ebca5b62a2f02e72eb69fde1208d.png?size=256",
+  "badges": [
+    {
+      "id": "house-bravery",
+      "label": "HypeSquad Bravery"
+    }
+  ],
   "statusText": null,
   "status": null,
-  "updatedAt": 1791991110285
+  "activity": null,
+  "updatedAt": 1793347938659
 }

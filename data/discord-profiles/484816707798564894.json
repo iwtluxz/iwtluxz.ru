@@ -1,11 +1,25 @@
 {
   "id": "484816707798564894",
+  "guildId": "1557152366208229486",
+  "member": true,
   "username": "iwtluz",
   "globalName": "//",
   "displayName": "//",
   "avatarHash": "95180d5e1a8ea2fb43b336c52996bcec",
   "avatarUrl": "https://cdn.discordapp.com/avatars/484816707798564894/95180d5e1a8ea2fb43b336c52996bcec.png?size=256",
+  "badges": [
+    {
+      "id": "house-bravery",
+      "label": "HypeSquad Bravery"
+    }
+  ],
   "statusText": "love @me",
-  "status": "offline",
-  "updatedAt": 1793318972058
+  "status": "idle",
+  "activity": {
+    "type": 2,
+    "name": "Dotify",
+    "details": "one more time",
+    "state": "тёмный принц"
+  },
+  "updatedAt": 1793347937897
 }

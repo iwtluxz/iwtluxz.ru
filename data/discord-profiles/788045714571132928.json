@@ -1,11 +1,20 @@
 {
   "id": "788045714571132928",
+  "guildId": "1557152366208229486",
+  "member": false,
   "username": "mrshakzzy",
   "globalName": "Shakzyy",
   "displayName": "Shakzyy",
   "avatarHash": "092f844be7e24092a8df9796819e280d",
   "avatarUrl": "https://cdn.discordapp.com/avatars/788045714571132928/092f844be7e24092a8df9796819e280d.png?size=256",
+  "badges": [
+    {
+      "id": "house-brilliance",
+      "label": "HypeSquad Brilliance"
+    }
+  ],
   "statusText": null,
   "status": null,
-  "updatedAt": 1791325261424
+  "activity": null,
+  "updatedAt": 1793347939026
 }
