@@ -65,6 +65,7 @@ function load(overrides = {}) {
           state.calls.push({ method: "query", table, columns, filter });
           if (state.queryError) return { data: null, error: state.queryError };
           if (table === "profile_accounts") return { data: state.missingAccount ? null : { username: state.username }, error: null };
+          if (table === "profile_drafts") return { data: state.draft ? { settings: state.draft } : null, error: null };
           assert.equal(table, "profile_published");
           return { data: state.published.get(filter[1]) || null, error: null };
         }
@@ -294,8 +295,19 @@ test("anonymous published profile reads request only public columns and never au
 });
 
 test("missing SQL schema reports setup failure instead of malformed profile success", async () => {
-  const { api } = load({ rpcError: { code: "PGRST202", message: "Function not found" } });
+  const { api } = load({ queryError: { code: "PGRST205", message: "Table not found" } });
   await rejects(api.request("/api/builder/sites/list"), 503, "backend_setup_required");
+});
+
+test("a missing draft preserves the published settings, while malformed saved data never becomes defaults", async () => {
+  const { api, state } = load();
+  state.published.set("alice", { settings: { nickname: "Keep published nickname", avatar: "https://example.test/avatar.png" }, published_at: "2026-10-30T00:00:00Z" });
+  assert.equal((await api.request("/api/builder/sites/list")).sites[0].nickname, "Keep published nickname");
+  state.draft = "malformed settings";
+  await rejects(api.request("/api/builder/sites/list"), 503, "invalid_response");
+  state.draft = null;
+  state.active = false;
+  await rejects(api.request("/api/builder/sites/list"), 401, "unauthorized");
 });
 
 test("uploads sniff safe bytes, correct mislabeled media and use own immutable storage paths", async () => {

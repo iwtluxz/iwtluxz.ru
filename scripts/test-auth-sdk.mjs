@@ -66,6 +66,11 @@ function load({ expired = false, stallPassword = false, stallProfile = false, lo
       }
       if (url.pathname === "/auth/v1/user") return Response.json(user);
       if (url.pathname === "/rest/v1/profile_accounts") return Response.json({ username: "alice" });
+      if (url.pathname === "/rest/v1/profile_drafts") {
+        if (state.stallProfile) return new Promise(() => {});
+        return Response.json({ settings: { id: "alice", owner: "alice", title: "Saved profile", nickname: "Alice" } });
+      }
+      if (url.pathname === "/rest/v1/profile_published") return Response.json(null);
       if (url.pathname === "/rest/v1/rpc/builder_get_profile") {
         if (state.stallProfile) return new Promise(() => {});
         return Response.json({ id: "alice", owner: "alice", title: "Saved profile", nickname: "Alice" });
@@ -131,6 +136,20 @@ test("real SDK: a stalled cabinet read fails after successful login and can be r
     await assert.rejects(api.request("/api/builder/sites/list"), { code: "request_timeout" });
     state.stallProfile = false;
     assert.equal((await api.request("/api/builder/sites/list")).sites[0].title, "Saved profile");
+  } finally { close(); }
+});
+
+test("real SDK: cabinet reads bypass the stalled RPC and reuse the account validated during login", { timeout: 3000 }, async () => {
+  const { api, state, close } = load();
+  try {
+    await api.request("/api/builder/auth/login", credentials);
+    const before = state.calls.length;
+    assert.equal((await api.request("/api/builder/sites/list")).sites[0].title, "Saved profile");
+    const reads = state.calls.slice(before);
+    assert.equal(reads.length, 2);
+    assert.ok(reads.some(path => path.startsWith("/rest/v1/profile_drafts?")));
+    assert.ok(reads.some(path => path.startsWith("/rest/v1/profile_published?")));
+    assert.ok(reads.every(path => !path.includes("/rpc/") && !path.includes("/auth/") && !path.includes("/profile_accounts")));
   } finally { close(); }
 });
 

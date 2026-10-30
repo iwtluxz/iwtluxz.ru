@@ -49,7 +49,7 @@ const user = { username: "alice" };
 const site = { title: "Saved page", nickname: "Alice" };
 const response = path => path.endsWith("/me") ? { user: null } : path.endsWith("/list") ? { sites: [site] } : { user };
 
-for (const stage of ["login", "list"]) {
+for (const stage of ["login"]) {
   test(`cabinet UI: stalled ${stage} releases the form and a retry opens the saved profile`, async () => {
     let stall = true;
     const ui = loadBuilder(path => stall && path.endsWith(`/${stage}`) ? new Promise(() => {}) : Promise.resolve(response(path)));
@@ -68,6 +68,33 @@ for (const stage of ["login", "list"]) {
     } finally { ui.close(); }
   });
 }
+
+test("cabinet UI: failed settings stay read-only and retry without a second login", async () => {
+  let stall = true;
+  const calls = [];
+  const ui = loadBuilder(path => {
+    calls.push(path);
+    return stall && path.endsWith("/list") ? new Promise(() => {}) : Promise.resolve(response(path));
+  });
+  try {
+    await ui.submit();
+    assert.equal(ui.body.classList.contains("auth-locked"), false);
+    assert.equal(ui.body.classList.contains("account-unavailable"), true);
+    assert.equal(ui.elements.get("editorForm").inert, true);
+    assert.equal(ui.elements.get("saveButton").disabled, true);
+    assert.equal(ui.elements.get("publishButton").disabled, true);
+    assert.equal(ui.elements.get("retryAccountLoad").classList.contains("hidden"), false);
+    assert.match(ui.elements.get("accountLoadStatus").textContent, /Не удалось загрузить сохранённые настройки/);
+    assert.equal(ui.elements.get("password").value, "");
+    stall = false;
+    ui.elements.get("retryAccountLoad").fire("click");
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(ui.body.classList.contains("account-unavailable"), false);
+    assert.equal(ui.elements.get("nickname").value, "Alice");
+    assert.equal(ui.elements.get("saveButton").disabled, false);
+    assert.equal(calls.filter(path => path.endsWith("/login")).length, 1);
+  } finally { ui.close(); }
+});
 
 test("cabinet UI: an abandoned bootstrap cannot log out a successful manual login", async () => {
   let rejectBootstrap, bootstrapSignal;
@@ -106,6 +133,14 @@ test("Discord renderer uses original badges and server-tag artwork, deduplicates
     assert.deepEqual(strip.children.map(badge => badge.children[0].src), ["/img/discord-badges/house-bravery.png", "/img/discord-badges/server-booster.svg"]);
     assert.ok(strip.children.every(badge => badge.children[0].tagName === "IMG"));
     for (const badge of strip.children) await readFile(new URL(`..${badge.children[0].src}`, import.meta.url));
+    renderer.apply({ ...settings, owner: "iwtlu" });
+    const originals = discordBadges.children[1].children;
+    assert.equal(originals.length, 4);
+    assert.equal(new Set(originals.map(item => item.children[0].src)).size, 4);
+    const nitro = originals.find(item => item.children[0].src.endsWith("/nitro.png"));
+    assert.ok(nitro);
+    assert.match(nitro.title, /оформлении/);
+    assert.ok(originals.some(item => item.children[0].src.endsWith("/active-developer.svg")));
     renderer.apply({ ...settings, discordShowBadges: false });
     assert.equal(discordBadges.hidden, true);
     assert.equal(discordBadges.children.length, 0);

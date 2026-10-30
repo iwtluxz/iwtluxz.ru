@@ -302,7 +302,43 @@
     assertActive();
     const row = throwIfError(result);
     if (!row?.username) throw error(503, "Аккаунт существует, но его профиль не настроен на сервере.", "backend_setup_required");
-    return { userId: user.id, username: normalizeUsername(row.username) };
+    const account = { userId: user.id, username: normalizeUsername(row.username) };
+    clientContexts.get(getClient()).account = account;
+    return account;
+  }
+
+  function emptyOwnProfile(username) {
+    const site = { id: username, owner: username, title: username, nickname: username, publishedAt: null };
+    const legacy = {
+      iwtlu: { nickname: "Ɨ ω ŧ Ł υ", description: "малыш, ты знала, что все закончится так", discord: "iwtluz", telegram: "https://t.me/iwtluz", steam: "https://steamcommunity.com/id/meintofores" },
+      shakzy: { description: "Respect the past, create the future", discord: "mrshakzzy", avatar: "img/avatar_shakzy.jpg", background: "img/gif_shakzy.gif", backgroundType: "image", music: "sound/sound2.mp3", musicTitle: "RJ Pasin - Chad", musicCover: "img/shakzysoundicon.png" },
+      strelokk: { description: "The only way to do great work is to love what you do", discord: "phantom576.", avatar: "img/strelokkavatar.gif", background: "img/artem.gif", backgroundType: "image", music: "sound/sound1.mp3", musicTitle: "whitek3d - STATUS", musicCover: "img/strelokksoundicon.png" }
+    };
+    return Object.assign(site, Object.hasOwn(legacy, username) ? legacy[username] : {});
+  }
+
+  async function readOwnProfile(assertActive) {
+    const instance = getClient();
+    const session = throwIfError(await instance.auth.getSession());
+    assertActive();
+    if (!session?.session) throw error(401, "Сначала войди в аккаунт.", "unauthorized");
+    let account = clientContexts.get(instance).account;
+    if (!account || account.userId !== session.session.user?.id) account = await requireAccount(assertActive);
+    assertActive();
+    // Read the owner-scoped rows directly. The legacy get-profile RPC can
+    // stall independently; both tables retain their existing RLS policies.
+    const [draftResult, publishedResult] = await Promise.all([
+      instance.from("profile_drafts").select("settings").eq("user_id", account.userId).maybeSingle(),
+      instance.from("profile_published").select("settings,published_at").eq("username", account.username).maybeSingle()
+    ]);
+    assertActive();
+    const draft = throwIfError(draftResult);
+    const published = throwIfError(publishedResult);
+    const saved = draft ? draft.settings : published?.settings;
+    if (saved !== undefined && (!saved || typeof saved !== "object" || Array.isArray(saved))) throw error(503, "Сервер вернул неверные настройки профиля.", "invalid_response");
+    const stamp = Date.parse(published?.published_at);
+    return { ...(saved || emptyOwnProfile(account.username)), id: account.username, owner: account.username,
+      publishedAt: Number.isFinite(stamp) ? stamp : null, publicUrl: publicUrl(account.username) };
   }
 
   async function requireAccount(assertActive = () => {}) {
@@ -495,6 +531,11 @@
       return { ok: true };
     }
     if (/^\/api\/builder\/profile\/[a-z0-9_-]+$/i.test(url.pathname)) return { site: await readPublishedProfile(mode) };
+    if (url.pathname === "/api/builder/sites/list" || url.pathname === "/api/builder/sites/get") {
+      const site = await readOwnProfile(assertActive);
+      if (mode === "get" && url.searchParams.get("id") && url.searchParams.get("id") !== site.owner) throw error(404, "Страница не найдена.", "not_found");
+      return mode === "list" ? { sites: [site] } : { site };
+    }
     const account = await requireAccount(assertActive);
     assertActive();
     if (url.pathname === "/api/builder/auth/password") {
@@ -524,11 +565,6 @@
         try { await verificationClient.auth.signOut({ scope: "local" }); } catch {}
         try { await verificationClient.auth.stopAutoRefresh?.(); } catch {}
       }
-    }
-    if (url.pathname === "/api/builder/sites/list" || url.pathname === "/api/builder/sites/get") {
-      if (mode === "get" && url.searchParams.get("id") && url.searchParams.get("id") !== account.username) throw error(404, "Страница не найдена.", "not_found");
-      const site = { ...await rpc("builder_get_profile"), publicUrl: publicUrl(account.username) };
-      return mode === "list" ? { sites: [site] } : { site };
     }
     if (url.pathname === "/api/builder/sites/save") {
       const body = jsonBody(options);

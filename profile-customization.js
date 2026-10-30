@@ -8,8 +8,17 @@
     "bug-hunter-level-1": "bug-hunter-level-1.png", "bug-hunter-level-2": "bug-hunter-level-2.png",
     "house-bravery": "house-bravery.png", "house-brilliance": "house-brilliance.png", "house-balance": "house-balance.png",
     "early-supporter": "early-supporter.png", "early-verified-developer": "early-verified-developer.png",
-    "moderator-alumni": "moderator-alumni.svg", "server-booster": "server-booster.svg"
+    "moderator-alumni": "moderator-alumni.svg", "server-booster": "server-booster.svg",
+    nitro: "nitro.png", "active-developer": "active-developer.svg"
   });
+  // These are the badges already chosen in the original authored pages. Bot
+  // data is partial and must not erase the page's manually chosen artwork.
+  const legacyBadgePresets = Object.freeze({
+    iwtlu: ["nitro", "house-bravery", "server-booster", "active-developer"],
+    shakzy: ["nitro", "house-bravery"],
+    strelokk: ["nitro", "house-bravery"]
+  });
+  const presetBadgeLabels = { nitro: "Discord Nitro", "house-bravery": "HypeSquad Bravery", "server-booster": "Server Booster", "active-developer": "Active Developer" };
   const decorations = {
     star: ["Звезда", "m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9Z"],
     heart: ["Сердце", "M20.8 4.6a5.5 5.5 0 0 0-7.8 0l-1 1-1-1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"],
@@ -75,7 +84,7 @@
     image.src = `/img/discord-badges/${badgeImages[item.id]}`;
     image.alt = "";
     image.draggable = false;
-    return badge(`${label} · Discord`, image, "discord");
+    return badge(`${label} · ${item.manual ? "указан в оформлении карточки" : "Discord"}`, image, "discord");
   }
   function primaryGuildTag(value) {
     if (!value || !/^\d{17,20}$/.test(value.guildId || "") || !/^[a-f0-9]{32}$/i.test(value.badge || "") ||
@@ -204,11 +213,14 @@
           const tag = primaryGuildTag(profile.primaryGuild);
           if (tag) content.push(tag);
         }
-        if (profile && settings.discordShowBadges !== false && Array.isArray(profile.badges)) {
+        if (settings.discordShowBadges !== false) {
           const seen = new Set();
           const strip = document.createElement("span");
           strip.className = "discord-badge-strip";
-          for (const item of profile.badges.slice(0, 20)) {
+          const synced = profile && Array.isArray(profile.badges) ? profile.badges.slice(0, 20) : [];
+          const presets = Object.hasOwn(legacyBadgePresets, settings.owner) ? legacyBadgePresets[settings.owner] : [];
+          const manual = presets.map(id => ({ id, label: presetBadgeLabels[id], manual: true }));
+          for (const item of [...synced, ...manual]) {
             if (!item || !Object.hasOwn(badgeImages, item.id) || seen.has(item.id)) continue;
             strip.append(earnedBadge(item));
             seen.add(item.id);
@@ -244,13 +256,15 @@
         nodes.name.style.setProperty("--nickname-gradient", `linear-gradient(${clamp(site.nicknameGradientAngle, 0, 360, 90)}deg, ${color(site.nicknameGradientStart, "#ffffff")}, ${color(site.nicknameGradientEnd, "#a1a1aa")})`);
       }
       if (nodes.avatar) {
-        nodes.avatar.classList.add("iwtxz-round-avatar");
-        nodes.avatar.style.borderRadius = "50%";
+        let decoratedPreset = false;
+        try { decoratedPreset = new URL(site.avatar, document.baseURI).pathname.endsWith("/img/mainavatar.gif"); } catch {}
+        nodes.avatar.classList.toggle("iwtxz-round-avatar", !decoratedPreset);
+        nodes.avatar.style.borderRadius = decoratedPreset ? "0" : "50%";
         if (nodes.avatar.tagName === "IMG") {
           nodes.avatar.style.objectFit = "contain";
           nodes.avatar.style.objectPosition = "center";
         }
-        else nodes.avatar.style.backgroundSize = "cover";
+        else nodes.avatar.style.backgroundSize = decoratedPreset ? "contain" : "cover";
       }
       if (nodes.nicknameBadges) {
         const selected = Array.isArray(site.profileBadges) ? [...new Set(site.profileBadges)].filter(id => Object.hasOwn(decorations, id)).slice(0, 7) : [];

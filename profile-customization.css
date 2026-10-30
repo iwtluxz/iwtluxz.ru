@@ -3,10 +3,10 @@
 .iwtxz-round-avatar { border-radius: 50% !important; background-clip: padding-box; }
 .iwtxz-discord-card, .iwtxz-player-classic, .iwtxz-player-compact { font-family: var(--profile-font, inherit) !important; }
 .iwtxz-gradient-name { color: transparent !important; background-image: var(--nickname-gradient) !important; background-clip: text !important; -webkit-background-clip: text !important; -webkit-text-fill-color: transparent; text-shadow: none !important; }
-.iwtxz-name-row { display: flex; align-items: center; justify-content: center; gap: 10px; width: max-content; max-width: 100%; min-width: 0; flex-wrap: nowrap; }
-.iwtxz-name-row > .profile-name, .iwtxz-name-row > .name { flex: 0 1 auto; min-width: 0; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; word-break: normal; }
+.iwtxz-name-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, max-content) minmax(0, 1fr); align-items: center; gap: 10px; width: 100%; max-width: 100%; min-width: 0; }
+.iwtxz-name-row > .profile-name, .iwtxz-name-row > .name { grid-column: 2; min-width: 0; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; word-break: normal; }
 .iwtxz-name-row .name-text { display: inline-block; max-width: 100%; min-width: 0; white-space: nowrap; overflow-wrap: normal; word-break: normal; }
-.iwtxz-name-row > .iwtxz-profile-badges { flex: 0 0 auto; max-width: min(180px, 40%); justify-content: flex-start; gap: 6px; }
+.iwtxz-name-row > .iwtxz-profile-badges { grid-column: 3; justify-self: start; width: max-content; max-width: min(180px, 100%); justify-content: flex-start; gap: 6px; }
 .iwtxz-profile-badges { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 9px; color: var(--accent, #fff); }
 .iwtxz-profile-badges:empty { display: none; }
 .iwtxz-badge { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 19px; width: 19px; height: 19px; color: inherit; }
@@ -40,14 +40,14 @@
 .iwtxz-player-compact.track-card .track-card-progress-row { gap: 8px; }
 .iwtxz-player-compact.track-card .track-card-action { width: 24px; height: 24px; }
 .iwtxz-player-compact.track-card .track-card-action-prev, .iwtxz-player-compact.track-card .track-card-action-next { display: none; }
-@media (max-width: 460px) { .iwtxz-badge { flex-basis: 17px; width: 17px; height: 17px; } .iwtxz-name-row { gap: 8px; } .iwtxz-name-row > .iwtxz-profile-badges { max-width: min(96px, 40%); gap: 5px; } }
+@media (max-width: 460px) { .iwtxz-badge { flex-basis: 17px; width: 17px; height: 17px; } .iwtxz-name-row { gap: 8px; } .iwtxz-name-row > .iwtxz-profile-badges { max-width: min(96px, 100%); gap: 5px; } }
 
 /* iwtlu visual fixes – avatar, nickname and icon alignment */
 
 /* Keep nicknames and their badges together instead of clipping the glow. */
 .iwtxz-name-row {
-  display: inline-flex;
-  width: fit-content;
+  display: grid;
+  width: 100%;
   max-width: calc(100vw - 32px);
   gap: 6px;
   align-items: center;

@@ -47,6 +47,10 @@ h3 { font-size: 13px; font-weight: 600; }
 .auth-locked .workspace { grid-template-columns: minmax(0, 420px); justify-content: center; padding-top: clamp(35px, 9vh, 90px); }
 .auth-locked .auth-panel { display: block; padding: 30px; }
 .auth-locked .requires-auth { display: none !important; }
+.account-load-state { padding: 22px; }
+.account-load-state .status { margin-bottom: 16px; }
+.account-unavailable .editor-panel .page-address, .account-unavailable .editor-panel .published-banner, .account-unavailable #editorForm, .account-unavailable .editor-panel .settings-section, .account-unavailable #editorActions { display: none !important; }
+.account-unavailable .preview-panel { visibility: hidden; }
 .auth-intro h1 { margin-bottom: 15px; font-size: 32px; line-height: 1.2; letter-spacing: -1.2px; }
 .auth-intro p { font-size: 12px; line-height: 1.9; margin-bottom: 27px; }
 .auth-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; margin-bottom: 24px; border: 1px solid var(--line); border-radius: 8px; background: #000; }

@@ -7,13 +7,13 @@
   <meta name="description" content="Твоя страница iwtxz: аватар, музыка, фон и ссылки.">
   <link rel="icon" type="image/png" href="img/tree.png">
   <link rel="preload" href="font/minecraft.ttf" as="font" type="font/ttf" crossorigin>
-  <link rel="stylesheet" href="builder.css?v=7b7ffe416221">
+  <link rel="stylesheet" href="builder.css?v=914c4d3bdfa5">
   <title>Личный кабинет · iwtxz</title>
   <script src="profile-links.js?v=490adf0a2122" defer></script>
   <script src="vendor/supabase-2.102.0.min.js" defer></script>
   <script src="backend-config.js?v=de3f63c10bfd" defer></script>
-  <script src="backend-client.js?v=8486e87bee99" defer></script>
-  <script src="builder.js?v=ede7e6f260fb" defer></script>
+  <script src="backend-client.js?v=108c619af188" defer></script>
+  <script src="builder.js?v=fc8428e29cd9" defer></script>
 </head>
 <body class="auth-locked">
   <header class="topbar">
@@ -25,7 +25,7 @@
       <div class="auth-intro"><span class="eyebrow">твой маленький уголок интернета</span><h1 id="authHeading">Твоя страница.<br>Твои правила.</h1><p class="muted">Аватар, любимый трек, пара слов о себе.<br>Собери всё в одном месте.</p></div>
       <div class="auth-tabs" aria-label="Выбор действия"><button type="button" class="active" data-auth-mode="login" aria-pressed="true">Вход</button><button type="button" data-auth-mode="signup" aria-pressed="false">Регистрация</button></div>
       <form id="authForm" class="auth-form">
-        <label class="field">Логин<input id="username" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="your_nickname" minlength="3" maxlength="32" pattern="[a-zA-Z0-9][a-zA-Z0-9_-]{2,31}" required><span class="hint">Латинские буквы, цифры, _ и - · от 3 до 32 символов</span></label>
+        <label class="field">Логин<input id="username" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="your_nickname" minlength="3" maxlength="32" pattern="[a-zA-Z0-9][a-zA-Z0-9_\-]{2,31}" required><span class="hint">Латинские буквы, цифры, _ и - · от 3 до 32 символов</span></label>
         <label class="field">Пароль<span class="password-field"><input id="password" name="password" type="password" autocomplete="current-password" maxlength="128" required><button id="showPassword" class="password-eye" type="button" aria-label="Показать пароль" aria-pressed="false">Показать</button></span></label>
         <label class="field hidden" id="confirmPasswordField">Повтори пароль<input id="confirmPassword" type="password" autocomplete="new-password" maxlength="128"><span class="hint">Минимум 8 символов. Пароль нужен для входа в кабинет.</span></label>
         <label class="field hidden" id="ownerClaimField">Код владельца страницы<input id="ownerClaim" type="password" autocomplete="off" maxlength="128"><span class="hint">Этот логин закреплён за существующей страницей. Для первого создания аккаунта нужен одноразовый код владельца.</span></label>
@@ -50,6 +50,7 @@
 
     <section class="panel editor-panel requires-auth" aria-labelledby="editorHeading">
       <div class="panel-heading"><div><span class="eyebrow">сделай по-своему</span><h1 id="editorHeading">Моя страница</h1></div><span class="draft-state" id="draftState">Черновик</span></div>
+      <div class="account-load-state hidden" id="accountLoadState"><p class="status" id="accountLoadStatus" role="status" aria-live="polite"></p><button class="button hidden" id="retryAccountLoad" type="button">Повторить загрузку</button></div>
       <div class="page-address"><span class="hint">Адрес страницы</span><a id="pageAddress" target="_blank" rel="noopener noreferrer"></a><button class="text-button" id="copyAddress" type="button">Скопировать</button></div>
       <div class="published-banner hidden" id="publishedBanner"><strong>Страница опубликована</strong><a class="button primary small" id="openProfileTop" target="_blank" rel="noopener noreferrer">Открыть страницу ↗</a></div>
       <form id="editorForm" novalidate>

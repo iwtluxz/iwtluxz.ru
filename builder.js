@@ -39,6 +39,8 @@
   let busy = false;
   let uploadCount = 0;
   let sessionVersion = 0;
+  let accountReady = false;
+  let accountLoadController = null;
   let previewTimer;
   let toastTimer;
   let discordSnapshotStatus = null;
@@ -231,10 +233,10 @@
   }
 
   function updateBusy() {
-    $("#editorForm").inert = busy;
-    $("#saveButton").disabled = busy || uploadCount > 0;
-    $("#publishButton").disabled = busy || uploadCount > 0;
-    $("#deleteButton").disabled = busy || uploadCount > 0;
+    $("#editorForm").inert = busy || !accountReady;
+    $("#saveButton").disabled = busy || !accountReady || uploadCount > 0;
+    $("#publishButton").disabled = busy || !accountReady || uploadCount > 0;
+    $("#deleteButton").disabled = busy || !accountReady || uploadCount > 0;
     $("#logoutButton").disabled = busy;
   }
 
@@ -251,6 +253,11 @@
   function resetSession() {
     authAttemptVersion += 1;
     sessionVersion += 1;
+    accountLoadController?.abort();
+    accountLoadController = null;
+    accountReady = false;
+    document.body.classList.remove("account-unavailable");
+    $("#accountLoadState").classList.add("hidden");
     currentUser = null;
     discordSnapshotStatus = null;
     dirty = false;
@@ -277,25 +284,55 @@
 
   async function enterAccount(user, attempt = authAttemptVersion) {
     if (attempt !== authAttemptVersion) return;
+    accountLoadController?.abort();
+    const controller = new AbortController();
+    accountLoadController = controller;
     sessionVersion += 1;
     const version = sessionVersion;
-    const data = await api("/api/builder/sites/list");
-    if (version !== sessionVersion || attempt !== authAttemptVersion) return;
     currentUser = user;
-    const site = data.sites?.[0] || { ...defaults, title: user.username, nickname: user.username };
-    writeEditor(site);
+    accountReady = false;
     $("#userLine").textContent = `@${user.username}`;
     $("#accountName").textContent = `@${user.username}`;
     $("#accountControls").classList.remove("hidden");
     document.body.classList.remove("auth-locked");
+    document.body.classList.add("account-unavailable");
     status("#authStatus", "");
     $("#password").value = "";
     $("#confirmPassword").value = "";
     $("#ownerClaim").value = "";
     setSection("profile");
-    status("#editorStatus", "Черновик виден только тебе. Изменения появятся на странице после применения.");
-    sendPreview();
+    $("#accountLoadState").classList.remove("hidden");
+    $("#retryAccountLoad").classList.add("hidden");
+    $("#retryAccountLoad").disabled = true;
+    status("#accountLoadStatus", "Загружаем сохранённые настройки страницы…");
+    updateBusy();
+    try {
+      const data = await api("/api/builder/sites/list", { signal: controller.signal });
+      if (version !== sessionVersion || attempt !== authAttemptVersion) return;
+      if (!Array.isArray(data.sites)) throw new Error("Сервер вернул неверные настройки страницы.");
+      const site = data.sites[0] || { ...defaults, title: user.username, nickname: user.username };
+      writeEditor(site);
+      accountReady = true;
+      document.body.classList.remove("account-unavailable");
+      $("#accountLoadState").classList.add("hidden");
+      status("#editorStatus", "Черновик виден только тебе. Изменения появятся на странице после применения.");
+      sendPreview();
+    } catch (error) {
+      if (version !== sessionVersion || attempt !== authAttemptVersion) return;
+      status("#accountLoadStatus", `Не удалось загрузить сохранённые настройки. ${friendlyError(error)}`, "error");
+      $("#retryAccountLoad").classList.remove("hidden");
+    } finally {
+      if (version === sessionVersion) {
+        accountLoadController = null;
+        $("#retryAccountLoad").disabled = false;
+        updateBusy();
+      }
+    }
   }
+
+  $("#retryAccountLoad").addEventListener("click", () => {
+    if (currentUser && !accountLoadController) void enterAccount(currentUser);
+  });
 
   function validateSite() {
     const site = readEditor();
@@ -339,6 +376,7 @@
   }
 
   async function saveOrPublish(publish) {
+    if (!accountReady) return;
     if (!currentUser || busy || uploadCount) return;
     busy = true;
     updateBusy();
@@ -358,6 +396,7 @@
 
   const mimeByExtension = { png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", webp: "image/webp", mp4: "video/mp4", webm: "video/webm", mp3: "audio/mpeg", ogg: "audio/ogg", wav: "audio/wav", m4a: "audio/mp4", woff: "font/woff", woff2: "font/woff2", ttf: "font/ttf", otf: "font/otf" };
   async function uploadFile(input) {
+    if (!accountReady) return;
     const file = input.files?.[0];
     if (!file || !currentUser) return;
     const key = input.dataset.upload;
@@ -497,7 +536,7 @@
     catch { toast("Не получилось скопировать адрес. Его можно выделить вручную."); }
   });
   $("#deleteButton").addEventListener("click", async () => {
-    if (busy || uploadCount || !confirm("Удалить черновик и опубликованную страницу? Это действие нельзя отменить.")) return;
+    if (!accountReady || busy || uploadCount || !confirm("Удалить черновик и опубликованную страницу? Это действие нельзя отменить.")) return;
     busy = true; updateBusy();
     try {
       await api("/api/builder/sites/delete", { method: "POST", body: "{}" });
