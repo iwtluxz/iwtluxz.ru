@@ -13,7 +13,7 @@
   <script src="vendor/supabase-2.102.0.min.js" defer></script>
   <script src="backend-config.js?v=de3f63c10bfd" defer></script>
   <script src="backend-client.js?v=71906c9c239e" defer></script>
-  <script src="builder.js?v=3e57d580d3f5" defer></script>
+  <script src="builder.js?v=5d5da648ecbb" defer></script>
 </head>
 <body class="auth-locked">
   <header class="topbar">
@@ -110,7 +110,7 @@
           <label class="checkbox-field"><input id="showDiscord" type="checkbox" checked><span>Показывать карточку Discord</span></label>
           <div class="settings-group">
             <h3>Discord в твоей карточке</h3>
-            <div class="discord-join-note"><p>Для обновления аватарки, статуса и значков вступи на наш сервер и укажи свой ID Discord.</p><a class="button small" href="https://discord.gg/fnmEdMKr" target="_blank" rel="noopener noreferrer">Вступить в Discord ↗</a></div>
+            <div class="discord-join-note"><p>Для обновления аватарки, статуса и значков вступи на наш сервер и укажи свой ID Discord.</p><a id="discordJoinLink" class="button small" href="https://discord.gg/fnmEdMKr" target="_blank" rel="noopener noreferrer">Вступить в Discord ↗</a></div>
             <label class="field">ID пользователя Discord<input id="discordUserId" inputmode="numeric" pattern="[0-9]{17,20}" minlength="17" maxlength="20" placeholder="Например, 484816707798564894"><span class="hint">Это числовой ID, а не ник. Данные карточки берутся из указанного аккаунта.</span></label>
             <details class="url-details"><summary>Где найти свой ID?</summary><p class="hint">В Discord открой «Настройки → Расширенные» и включи режим разработчика. Затем нажми правой кнопкой по своему профилю → «Копировать ID пользователя».</p></details>
             <label class="checkbox-field"><input id="discordSync" type="checkbox"><span>Обновлять данные карточки из Discord</span></label>

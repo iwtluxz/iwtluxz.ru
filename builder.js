@@ -20,6 +20,14 @@
   };
   const fileHints = Object.fromEntries(all("[data-file-note]").map((e) => [e.dataset.fileNote, e.textContent]));
   const previewFrame = $("#previewFrame");
+  try {
+    const invite = new URL(window.IWTXZ_BACKEND_CONFIG?.discordInviteUrl);
+    if (invite.protocol === "https:" && !invite.username && !invite.password &&
+        ((invite.hostname === "discord.gg" && /^\/[a-z0-9-]+\/?$/i.test(invite.pathname)) ||
+         (invite.hostname === "discord.com" && /^\/invite\/[a-z0-9-]+\/?$/i.test(invite.pathname)))) {
+      $("#discordJoinLink").href = invite.href;
+    }
+  } catch {}
   let currentUser = null;
   let currentSite = { ...defaults };
   let savedSnapshot = "";
