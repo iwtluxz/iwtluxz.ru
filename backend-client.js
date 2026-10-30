@@ -10,6 +10,8 @@
   const declaredFontTypes = new Set([...fontTypes, "application/font-woff", "application/x-font-woff", "application/x-font-ttf", "application/x-font-opentype", "application/vnd.ms-opentype", "application/octet-stream", ""]);
   const reservedUsernames = new Set(["iwtlu", "shakzy", "strelokk", "icetearz", "eris", "admin", "api", "index", "assets"]);
   let client;
+  let publicClient;
+  const clientContexts = new WeakMap();
   let customizationReady = false;
 
   function error(status, message, code = "request_failed") {
@@ -46,14 +48,51 @@
     try { config(); return true; } catch { return false; }
   }
 
-  async function timedFetch(input, options = {}) {
+  function requestTimeout() {
+    return error(504, "Не удалось завершить запрос вовремя. Попробуй ещё раз.", "request_timeout");
+  }
+
+  async function boundedAuthLock(name, _acquireTimeout, action) {
+    if (typeof window.navigator?.locks?.request !== "function") return action();
+    const controller = new AbortController();
+    let timer;
+    const timeout = new Promise((_, reject) => {
+      timer = setTimeout(() => { controller.abort(); reject(requestTimeout()); }, 5000);
+    });
+    try {
+      return await Promise.race([
+        window.navigator.locks.request(name, { mode: "exclusive", signal: controller.signal }, async () => {
+          clearTimeout(timer);
+          if (controller.signal.aborted) throw requestTimeout();
+          return action();
+        }),
+        timeout
+      ]);
+    } catch (cause) {
+      if (controller.signal.aborted) throw requestTimeout();
+      throw cause;
+    } finally { clearTimeout(timer); }
+  }
+
+  async function timedFetch(context, input, options = {}) {
+    if (context.retired) throw requestTimeout();
     const controller = new AbortController();
     const abort = () => controller.abort(options.signal?.reason);
     if (options.signal?.aborted) abort();
     else options.signal?.addEventListener("abort", abort, { once: true });
-    const timeout = setTimeout(() => controller.abort(), /\/storage\/v1\/object\//.test(String(input)) ? 45000 : 15000);
-    try { return await window.fetch(input, { ...options, signal: controller.signal }); }
-    finally { clearTimeout(timeout); options.signal?.removeEventListener("abort", abort); }
+    context.controllers.add(controller);
+    let timer;
+    const timeout = new Promise((_, reject) => {
+      timer = setTimeout(() => { controller.abort(); reject(requestTimeout()); }, /\/storage\/v1\/object\//.test(String(input)) ? 45000 : 15000);
+    });
+    try {
+      return await Promise.race([(async () => {
+        const response = await window.fetch(input, { ...options, signal: controller.signal });
+        const bytes = await response.arrayBuffer();
+        if (context.retired || controller.signal.aborted) throw requestTimeout();
+        return new Response(bytes.byteLength && ![204, 205, 304].includes(response.status) ? bytes : null, { status: response.status, statusText: response.statusText, headers: response.headers });
+      })(), timeout]);
+    } finally { clearTimeout(timer); context.controllers.delete(controller); options.signal?.removeEventListener("abort", abort); }
   }
 
   function createSupabaseClient(authOptions = {}) {
@@ -61,20 +100,77 @@
     if (typeof window.supabase?.createClient !== "function") {
       throw error(503, "Не загрузилась библиотека сервера. Обнови страницу.", "backend_library_missing");
     }
-    return window.supabase.createClient(settings.url, settings.key, {
-      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, ...authOptions },
-      global: { fetch: timedFetch }
+    const context = { retired: false, controllers: new Set(), operations: new Set(), subscription: null };
+    const instance = window.supabase.createClient(settings.url, settings.key, {
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false,
+        lock: authOptions.persistSession === false ? async (_name, _timeout, action) => action() : boundedAuthLock, ...authOptions },
+      global: { fetch: (input, options) => timedFetch(context, input, options) }
     });
+    clientContexts.set(instance, context);
+    return instance;
   }
 
   function getClient() {
     config();
     if (client) return client;
-    client = createSupabaseClient();
-    client.auth.onAuthStateChange((event) => {
-      queueMicrotask(() => window.dispatchEvent(new CustomEvent("iwtxz-auth-change", { detail: { event } })));
+    const instance = createSupabaseClient();
+    client = instance;
+    const context = clientContexts.get(instance);
+    const listener = instance.auth.onAuthStateChange((event) => {
+      setTimeout(() => {
+        if (!context.retired && client === instance) window.dispatchEvent(new CustomEvent("iwtxz-auth-change", { detail: { event } }));
+      }, 0);
     });
+    context.subscription = listener?.data?.subscription;
     return client;
+  }
+
+  function getPublicClient() {
+    if (!publicClient) publicClient = createSupabaseClient({ persistSession: false, autoRefreshToken: false, storageKey: "iwtxz-public-profile-reader" });
+    return publicClient;
+  }
+
+  function retireClient(instance) {
+    const context = clientContexts.get(instance);
+    if (!context || context.retired) return;
+    context.retired = true;
+    for (const controller of context.controllers) controller.abort();
+    context.subscription?.unsubscribe();
+    try { void Promise.resolve(instance.auth.stopAutoRefresh?.()).catch(() => {}); } catch {}
+    if (client === instance) { client = null; customizationReady = false; }
+    if (publicClient === instance) publicClient = null;
+  }
+
+  async function boundedOperation(instance, action, options = {}) {
+    const context = clientContexts.get(instance);
+    const operation = {};
+    context.operations.add(operation);
+    let failure = null;
+    const assertActive = () => { if (failure || context.retired) throw failure || requestTimeout(); };
+    let timer;
+    let cancel;
+    const interruption = new Promise((_, reject) => {
+      timer = setTimeout(() => {
+        failure = requestTimeout();
+        context.operations.delete(operation);
+        if (!context.operations.size || options.authMutation) retireClient(instance);
+        reject(failure);
+      }, options.upload ? 60000 : 20000);
+      cancel = () => { failure = error(499, "Запрос отменён.", "request_cancelled"); reject(failure); };
+      if (options.signal?.aborted) cancel();
+      else options.signal?.addEventListener("abort", cancel, { once: true });
+    });
+    try {
+      if (options.signal?.aborted) return await interruption;
+      return await Promise.race([Promise.resolve().then(() => { assertActive(); return action(assertActive); }), interruption]);
+    } catch (cause) {
+      if (cause?.code === "request_timeout" && (context.operations.size <= 1 || options.authMutation)) retireClient(instance);
+      throw cause;
+    } finally {
+      clearTimeout(timer);
+      context.operations.delete(operation);
+      options.signal?.removeEventListener("abort", cancel);
+    }
   }
 
   function normalizeUsername(value) {
@@ -97,6 +193,7 @@
   }
 
   function translateFailure(cause, operation = "request") {
+    if (cause?.code === "request_timeout" || cause?.originalError?.code === "request_timeout" || String(cause?.message || "").includes("Сервер не ответил вовремя.")) return requestTimeout();
     if (cause?.status && cause?.code && cause instanceof Error && !cause.name?.startsWith("Auth")) return cause;
     const code = cause?.code || "";
     if (["invalid_credentials", "invalid_grant"].includes(code)) {
@@ -125,27 +222,32 @@
     return result?.data;
   }
 
-  async function accountForUser(user) {
+  async function accountForUser(user, assertActive = () => {}) {
+    assertActive();
     const result = await getClient().from("profile_accounts").select("username").eq("user_id", user.id).maybeSingle();
+    assertActive();
     const row = throwIfError(result);
     if (!row?.username) throw error(503, "Аккаунт существует, но его профиль не настроен на сервере.", "backend_setup_required");
     return { userId: user.id, username: normalizeUsername(row.username) };
   }
 
-  async function requireAccount() {
+  async function requireAccount(assertActive = () => {}) {
     const result = await getClient().auth.getUser();
+    assertActive();
     const data = throwIfError(result);
     if (!data?.user) throw error(401, "Сначала войди в аккаунт.", "unauthorized");
-    return accountForUser(data.user);
+    return accountForUser(data.user, assertActive);
   }
 
-  async function getMe() {
+  async function getMe(assertActive) {
     const session = throwIfError(await getClient().auth.getSession());
+    assertActive();
     if (!session?.session) return { user: null };
     try {
-      const account = await requireAccount();
+      const account = await requireAccount(assertActive);
       return { user: { username: account.username } };
     } catch (cause) {
+      assertActive();
       if (cause.code === "unauthorized") {
         await getClient().auth.signOut({ scope: "local" });
         return { user: null };
@@ -154,11 +256,15 @@
     }
   }
 
-  async function authenticate(mode, body) {
+  async function authenticate(mode, body, assertActive) {
     const username = normalizeUsername(body.username);
     const password = mode === "signup" ? validatePassword(body.password) : body.password;
     if (typeof password !== "string" || !password || password.length > 128) throw error(400, "Введите пароль.", "invalid_password");
     const email = `${username}@${config().accountEmailDomain}`;
+    // Finish session recovery before creating an account: a blocked browser auth
+    // lock must not create a server account and leave the sign-up screen waiting.
+    throwIfError(await getClient().auth.getSession());
+    assertActive();
     let result;
     if (mode === "signup") {
       const data = { username };
@@ -173,10 +279,12 @@
       result = await getClient().auth.signUp({ email, password, options: { data } });
     } else result = await getClient().auth.signInWithPassword({ email, password });
     const data = throwIfError(result, mode);
+    assertActive();
     if (!data?.session || !data?.user) {
       throw error(503, "Регистрация требует подтверждение служебной почты. Владелец должен отключить Confirm email в настройках сервера.", "email_confirmation_required");
     }
-    const account = await accountForUser(data.user);
+    const account = await accountForUser(data.user, assertActive);
+    assertActive();
     if (account.username !== username) {
       await getClient().auth.signOut({ scope: "local" });
       throw error(409, "Логин аккаунта не совпадает с профилем. Обратись к владельцу сайта.", "identity_mismatch");
@@ -191,9 +299,9 @@
     return data;
   }
 
-  async function getPublishedProfile(value) {
+  async function readPublishedProfile(value) {
     const username = normalizeUsername(value);
-    const result = await getClient().from("profile_published").select("username,settings,published_at").eq("username", username).maybeSingle();
+    const result = await getPublicClient().from("profile_published").select("username,settings,published_at").eq("username", username).maybeSingle();
     const row = throwIfError(result);
     if (!row?.settings || typeof row.settings !== "object" || Array.isArray(row.settings)) throw error(404, "Страница пока не опубликована или не существует.", "not_found");
     const publishedAt = Date.parse(row.published_at);
@@ -250,10 +358,11 @@
     return "";
   }
 
-  async function uploadAsset(url, options, account) {
+  async function uploadAsset(url, options, account, assertActive) {
     const kind = url.searchParams.get("kind");
     if (!mediaKinds.has(kind)) throw error(400, "Неизвестный тип файла.", "invalid_asset_kind");
     if (kind === "customFont") await requireCustomization();
+    assertActive();
     const body = options.body;
     if (!body || typeof body.arrayBuffer !== "function") throw error(400, "Выбери файл для загрузки.", "invalid_asset");
     if (!body.size || body.size > maximumUploadBytes) throw error(413, "Размер файла должен быть больше нуля и не больше 4 МБ.", "request_too_large");
@@ -261,6 +370,7 @@
     const allowed = kind === "customFont" ? fontTypes : kind === "music" ? audioTypes : kind === "background" ? new Set([...imageTypes, ...videoTypes]) : imageTypes;
     if (!(kind === "customFont" ? declaredFontTypes : allowed).has(declared)) throw error(415, "Этот формат файла не поддерживается.", "invalid_asset_type");
     const bytes = new Uint8Array(await body.arrayBuffer());
+    assertActive();
     if (!bytes.length || bytes.length > maximumUploadBytes) throw error(413, "Максимальный размер файла — 4 МБ.", "request_too_large");
     const type = sniffType(bytes, kind);
     if (!allowed.has(type)) throw error(415, "Содержимое файла не соответствует поддерживаемому формату.", "invalid_asset_type");
@@ -297,22 +407,22 @@
     customizationReady = true;
   }
 
-  async function request(path, options = {}) {
-    getClient();
+  async function dispatchRequest(path, options = {}, assertActive) {
     if (typeof path !== "string" || !path.startsWith("/api/builder/")) throw error(404, "Страница не найдена.", "not_found");
     const url = new URL(path, window.location.origin);
     const method = String(options.method || "GET").toUpperCase();
     const mode = url.pathname.split("/").pop();
     const isGet = url.pathname === "/api/builder/auth/me" || /^\/api\/builder\/sites\/(list|get)$/.test(url.pathname) || /^\/api\/builder\/profile\/[a-z0-9_-]+$/i.test(url.pathname);
     if (method !== (isGet ? "GET" : "POST")) throw error(405, isGet ? "Используйте GET." : "Используйте POST.", "method_not_allowed");
-    if (url.pathname === "/api/builder/auth/me") return getMe();
-    if (/^\/api\/builder\/auth\/(signup|login)$/.test(url.pathname)) return authenticate(mode, jsonBody(options));
+    if (url.pathname === "/api/builder/auth/me") return getMe(assertActive);
+    if (/^\/api\/builder\/auth\/(signup|login)$/.test(url.pathname)) return authenticate(mode, jsonBody(options), assertActive);
     if (url.pathname === "/api/builder/auth/logout") {
       throwIfError(await getClient().auth.signOut({ scope: "local" }));
       return { ok: true };
     }
-    if (/^\/api\/builder\/profile\/[a-z0-9_-]+$/i.test(url.pathname)) return { site: await getPublishedProfile(mode) };
-    const account = await requireAccount();
+    if (/^\/api\/builder\/profile\/[a-z0-9_-]+$/i.test(url.pathname)) return { site: await readPublishedProfile(mode) };
+    const account = await requireAccount(assertActive);
+    assertActive();
     if (url.pathname === "/api/builder/auth/password") {
       const body = jsonBody(options);
       const newPassword = validatePassword(body.newPassword);
@@ -328,10 +438,12 @@
         const verified = throwIfError(await verificationClient.auth.signInWithPassword({
           email: `${account.username}@${config().accountEmailDomain}`, password: body.currentPassword
         }), "password");
+        assertActive();
         if (!verified?.session || verified?.user?.id !== account.userId) {
           throw error(401, "Текущий пароль неверный.", "invalid_password");
         }
         throwIfError(await getClient().auth.updateUser({ password: newPassword }), "password");
+        assertActive();
         const revocation = await getClient().auth.signOut({ scope: "others" });
         return { ok: true, user: { username: account.username }, ...(revocation.error ? { sessionRevocationWarning: true } : {}) };
       } finally {
@@ -349,6 +461,7 @@
       const site = body.site ?? body;
       ownership(site, account);
       if (site.font === "custom" || ["customFont", "musicPlayerStyle", "avatarShape", "nicknameGradient", "nicknameGradientStart", "nicknameGradientEnd", "nicknameGradientAngle", "discordUserId", "discordSync", "discordCardStyle", "discordCardColor", "discordCardOpacity", "discordCardRadius", "discordUseAvatar", "discordShowStatus", "discordShowBadges", "discordShowActivity", "profileBadges", "showButterfly"].some((key) => Object.hasOwn(site, key))) await requireCustomization();
+      assertActive();
       return { site: { ...await rpc("builder_save_profile", { input: site }), publicUrl: publicUrl(account.username) } };
     }
     if (url.pathname === "/api/builder/sites/delete") {
@@ -356,8 +469,17 @@
       return rpc("builder_delete_profile");
     }
     if (url.pathname === "/api/builder/publish") return { ...await rpc("builder_publish_profile"), url: publicUrl(account.username) };
-    if (url.pathname === "/api/builder/assets/upload") return uploadAsset(url, options, account);
+    if (url.pathname === "/api/builder/assets/upload") return uploadAsset(url, options, account, assertActive);
     throw error(404, "Страница не найдена.", "not_found");
+  }
+
+  async function request(path, options = {}) {
+    const instance = typeof path === "string" && /^\/api\/builder\/profile\/[a-z0-9_-]+$/i.test(path) ? getPublicClient() : getClient();
+    return boundedOperation(instance, (assertActive) => dispatchRequest(path, options, assertActive), { ...options, authMutation: /^\/api\/builder\/auth\/(signup|login|password)$/.test(path) });
+  }
+
+  async function getPublishedProfile(username) {
+    return boundedOperation(getPublicClient(), () => readPublishedProfile(username));
   }
 
   window.IwtxzBackend = Object.freeze({ isConfigured, request, getPublishedProfile });

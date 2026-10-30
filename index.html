@@ -12,8 +12,8 @@
   <script src="profile-links.js?v=490adf0a2122" defer></script>
   <script src="vendor/supabase-2.102.0.min.js" defer></script>
   <script src="backend-config.js?v=de3f63c10bfd" defer></script>
-  <script src="backend-client.js?v=71906c9c239e" defer></script>
-  <script src="builder.js?v=5d5da648ecbb" defer></script>
+  <script src="backend-client.js?v=55a7fe0e4ad9" defer></script>
+  <script src="builder.js?v=15c74e73a2df" defer></script>
 </head>
 <body class="auth-locked">
   <header class="topbar">
@@ -31,6 +31,7 @@
         <label class="field hidden" id="ownerClaimField">Код владельца страницы<input id="ownerClaim" type="password" autocomplete="off" maxlength="128"><span class="hint">Этот логин закреплён за существующей страницей. Для первого создания аккаунта нужен одноразовый код владельца.</span></label>
         <button class="button primary auth-submit" id="authSubmit" type="submit">Войти в кабинет</button>
         <p class="status" id="authStatus" role="status" aria-live="polite">Проверяем вход…</p>
+        <button class="text-button hidden" id="switchToLogin" type="button">Перейти ко входу с этим логином</button>
       </form>
       <noscript><p class="status error">Для работы кабинета включи JavaScript в браузере.</p></noscript>
     </section>

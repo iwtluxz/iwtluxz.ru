@@ -27,7 +27,7 @@ function load(overrides = {}) {
   const client = {
     auth: {
       onAuthStateChange(callback) { state.authListener = callback; return { data: { subscription: { unsubscribe() {} } } }; },
-      async getSession() { return { data: { session: state.active ? currentSession() : null }, error: state.sessionError || null }; },
+      async getSession() { if (state.hangSession) return new Promise(resolve => { state.resolveSession = resolve; }); return { data: { session: state.active ? currentSession() : null }, error: state.sessionError || null }; },
       async getUser() { state.calls.push({ method: "getUser" }); return state.getUserError ? { data: { user: null }, error: state.getUserError } : { data: { user: state.active ? accountUser() : null }, error: null }; },
       async signUp(credentials) {
         state.calls.push({ method: "signUp", credentials });
@@ -99,18 +99,21 @@ function load(overrides = {}) {
     IWTXZ_BACKEND_CONFIG: state.config === undefined ? { ...goodConfig } : state.config,
     location: { origin: "https://iwtxz.ru" },
     crypto: webcrypto,
+    navigator: state.navigator,
+    fetch: (...args) => state.fetch(...args),
     dispatchEvent(event) { state.events.push(event); },
     supabase: { createClient(url, key, options) {
       state.createCalls += 1;
       assert.equal(url, project);
       assert.equal(key, goodConfig.publishableKey);
-      if (options.auth.persistSession === false) {
+      if (options.auth.storageKey?.startsWith("iwtxz-password-verification-")) {
         state.verificationOptions ??= [];
         state.verificationOptions.push(options);
         return { auth: {
           async signInWithPassword(credentials) {
             state.calls.push({ method: "verifyPassword", credentials });
             if (credentials.password !== state.password) return { data: {}, error: authError("invalid_credentials", 400) };
+            if (state.hangVerifier) return new Promise(resolve => { state.resolveVerifier = resolve; });
             state.verifierActive = true;
             return { data: { user: { ...accountUser(), id: state.verifierUserId || userId }, session: currentSession() }, error: null };
           },
@@ -123,10 +126,14 @@ function load(overrides = {}) {
         } };
       }
       state.clientOptions = options;
-      return client;
+      state.clients ??= [];
+      const instance = { ...client };
+      state.clients.push({ instance, options });
+      return instance;
     } }
   };
-  const context = vm.createContext({ window, URL, Headers, Blob, Uint8Array, AbortController, setTimeout, clearTimeout, queueMicrotask, atob, CustomEvent: class { constructor(type, details) { this.type = type; this.detail = details.detail; } } });
+  const schedule = (callback, milliseconds) => setTimeout(callback, state.fastTimers && milliseconds >= 5000 ? Math.min(milliseconds / 1000, 30) : milliseconds);
+  const context = vm.createContext({ window, URL, Headers, Response, Blob, Uint8Array, AbortController, setTimeout: schedule, clearTimeout, queueMicrotask, atob, CustomEvent: class { constructor(type, details) { this.type = type; this.detail = details.detail; } } });
   if (state.profileLinks) vm.runInContext(linksSource, context);
   vm.runInContext(source, context);
   return { api: window.IwtxzBackend, state, client };
@@ -252,7 +259,7 @@ test("a verifier for another user cannot change the logged-in user's password", 
 test("temporary verifier session is revoked when the main password update fails", async () => {
   const { api, state } = load({ updateError: authError("request_timeout", 503) });
   const previousPassword = state.password;
-  await rejects(api.request("/api/builder/auth/password", post({ currentPassword: previousPassword, newPassword: "Changed-test-password-5!" })), 503, "service_unavailable");
+  await rejects(api.request("/api/builder/auth/password", post({ currentPassword: previousPassword, newPassword: "Changed-test-password-5!" })), 504, "request_timeout");
   assert.equal(state.password, previousPassword);
   assert.equal(state.verifierActive, false);
   assert.equal(state.active, true);
@@ -363,7 +370,97 @@ test("SDK auth state notifications expose no bearer tokens", async () => {
   const { api, state } = load();
   await api.request("/api/builder/auth/me");
   state.authListener("SIGNED_OUT", { access_token: "should-not-leak" });
-  await new Promise((done) => queueMicrotask(done));
+  await new Promise((done) => setTimeout(done, 5));
   assert.equal(state.events[0].type, "iwtxz-auth-change");
   assert.equal(JSON.stringify(state.events[0].detail), '{"event":"SIGNED_OUT"}');
+});
+
+test("blocked initialization times out before sign-up; a late result cannot overwrite a retried login", async () => {
+  const { api, state } = load({ hangSession: true, fastTimers: true });
+  await rejects(api.request("/api/builder/auth/signup", post({ username: "alice", password: "Initial-test-password-1!" })), 504, "request_timeout");
+  const releaseOldSession = state.resolveSession;
+  const oldListener = state.authListener;
+  assert.equal(state.calls.some(call => call.method === "signUp"), false);
+  state.hangSession = false;
+  assert.equal((await api.request("/api/builder/auth/login", post({ username: "alice", password: state.password }))).user.username, "alice");
+  assert.equal(state.createCalls, 2);
+  releaseOldSession({ data: { session: null }, error: null });
+  oldListener("SIGNED_OUT", { access_token: "retired-secret" });
+  await new Promise(resolve => setTimeout(resolve, 10));
+  assert.equal(state.calls.some(call => call.method === "signUp"), false);
+  assert.equal(state.events.length, 0);
+  assert.equal(state.active, true);
+});
+
+test("a returned initialization error also prevents server account creation", async () => {
+  const { api, state } = load({ sessionError: { status: 504, code: "request_timeout", message: "timeout" } });
+  await rejects(api.request("/api/builder/auth/signup", post({ username: "alice", password: state.password })), 504, "request_timeout");
+  assert.equal(state.calls.some(call => call.method === "signUp"), false);
+});
+
+test("a cancelled bootstrap does not retire or time out a later manual login", async () => {
+  const { api, state } = load({ hangSession: true, fastTimers: true });
+  const controller = new AbortController();
+  const bootstrap = api.request("/api/builder/auth/me", { signal: controller.signal });
+  await new Promise(resolve => queueMicrotask(resolve));
+  const releaseBootstrap = state.resolveSession;
+  controller.abort();
+  await rejects(bootstrap, 499, "request_cancelled");
+  state.hangSession = false;
+  await api.request("/api/builder/auth/login", post({ username: "alice", password: state.password }));
+  releaseBootstrap({ data: { session: null }, error: null });
+  await new Promise(resolve => setTimeout(resolve, 25));
+  assert.equal(state.createCalls, 1);
+  assert.equal(state.active, true);
+});
+
+test("public profile reads use a separate nonpersistent client without browser auth locks", async () => {
+  const { api, state } = load({ hangSession: true, fastTimers: true });
+  state.published.set("alice", { username: "alice", settings: { nickname: "Public" }, published_at: "2026-10-30T00:00:00Z" });
+  const stalled = rejects(api.request("/api/builder/auth/me"), 504, "request_timeout");
+  assert.equal((await api.getPublishedProfile("alice")).nickname, "Public");
+  const options = state.clients.find(entry => entry.options.auth.persistSession === false).options;
+  assert.equal(options.auth.autoRefreshToken, false);
+  assert.equal(options.auth.storageKey, "iwtxz-public-profile-reader");
+  assert.equal(await options.auth.lock("public-lock", -1, async () => "ready"), "ready");
+  await stalled;
+});
+
+test("fetch timeout includes a stalled response body and preserves empty 204 responses", async () => {
+  let signal;
+  const { api, state } = load({ fastTimers: true, fetch: async (_input, options) => {
+    signal = options.signal;
+    return new Response(new ReadableStream({ start(controller) { controller.enqueue(new TextEncoder().encode('{"unfinished":')); } }), { headers: { "content-type": "application/json" } });
+  } });
+  await api.request("/api/builder/auth/me");
+  await rejects(state.clientOptions.global.fetch("https://fixture.supabase.co/auth/v1/user"), 504, "request_timeout");
+  assert.equal(signal.aborted, true);
+  state.fetch = async () => new Response(null, { status: 204 });
+  const empty = await state.clientOptions.global.fetch("https://fixture.supabase.co/auth/v1/logout");
+  assert.equal(empty.status, 204);
+  assert.equal(await empty.text(), "");
+});
+
+test("browser lock acquisition is bounded and never invokes an abandoned callback", async () => {
+  let abandonedCallback;
+  let acquired = false;
+  const { api, state } = load({ fastTimers: true, navigator: { locks: { request(_name, _options, callback) { abandonedCallback = callback; return new Promise(() => {}); } } } });
+  await api.request("/api/builder/auth/me");
+  await rejects(state.clientOptions.auth.lock("fixture-lock", -1, async () => { acquired = true; }), 504, "request_timeout");
+  await rejects(abandonedCallback({ name: "fixture-lock" }), 504, "request_timeout");
+  assert.equal(acquired, false);
+});
+
+test("a late password verifier cannot update a fresh login after its request timed out", async () => {
+  const { api, state } = load({ hangVerifier: true, fastTimers: true });
+  await rejects(api.request("/api/builder/auth/password", post({ currentPassword: state.password, newPassword: "New-test-password-2!" })), 504, "request_timeout");
+  const releaseVerifier = state.resolveVerifier;
+  state.hangVerifier = false;
+  await api.request("/api/builder/auth/login", post({ username: "alice", password: state.password }));
+  releaseVerifier({ data: { user: { id: userId }, session: { access_token: "temporary" } }, error: null });
+  await new Promise(resolve => setTimeout(resolve, 10));
+  assert.equal(state.calls.some(call => call.method === "updateUser"), false);
+  assert.equal(state.calls.some(call => call.method === "signOut" && call.options.scope === "others"), false);
+  assert.equal(state.verifierActive, false);
+  assert.equal(state.active, true);
 });

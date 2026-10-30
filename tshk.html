@@ -9,12 +9,12 @@
   <base href="/">
   <link rel="icon" type="image/png" href="img/tree.png">
   <link rel="stylesheet" href="profile.css?v=e3f563259c28">
-  <link rel="stylesheet" href="profile-customization.css?v=a880321f18ec">
+  <link rel="stylesheet" href="profile-customization.css?v=616b6a794157">
   <title>Профиль | iwtxz</title>
   <script src="profile-links.js?v=490adf0a2122" defer></script>
   <script src="vendor/supabase-2.102.0.min.js" defer></script>
   <script src="backend-config.js?v=de3f63c10bfd" defer></script>
-  <script src="backend-client.js?v=71906c9c239e" defer></script>
+  <script src="backend-client.js?v=55a7fe0e4ad9" defer></script>
   <script src="profile-customization.js?v=14e7ba692737" defer></script>
   <script src="profile.js?v=f87b4db27b55" defer></script>
 </head>
@@ -26,8 +26,10 @@
   <p class="page-message" id="pageMessage" role="status">Загружаю профиль…</p>
   <main class="profile" id="profile" aria-label="Профиль" hidden>
     <img class="profile-avatar" id="profileAvatar" src="img/mainavatar.gif" alt="Аватар">
-    <h1 class="profile-name" id="profileName"></h1>
-    <div class="iwtxz-profile-badges" id="profileBadges" aria-label="Украшения профиля" hidden></div>
+    <div class="iwtxz-name-row">
+      <h1 class="profile-name" id="profileName"></h1>
+      <div class="iwtxz-profile-badges" id="profileBadges" aria-label="Украшения профиля" hidden></div>
+    </div>
     <p class="profile-description" id="profileDescription"></p>
     <nav class="profile-socials" aria-label="Социальные сети">
       <button class="social-link" id="discordButton" type="button" aria-label="Скопировать Discord" hidden><img src="img/discord.png" alt=""></button>

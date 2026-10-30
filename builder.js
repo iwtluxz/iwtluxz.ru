@@ -33,6 +33,9 @@
   let savedSnapshot = "";
   let dirty = false;
   let authMode = "login";
+  let authPending = false;
+  let authAttemptVersion = 0;
+  const bootstrapAuthController = new AbortController();
   let busy = false;
   let uploadCount = 0;
   let sessionVersion = 0;
@@ -217,6 +220,7 @@
   }
 
   function resetSession() {
+    authAttemptVersion += 1;
     sessionVersion += 1;
     currentUser = null;
     discordSnapshotStatus = null;
@@ -242,12 +246,13 @@
     $("#openProfile").removeAttribute("href");
   }
 
-  async function enterAccount(user) {
+  async function enterAccount(user, attempt = authAttemptVersion) {
+    if (attempt !== authAttemptVersion) return;
     sessionVersion += 1;
     const version = sessionVersion;
-    currentUser = user;
     const data = await api("/api/builder/sites/list");
-    if (version !== sessionVersion) return;
+    if (version !== sessionVersion || attempt !== authAttemptVersion) return;
+    currentUser = user;
     const site = data.sites?.[0] || { ...defaults, title: user.username, nickname: user.username };
     writeEditor(site);
     $("#userLine").textContent = `@${user.username}`;
@@ -365,6 +370,7 @@
   }
   $("#username").addEventListener("input", updateOwnerClaimField);
   all("[data-auth-mode]").forEach((button) => button.addEventListener("click", () => {
+    $("#switchToLogin").classList.add("hidden");
     authMode = button.dataset.authMode;
     all("[data-auth-mode]").forEach((tab) => { const active = tab === button; tab.classList.toggle("active", active); tab.setAttribute("aria-pressed", String(active)); });
     const signup = authMode === "signup";
@@ -387,17 +393,39 @@
 
   $("#authForm").addEventListener("submit", async (event) => {
     event.preventDefault();
+    if (authPending) return;
     if (authMode === "signup" && $("#password").value !== $("#confirmPassword").value) { status("#authStatus", "Пароли не совпадают.", "error"); return; }
     const mode = authMode;
+    const attempt = ++authAttemptVersion;
+    bootstrapAuthController.abort();
+    authPending = true;
+    $("#switchToLogin").classList.add("hidden");
     const credentials = { username: $("#username").value.trim(), password: $("#password").value };
     if (mode === "signup" && $("#ownerClaim").value.trim()) credentials.ownerClaim = $("#ownerClaim").value.trim();
     all("#authForm button, [data-auth-mode]").forEach((button) => { button.disabled = true; });
     try {
       status("#authStatus", mode === "signup" ? "Создаём аккаунт…" : "Входим…");
       const result = await api(`/api/builder/auth/${mode}`, { method: "POST", body: JSON.stringify(credentials) });
-      await enterAccount(result.user);
-    } catch (error) { status("#authStatus", friendlyError(error), "error"); }
-    finally { all("#authForm button, [data-auth-mode]").forEach((button) => { button.disabled = false; }); }
+      if (attempt !== authAttemptVersion) return;
+      status("#authStatus", mode === "signup" ? "Аккаунт создан. Загружаем кабинет…" : "Вход выполнен. Загружаем кабинет…");
+      await enterAccount(result.user, attempt);
+    } catch (error) {
+      if (attempt !== authAttemptVersion) return;
+      const duplicate = mode === "signup" && error.code === "username_taken";
+      const timedOutSignup = mode === "signup" && error.code === "request_timeout";
+      status("#authStatus", duplicate
+        ? "Этот логин уже зарегистрирован. Если ты уже создавал аккаунт, перейди ко входу и используй свой пароль."
+        : timedOutSignup
+          ? "Сервер не ответил вовремя. Аккаунт мог успеть создаться — попробуй войти с тем же логином и паролем."
+          : friendlyError(error), "error");
+      $("#switchToLogin").classList.toggle("hidden", !duplicate && !timedOutSignup);
+    }
+    finally { authPending = false; all("#authForm button, [data-auth-mode]").forEach((button) => { button.disabled = false; }); }
+  });
+
+  $("#switchToLogin").addEventListener("click", () => {
+    document.querySelector('[data-auth-mode="login"]').click();
+    $("#password").focus();
   });
 
   $("#logoutButton").addEventListener("click", async () => {
@@ -487,10 +515,12 @@
   ["#avatarThumbnail", "#accountAvatar", "#coverThumbnail"].forEach((selector) => $(selector).addEventListener("error", (event) => { if (!event.target.src.endsWith("/img/tree.png")) event.target.src = "img/tree.png"; }));
 
   (async () => {
+    const attempt = authAttemptVersion;
     try {
-      const data = await api("/api/builder/auth/me");
-      if (data.user) await enterAccount(data.user);
+      const data = await api("/api/builder/auth/me", { signal: bootstrapAuthController.signal });
+      if (attempt !== authAttemptVersion) return;
+      if (data.user) await enterAccount(data.user, attempt);
       else status("#authStatus", "Войди или создай аккаунт, чтобы настроить свою страницу.");
-    } catch (error) { status("#authStatus", friendlyError(error), "error"); }
+    } catch (error) { if (attempt === authAttemptVersion) status("#authStatus", friendlyError(error), "error"); }
   })();
 })();

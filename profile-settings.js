@@ -7,7 +7,13 @@
   nicknameBadges.className = "iwtxz-profile-badges";
   nicknameBadges.setAttribute("aria-label", "Украшения профиля");
   nicknameBadges.hidden = true;
-  document.querySelector(".name")?.after(nicknameBadges);
+  const nicknameHeading = document.querySelector(".name");
+  if (nicknameHeading) {
+    const nicknameRow = document.createElement("div");
+    nicknameRow.className = "iwtxz-name-row";
+    nicknameHeading.before(nicknameRow);
+    nicknameRow.append(nicknameHeading, nicknameBadges);
+  }
   const discordBody = document.querySelector(".discord-card-body");
   const discordActivity = document.createElement("span");
   discordActivity.className = "discord-sync-activity";
