@@ -43,7 +43,17 @@ button { color: inherit; }
 .profile-shade::after { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 20%, #0005); }
 .profile { display: flex; flex-direction: column; align-items: center; gap: 16px; width: min(560px, 100%); min-width: 0; transition: opacity 0.65s ease, transform 0.65s ease; }
 body:not(.is-entered) .profile, body:not(.is-entered) .music-player { opacity: 0; visibility: hidden; transform: translateY(8px); }
-.profile-avatar { display: block; width: min(var(--avatar-size), 65vw); height: min(var(--avatar-size), 65vw); object-fit: cover; border-radius: 50%; filter: drop-shadow(0 10px 25px #0003); animation: avatar-float 6.4s ease-in-out infinite; }
+.profile-avatar {
+  display: block;
+  width: min(var(--avatar-size), 65vw);
+  height: min(var(--avatar-size), 65vw);
+  object-fit: contain;
+  object-position: center;
+  border-radius: 50%;
+  background: transparent;
+  filter: drop-shadow(0 10px 25px #0003);
+  animation: avatar-float 6.4s ease-in-out infinite;
+}
 .profile-name {
   max-width: 100%;
   margin: 0;
