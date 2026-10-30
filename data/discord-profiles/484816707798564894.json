@@ -18,14 +18,18 @@
     "tag": "ٴٴ",
     "badge": "3061c2920569023dde8f0d630ced6c26"
   },
+  "avatarDecoration": {
+    "asset": "a_d260c70fa8f38c499fa452c3cbdc5a0c",
+    "skuId": "1252404760448077864"
+  },
   "statusText": "love @me",
   "status": "idle",
   "activity": {
     "type": 2,
     "name": "Dotify",
-    "details": "утекай",
+    "details": "one more time",
     "state": "тёмный принц"
   },
   "managedBy": "iwtxz-public-discord-sync",
-  "updatedAt": 1793380068354
+  "updatedAt": 1793382460887
 }
