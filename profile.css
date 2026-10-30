@@ -44,7 +44,20 @@ button { color: inherit; }
 .profile { display: flex; flex-direction: column; align-items: center; gap: 16px; width: min(560px, 100%); min-width: 0; transition: opacity 0.65s ease, transform 0.65s ease; }
 body:not(.is-entered) .profile, body:not(.is-entered) .music-player { opacity: 0; visibility: hidden; transform: translateY(8px); }
 .profile-avatar { display: block; width: min(var(--avatar-size), 65vw); height: min(var(--avatar-size), 65vw); object-fit: cover; border-radius: 50%; filter: drop-shadow(0 10px 25px #0003); animation: avatar-float 6.4s ease-in-out infinite; }
-.profile-name { max-width: 100%; margin: 0; color: var(--accent); font-size: clamp(28px, 6vw, 40px); font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; text-shadow: 0 0 18px color-mix(in srgb, var(--accent) 50%, transparent); }
+.profile-name {
+  max-width: 100%;
+  margin: 0;
+  color: var(--accent);
+  font-size: clamp(28px, 6vw, 40px);
+  font-weight: 700;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  overflow-wrap: normal;
+  word-break: normal;
+  text-shadow: 0 0 18px color-mix(in srgb, var(--accent) 50%, transparent);
+}
 .profile-description { max-width: 100%; margin: 0; color: #eeedf0; font-size: 13px; font-weight: 600; line-height: 1.8; white-space: pre-line; overflow-wrap: anywhere; text-shadow: 0 2px 10px #0008; }
 .profile-description:empty { display: none; }
 .profile-socials { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; }
