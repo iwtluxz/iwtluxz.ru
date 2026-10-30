@@ -2,7 +2,7 @@
   "use strict";
   const internalNames = new Set([
     "index", "profile", "404", "admin", "api", "assets", "vendor", "img", "font", "sound", "data", "scripts", "netlify", "supabase", "dist", "node_modules",
-    "backend-client", "backend-config", "builder", "profile-settings", "profile-links", "profile-fallback", "profile-customization", "package", "package-lock", "readme-builder", "cname", "deno"
+    "backend-client", "backend-config", "builder", "profile-settings", "profile-links", "profile-fallback", "profile-customization", "profile-features", "package", "package-lock", "readme-builder", "cname", "deno"
   ]);
   const deviceName = /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])$/i;
   function normalize(value) {

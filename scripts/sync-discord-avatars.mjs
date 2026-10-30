@@ -120,7 +120,7 @@ export async function syncProfile(profile, token, guildId, presences, { identity
     ...(profile.dynamic ? { managedBy: dynamicMarker } : {})
   } : {
     id: profile.userId, guildId: guildId || null, member: identity.member === false ? false : null,
-    badges: [], status: null, statusText: null, activity: null, managedBy: dynamicMarker
+    badges: [], status: null, statusText: null, activity: null, avatarDecoration: null, managedBy: dynamicMarker
   };
   const { updatedAt: _previousTimestamp, ...previousData } = previous ?? {};
   let changed = false;

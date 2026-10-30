@@ -2,13 +2,16 @@
   "use strict";
   const $ = (selector) => document.querySelector(selector);
   const all = (selector) => [...document.querySelectorAll(selector)];
-  const textFields = ["title", "nickname", "description", "entryText", "musicTitle", "discord", "telegram", "steam", "discordUserId"];
+  const features = window.IwtxzProfileFeatures;
+  const socialFields = features?.socials.map(item => item.id) || ["discord", "telegram", "steam"];
+  const textFields = ["title", "nickname", "description", "entryText", "musicTitle", ...socialFields, "discordUserId"];
   const numberFields = ["avatarSize", "backgroundDim", "nicknameGradientAngle", "discordCardOpacity", "discordCardRadius"];
-  const optionFields = ["font", "accentColor", "backgroundType", "nicknameGradientStart", "nicknameGradientEnd", "musicPlayerStyle", "discordCardStyle", "discordCardColor"];
+  const optionFields = ["font", "accentColor", "backgroundType", "nicknameGradientStart", "nicknameGradientEnd", "musicPlayerStyle", "discordCardStyle", "discordCardColor", "nicknameAnimation", "avatarDecoration"];
   const boolFields = ["musicLoop", "showDiscord", "nicknameGradient", "discordSync", "discordUseAvatar", "discordShowStatus", "discordShowBadges", "discordShowActivity"];
   const assetFields = ["avatar", "background", "music", "musicCover", "customFont"];
   const decorativeBadges = new Set(["star", "heart", "moon", "sparkle", "code", "music", "flower"]);
   const defaults = {
+    ...Object.fromEntries(socialFields.map(key => [key, ""])),
     title: "", nickname: "", description: "", entryText: "click to enter...", discord: "", telegram: "", steam: "",
     avatar: "img/mainavatar.gif", background: "img/background.mp4", backgroundType: "video",
     music: "sound/sound.mp3", musicTitle: "one more time", musicCover: "img/mysoundicon.png",
@@ -16,7 +19,8 @@
     nicknameGradient: false, nicknameGradientStart: "#ffffff", nicknameGradientEnd: "#a1a1aa", nicknameGradientAngle: 90,
     musicPlayerStyle: "classic", showButterfly: false, profileBadges: [], discordUserId: "", discordSync: false,
     discordCardStyle: "glass", discordCardColor: "#111111", discordCardOpacity: 65, discordCardRadius: 18,
-    discordUseAvatar: true, discordShowStatus: true, discordShowBadges: true, discordShowActivity: true
+    discordUseAvatar: true, discordShowStatus: true, discordShowBadges: true, discordShowActivity: true,
+    nicknameAnimation: "none", avatarDecoration: "none"
   };
   const fileHints = Object.fromEntries(all("[data-file-note]").map((e) => [e.dataset.fileNote, e.textContent]));
   const previewFrame = $("#previewFrame");
@@ -183,6 +187,19 @@
     $("#avatarThumbnail").src = currentSite.avatar || "img/tree.png";
     $("#accountAvatar").src = currentSite.avatar || "img/tree.png";
     $("#coverThumbnail").src = currentSite.musicCover || "img/tree.png";
+    all("[data-social-field]").forEach(row => {
+      const connected = Boolean(currentSite[row.dataset.socialField]);
+      row.classList.toggle("connected", connected);
+      row.querySelector("[data-social-state]").textContent = connected ? "Добавлено" : "Добавить";
+    });
+    all("[data-decoration]").forEach(button => {
+      const selected = button.dataset.decoration === currentSite.avatarDecoration;
+      button.classList.toggle("selected", selected);
+      button.setAttribute("aria-pressed", String(selected));
+    });
+    all("[data-decoration-avatar]").forEach(image => { image.src = currentSite.avatar || "img/tree.png"; });
+    $("#decorationLabel").textContent = currentSite.avatarDecoration === "discord" ? "Из Discord"
+      : features?.decorations.find(item => item.id === currentSite.avatarDecoration)?.label || "Без украшения";
     clearTimeout(previewTimer);
     previewTimer = setTimeout(sendPreview, 70);
   }
@@ -341,7 +358,7 @@
       $(site.nickname ? "#title" : "#nickname").focus();
       throw new Error("Заполни ник и название вкладки.");
     }
-    for (const key of ["telegram", "steam"]) {
+    for (const key of socialFields.filter(key => key !== "discord")) {
       if (site[key]) {
         try { const url = new URL(site[key]); if (url.protocol !== "https:" || url.username || url.password) throw new Error(); }
         catch { setSection("links"); $("#" + key).focus(); throw new Error("Ссылка должна начинаться с https:// и вести на твою страницу."); }
@@ -364,6 +381,10 @@
       setSection("links");
       $("#discordUserId").focus();
       throw new Error("Для обновления карточки укажи ID пользователя Discord.");
+    }
+    if (site.avatarDecoration === "discord" && (!site.discordSync || !site.discordUserId)) {
+      setSection("links"); $("#discordUserId").focus();
+      throw new Error("Для украшения из Discord укажи ID и включи синхронизацию.");
     }
     return site;
   }
@@ -447,9 +468,10 @@
     $("#confirmPassword").required = signup;
     $("#password").minLength = signup ? 8 : 1;
     $("#password").autocomplete = signup ? "new-password" : "current-password";
-    $("#authSubmit").textContent = signup ? "Создать свою страницу" : "Войти в кабинет";
+    $("#authHeading").textContent = signup ? "Создать страницу" : "Войти";
+    $("#authSubmit").textContent = signup ? "Создать страницу" : "Войти";
     updateOwnerClaimField();
-    status("#authStatus", signup ? "Регистрация открыта. У каждого аккаунта своя страница." : "Войди, чтобы продолжить настройку страницы.");
+    status("#authStatus", "");
   }));
 
   $("#showPassword").addEventListener("click", () => {
@@ -509,6 +531,15 @@
   });
 
   $("#editorForm").addEventListener("submit", (event) => event.preventDefault());
+  all("[data-social-remove]").forEach(button => button.addEventListener("click", () => {
+    $("#" + button.dataset.socialRemove).value = "";
+    button.closest("details").open = false;
+    updatePreview();
+  }));
+  all("[data-decoration]").forEach(button => button.addEventListener("click", () => {
+    $("#avatarDecoration").value = button.dataset.decoration;
+    updatePreview();
+  }));
   $("#editorForm").addEventListener("input", (event) => {
     if (event.target.type === "file") return;
     const key = event.target.dataset.assetUrl;
@@ -587,13 +618,14 @@
   window.addEventListener("beforeunload", (event) => { if (dirty || uploadCount) { event.preventDefault(); event.returnValue = ""; } });
   ["#avatarThumbnail", "#accountAvatar", "#coverThumbnail"].forEach((selector) => $(selector).addEventListener("error", (event) => { if (!event.target.src.endsWith("/img/tree.png")) event.target.src = "img/tree.png"; }));
 
+  if (new URLSearchParams(location.search).get("auth") === "signup") document.querySelector('[data-auth-mode="signup"]').click();
   (async () => {
     const attempt = authAttemptVersion;
     try {
       const data = await api("/api/builder/auth/me", { signal: bootstrapAuthController.signal });
       if (attempt !== authAttemptVersion) return;
       if (data.user) await enterAccount(data.user, attempt);
-      else status("#authStatus", "Войди или создай аккаунт, чтобы настроить свою страницу.");
+      else status("#authStatus", "");
     } catch (error) { if (attempt === authAttemptVersion) status("#authStatus", friendlyError(error), "error"); }
   })();
 })();

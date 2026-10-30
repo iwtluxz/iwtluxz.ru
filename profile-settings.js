@@ -185,6 +185,7 @@
     }
     const entry = document.getElementById("entryButton");
     if (entry) entry.textContent = typeof site.entryText === "string" ? site.entryText.slice(0, 80) : "click to enter…";
+    window.IwtxzProfileFeatures?.renderSocials(document.querySelector(".socials"), site);
     customization?.apply(site);
     if (typeof lockNameSize === "function") {
       lockNameSize();

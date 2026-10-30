@@ -9,12 +9,16 @@
     "sync:profile-routes": "node scripts/sync-profile-routes.mjs",
     "test:profile-routes": "node --test scripts/test-profile-links.mjs scripts/test-profile-routes.mjs",
     "test:backend-client": "node --test scripts/test-backend-client.mjs scripts/test-auth-sdk.mjs",
-    "test:builder": "node --test scripts/test-builder.mjs scripts/test-builder-ui.mjs"
+    "test:builder": "node --test scripts/test-builder.mjs scripts/test-builder-ui.mjs",
+    "test:features": "node --test scripts/test-profile-features.mjs scripts/test-profile-settings-sql.mjs"
   },
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
     "@netlify/blobs": "10.7.2"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.13"
   }
 }

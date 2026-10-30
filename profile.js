@@ -225,9 +225,10 @@
     byId("discordButton").setAttribute("aria-label", `Скопировать Discord: ${site.discord}`);
     byId("discordCard").hidden = !site.discord || site.showDiscord === false;
     byId("discordCard").setAttribute("aria-label", `Скопировать Discord: ${site.discord}`);
-    customization?.apply(site);
     setLink("telegramLink", site.telegram);
     setLink("steamLink", site.steam);
+    window.IwtxzProfileFeatures?.renderSocials(document.querySelector(".profile-socials"), site);
+    customization?.apply(site);
     byId("musicTitle").textContent = site.musicTitle;
     const cover = assetUrl(site.musicCover, "musicCover");
     byId("musicCover").hidden = !cover;

@@ -6,6 +6,7 @@ import vm from "node:vm";
 const source = await readFile(new URL("../builder.js", import.meta.url), "utf8");
 const markup = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const customization = await readFile(new URL("../profile-customization.js", import.meta.url), "utf8");
+const featuresSource = await readFile(new URL("../profile-features.js", import.meta.url), "utf8");
 
 class Element {
   constructor(tagName = "SPAN") {
@@ -22,9 +23,10 @@ class Element {
   append(...children) { this.children.push(...children); }
   replaceChildren(...children) { this.children = children; }
   fire(type) { return this.listeners.get(type)?.({ preventDefault() {} }); }
+  click() { return this.fire("click"); }
 }
 
-function loadBuilder(request) {
+function loadBuilder(request, query = "") {
   const elements = new Map([...markup.matchAll(/id="([^"]+)"/g)].map(([, id]) => [id, new Element()]));
   const loginTab = new Element(), signupTab = new Element();
   loginTab.dataset.authMode = "login"; signupTab.dataset.authMode = "signup";
@@ -32,13 +34,15 @@ function loadBuilder(request) {
   elements.get("previewFrame").contentWindow = { postMessage() {} };
   const body = new Element(); body.classList.add("auth-locked");
   const document = { body,
-    querySelector(selector) { return selector === '[data-auth-mode="login"]' ? loginTab : elements.get(selector.slice(1)); },
+    querySelector(selector) { return selector === '[data-auth-mode="login"]' ? loginTab : selector === '[data-auth-mode="signup"]' ? signupTab : elements.get(selector.slice(1)); },
     querySelectorAll(selector) { return selector === "[data-auth-mode]" ? [loginTab, signupTab] : selector === "#authForm button, [data-auth-mode]" ? buttons : []; } };
-  const location = new URL("https://example.test/");
+  const location = new URL("https://example.test/" + query);
   const window = { location, addEventListener() {}, IwtxzBackend: { isConfigured: () => true, request } };
   const timers = new Set();
-  vm.runInNewContext(source, { window, document, location, URL, Headers, AbortController,
+  const context = vm.createContext({ window, document, location, URL, URLSearchParams, Headers, AbortController,
     setTimeout(fn, ms) { const timer = setTimeout(fn, ms >= 5000 ? 20 : ms); timers.add(timer); return timer; }, clearTimeout });
+  vm.runInContext(featuresSource, context);
+  vm.runInContext(source, context);
   return { elements, body, buttons, close() { for (const timer of timers) clearTimeout(timer); }, async submit() {
     elements.get("username").value = "alice"; elements.get("password").value = "Test-password-123!";
     await elements.get("authForm").fire("submit");
@@ -48,6 +52,15 @@ function loadBuilder(request) {
 const user = { username: "alice" };
 const site = { title: "Saved page", nickname: "Alice" };
 const response = path => path.endsWith("/me") ? { user: null } : path.endsWith("/list") ? { sites: [site] } : { user };
+
+test("registration links open signup directly with password confirmation", async () => {
+  const ui = loadBuilder(path => Promise.resolve(response(path)), "?auth=signup");
+  try {
+    assert.equal(ui.elements.get("authHeading").textContent, "Создать страницу");
+    assert.equal(ui.elements.get("confirmPassword").required, true);
+    assert.equal(ui.elements.get("password").autocomplete, "new-password");
+  } finally { ui.close(); }
+});
 
 for (const stage of ["login"]) {
   test(`cabinet UI: stalled ${stage} releases the form and a retry opens the saved profile`, async () => {

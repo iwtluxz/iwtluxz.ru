@@ -55,6 +55,11 @@ export function getDiscordPrimaryGuild(user) {
   return { guildId: primary.identity_guild_id, tag: primary.tag, badge: primary.badge };
 }
 
+export function getDiscordAvatarDecoration(data) {
+  if (!data || typeof data.asset !== "string" || !/^(?:a_)?[a-f0-9]{32}$/i.test(data.asset)) return null;
+  return { asset: data.asset, skuId: typeof data.sku_id === "string" && /^\d{17,20}$/.test(data.sku_id) ? data.sku_id : null };
+}
+
 export async function fetchDiscordMembership(userId, token, guildId) {
   if (!guildId) return { member: null, data: null };
   try {
@@ -88,7 +93,8 @@ export async function fetchDiscordIdentity(userId, token, guildId, { requireMemb
     avatarHash: user.avatar ?? null,
     avatarUrl: getAvatarUrl(user),
     badges: getDiscordBadges(user.public_flags, member),
-    primaryGuild: getDiscordPrimaryGuild(user)
+    primaryGuild: getDiscordPrimaryGuild(user),
+    avatarDecoration: getDiscordAvatarDecoration(user.avatar_decoration_data || member?.avatar_decoration_data)
   };
 }
 

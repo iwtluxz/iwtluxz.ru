@@ -13,8 +13,10 @@
   <script src="vendor/supabase-2.102.0.min.js" defer></script>
   <script src="backend-config.js?v=de3f63c10bfd" defer></script>
   <script src="backend-client.js?v=108c619af188" defer></script>
+  <script src="profile-features.js" defer></script>
   <script src="profile-customization.js?v=4006a62668a2" defer></script>
   <script src="profile.js?v=f87b4db27b55" defer></script>
+  <link rel="stylesheet" href="profile-features.css">
 </head>
 <body class="is-loading">
   <video class="profile-background-video" id="backgroundVideo" muted loop playsinline aria-hidden="true" hidden></video>
@@ -23,7 +25,7 @@
 
   <p class="page-message" id="pageMessage" role="status">Загружаю профиль…</p>
   <main class="profile" id="profile" aria-label="Профиль" hidden>
-    <img class="profile-avatar" id="profileAvatar" src="img/mainavatar.gif" alt="Аватар">
+    <span class="profile-avatar-frame"><img class="profile-avatar" id="profileAvatar" src="img/mainavatar.gif" alt="Аватар"></span>
     <div class="iwtxz-name-row">
       <h1 class="profile-name" id="profileName"></h1>
       <div class="iwtxz-profile-badges" id="profileBadges" aria-label="Украшения профиля" hidden></div>

@@ -164,10 +164,13 @@ begin
     'discordUserId', '', 'discordSync', false, 'discordCardStyle', 'glass', 'discordCardColor', '#111111',
     'discordCardOpacity', 65, 'discordCardRadius', 18, 'discordUseAvatar', true,
     'discordShowStatus', true, 'discordShowBadges', true, 'discordShowActivity', true,
-    'showButterfly', true, 'profileBadges', '[]'::jsonb, 'settingsVersion', 2,
+    'showButterfly', false, 'profileBadges', '[]'::jsonb, 'settingsVersion', 3,
     'publicUrl', '/profile.html?u=' || username,
     'updatedAt', floor(extract(epoch from now()) * 1000)::bigint
   );
+  result := result || jsonb_build_object('nicknameAnimation', 'none', 'avatarDecoration', 'none',
+    'vk', '', 'youtube', '', 'twitch', '', 'tiktok', '', 'instagram', '', 'github', '',
+    'spotify', '', 'x', '', 'soundcloud', '', 'reddit', '', 'boosty', '', 'website', '');
   if username = 'iwtlu' then result := result || jsonb_build_object(
     'nickname', 'Ɨ ω ŧ Ł υ', 'description', 'малыш, ты знала, что все закончится так',
     'discord', 'iwtluz', 'telegram', 'https://t.me/iwtluz', 'steam', 'https://steamcommunity.com/id/meintofores');
@@ -257,7 +260,7 @@ begin
     if value = '' and item.key = 'entryText' then value := defaults->>item.key; end if;
     result := result || jsonb_build_object(item.key, value);
   end loop;
-  foreach value in array array['telegram','steam'] loop
+  foreach value in array array['telegram','steam','vk','youtube','twitch','tiktok','instagram','github','spotify','x','soundcloud','reddit','boosty','website'] loop
     result := result || jsonb_build_object(value, private.profile_text(input, value, '', 500));
     if result->>value <> '' and not private.profile_https(result->>value) then
       raise exception using errcode = '22023', message = 'Ссылки на соцсети должны начинаться с https://.';
@@ -300,7 +303,16 @@ begin
       if not badges @> jsonb_build_array(badge) then badges := badges || jsonb_build_array(badge); end if;
     end loop;
   end if;
-  result := result || jsonb_build_object('profileBadges', badges, 'settingsVersion', 2);
+  value := private.profile_text(input, 'nicknameAnimation', 'none', 20);
+  if value not in ('none','glow','pulse','float','shimmer','glitch','typewriter','blur','flicker','bounce','wave') then
+    raise exception using errcode = '22023', message = 'Неизвестная анимация ника.';
+  end if;
+  result := result || jsonb_build_object('nicknameAnimation', value);
+  value := private.profile_text(input, 'avatarDecoration', 'none', 24);
+  if value not in ('none','discord','phoenix','heartbloom','shy','sakura','moon','embers','aurora','cat') then
+    raise exception using errcode = '22023', message = 'Неизвестное украшение аватара.';
+  end if;
+  result := result || jsonb_build_object('avatarDecoration', value, 'profileBadges', badges, 'settingsVersion', 3);
   foreach value in array array['nicknameGradient','discordSync','discordUseAvatar','discordShowStatus','discordShowBadges','discordShowActivity','showButterfly'] loop
     result := result || jsonb_build_object(value, private.profile_boolean(input, value, coalesce((defaults->>value)::boolean, false)));
   end loop;
@@ -317,7 +329,7 @@ $$;
 
 create or replace function public.builder_capabilities()
 returns jsonb language sql stable set search_path = '' as $$
-  select jsonb_build_object('profileSettingsVersion', 2, 'customFonts', true);
+  select jsonb_build_object('profileSettingsVersion', 3, 'customFonts', true, 'profileEffects', true);
 $$;
 revoke all on function public.builder_capabilities() from public;
 grant execute on function public.builder_capabilities() to anon, authenticated;

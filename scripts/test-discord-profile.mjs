@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, readFile, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve, sep } from "node:path";
-import { fetchDiscordIdentity, fetchDiscordPresences, getAvatarUrl, getCustomStatus, getDiscordBadges, getDiscordActivity, getDiscordPrimaryGuild } from "./lib/discord-profile.mjs";
+import { fetchDiscordIdentity, fetchDiscordPresences, getAvatarUrl, getCustomStatus, getDiscordBadges, getDiscordActivity, getDiscordPrimaryGuild, getDiscordAvatarDecoration } from "./lib/discord-profile.mjs";
 import { checkDiscordGuildAvailability, discoverDiscordProfiles, removeUnusedDiscordSnapshots, syncProfile } from "./sync-discord-avatars.mjs";
 
 const userId = "484816707798564894";
@@ -14,6 +14,13 @@ test("animated and default avatars use Discord's correct URLs", () => {
   assert.match(getAvatarUrl({ id: userId, avatar: "example" }), /example\.png\?size=256$/);
   assert.equal(getAvatarUrl({ id: userId, avatar: null, discriminator: "1337" }), "https://cdn.discordapp.com/embed/avatars/2.png");
   assert.equal(getAvatarUrl({ id: userId, avatar: null, discriminator: "0" }), `https://cdn.discordapp.com/embed/avatars/${(BigInt(userId) >> 22n) % 6n}.png`);
+});
+
+test("avatar decorations retain only valid Discord asset and SKU identifiers", () => {
+  assert.deepEqual(getDiscordAvatarDecoration({ asset: "a_" + "a".repeat(32), sku_id: userId, private: "never expose" }), { asset: "a_" + "a".repeat(32), skuId: userId });
+  assert.equal(getDiscordAvatarDecoration(null), null);
+  assert.equal(getDiscordAvatarDecoration({ asset: "https://evil.example/image.png" }), null);
+  assert.equal(getDiscordAvatarDecoration({ asset: "../../image.png" }), null);
 });
 
 test("identity prefers the guild nickname and keeps username separate", async (t) => {

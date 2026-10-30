@@ -14,6 +14,7 @@
   const clientContexts = new WeakMap();
   const memoryStorage = new Map();
   let customizationReady = false;
+  let profileFeaturesReady = false;
 
   function error(status, message, code = "request_failed") {
     return Object.assign(new Error(message), { status, code });
@@ -206,7 +207,7 @@
     if (channel) { instance.auth.broadcastChannel = null; channel.close(); }
     try { void Promise.resolve(instance.auth.stopAutoRefresh?.()).catch(() => {}); } catch {}
     try { void instance.auth.initialize?.().then(() => instance.auth.stopAutoRefresh?.()).catch(() => {}); } catch {}
-    if (client === instance) { client = null; customizationReady = false; }
+    if (client === instance) { client = null; customizationReady = false; profileFeaturesReady = false; }
     if (publicClient === instance) publicClient = null;
   }
 
@@ -511,10 +512,20 @@
   async function requireCustomization() {
     if (customizationReady) return;
     const result = await getClient().rpc("builder_capabilities");
-    if (result?.error || result?.data?.profileSettingsVersion !== 2) {
+    if (result?.error || !(result?.data?.profileSettingsVersion >= 2)) {
       throw error(503, "Владелец сайта должен обновить сервер для новых настроек. Файл: supabase/migrations/20261030_profile_customization.sql. Твои сохранённые настройки не потеряны.", "backend_update_required");
     }
     customizationReady = true;
+  }
+
+  async function requireProfileFeatures() {
+    if (profileFeaturesReady) return;
+    const result = await getClient().rpc("builder_capabilities");
+    if (result?.error || !(result?.data?.profileSettingsVersion >= 3) || result?.data?.profileEffects !== true) {
+      throw error(503, "Новые настройки ещё не включены на сервере. Обратись к владельцу сайта.", "backend_features_update_required");
+    }
+    customizationReady = true;
+    profileFeaturesReady = true;
   }
 
   async function dispatchRequest(path, options = {}, assertActive) {
@@ -570,7 +581,10 @@
       const body = jsonBody(options);
       const site = body.site ?? body;
       ownership(site, account);
-      if (site.font === "custom" || ["customFont", "musicPlayerStyle", "avatarShape", "nicknameGradient", "nicknameGradientStart", "nicknameGradientEnd", "nicknameGradientAngle", "discordUserId", "discordSync", "discordCardStyle", "discordCardColor", "discordCardOpacity", "discordCardRadius", "discordUseAvatar", "discordShowStatus", "discordShowBadges", "discordShowActivity", "profileBadges", "showButterfly"].some((key) => Object.hasOwn(site, key))) await requireCustomization();
+      const newSocials = ["vk", "youtube", "twitch", "tiktok", "instagram", "github", "spotify", "x", "soundcloud", "reddit", "boosty", "website"];
+      const hasFeatures = (site.nicknameAnimation && site.nicknameAnimation !== "none") || (site.avatarDecoration && site.avatarDecoration !== "none") || newSocials.some(key => Boolean(site[key]));
+      if (hasFeatures) await requireProfileFeatures();
+      else if (site.font === "custom" || ["customFont", "musicPlayerStyle", "avatarShape", "nicknameGradient", "nicknameGradientStart", "nicknameGradientEnd", "nicknameGradientAngle", "discordUserId", "discordSync", "discordCardStyle", "discordCardColor", "discordCardOpacity", "discordCardRadius", "discordUseAvatar", "discordShowStatus", "discordShowBadges", "discordShowActivity", "profileBadges", "showButterfly"].some((key) => Object.hasOwn(site, key))) await requireCustomization();
       assertActive();
       return { site: { ...await rpc("builder_save_profile", { input: site }), publicUrl: publicUrl(account.username) } };
     }

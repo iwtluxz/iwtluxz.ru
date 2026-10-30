@@ -13,7 +13,9 @@
   <script src="vendor/supabase-2.102.0.min.js" defer></script>
   <script src="backend-config.js?v=de3f63c10bfd" defer></script>
   <script src="backend-client.js?v=108c619af188" defer></script>
+  <script src="profile-features.js" defer></script>
   <script src="builder.js?v=fc8428e29cd9" defer></script>
+  <link rel="stylesheet" href="profile-features.css">
 </head>
 <body class="auth-locked">
   <header class="topbar">
@@ -22,14 +24,14 @@
   </header>
   <main class="workspace">
     <section class="panel auth-panel" id="authPanel" aria-labelledby="authHeading">
-      <div class="auth-intro"><span class="eyebrow">твой маленький уголок интернета</span><h1 id="authHeading">Твоя страница.<br>Твои правила.</h1><p class="muted">Аватар, любимый трек, пара слов о себе.<br>Собери всё в одном месте.</p></div>
+      <div class="auth-intro"><h1 id="authHeading">Войти</h1></div>
       <div class="auth-tabs" aria-label="Выбор действия"><button type="button" class="active" data-auth-mode="login" aria-pressed="true">Вход</button><button type="button" data-auth-mode="signup" aria-pressed="false">Регистрация</button></div>
       <form id="authForm" class="auth-form">
-        <label class="field">Логин<input id="username" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="your_nickname" minlength="3" maxlength="32" pattern="[a-zA-Z0-9][a-zA-Z0-9_\-]{2,31}" required><span class="hint">Латинские буквы, цифры, _ и - · от 3 до 32 символов</span></label>
+        <label class="field">Логин<input id="username" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="username" minlength="3" maxlength="32" pattern="[a-zA-Z0-9][a-zA-Z0-9_\-]{2,31}" required><span class="hint">3–32 · a–z, 0–9, _ и -</span></label>
         <label class="field">Пароль<span class="password-field"><input id="password" name="password" type="password" autocomplete="current-password" maxlength="128" required><button id="showPassword" class="password-eye" type="button" aria-label="Показать пароль" aria-pressed="false">Показать</button></span></label>
-        <label class="field hidden" id="confirmPasswordField">Повтори пароль<input id="confirmPassword" type="password" autocomplete="new-password" maxlength="128"><span class="hint">Минимум 8 символов. Пароль нужен для входа в кабинет.</span></label>
+        <label class="field hidden" id="confirmPasswordField">Ещё раз<input id="confirmPassword" type="password" autocomplete="new-password" maxlength="128"><span class="hint">От 8 символов</span></label>
         <label class="field hidden" id="ownerClaimField">Код владельца страницы<input id="ownerClaim" type="password" autocomplete="off" maxlength="128"><span class="hint">Этот логин закреплён за существующей страницей. Для первого создания аккаунта нужен одноразовый код владельца.</span></label>
-        <button class="button primary auth-submit" id="authSubmit" type="submit">Войти в кабинет</button>
+        <button class="button primary auth-submit" id="authSubmit" type="submit">Войти</button>
         <p class="status" id="authStatus" role="status" aria-live="polite">Проверяем вход…</p>
         <button class="text-button hidden" id="switchToLogin" type="button">Перейти ко входу с этим логином</button>
       </form>
@@ -58,9 +60,38 @@
           <h2 id="profileHeading">Профиль</h2>
           <div class="upload-card"><img id="avatarThumbnail" class="avatar-thumbnail" src="img/mainavatar.gif" alt="Текущая аватарка"><div class="upload-details"><label for="avatarFile">Аватарка</label><input id="avatarFile" data-upload="avatar" type="file" accept="image/png,image/jpeg,image/gif,image/webp"><span class="hint" data-file-note="avatar">PNG, JPG, GIF или WebP · до 4 МБ</span></div><button type="button" class="text-button" data-remove="avatar">Убрать</button></div>
           <details class="url-details"><summary>Или указать ссылку на аватарку</summary><label class="field">Ссылка<input id="avatarUrl" data-asset-url="avatar" type="url" placeholder="https://…"></label></details>
+          <details class="decoration-settings"><summary>Украшение аватара <span id="decorationLabel">Без украшения</span></summary><input id="avatarDecoration" type="hidden" value="none"><div class="decoration-picker" id="decorationPicker" aria-label="Украшения аватара">
+          <!-- decoration-picker:start -->
+<button type="button" class="decoration-option selected" data-decoration="none" aria-pressed="true"><span class="decoration-preview"><img data-decoration-avatar src="img/mainavatar.gif" alt="" loading="lazy"><span class="decoration-mode">—</span></span><span>Без украшения</span></button>
+<button type="button" class="decoration-option" data-decoration="discord" aria-pressed="false"><span class="decoration-preview"><img data-decoration-avatar src="img/mainavatar.gif" alt="" loading="lazy"><span class="decoration-mode">DS</span></span><span>Из Discord</span></button>
+<button type="button" class="decoration-option" data-decoration="phoenix" aria-pressed="false"><span class="decoration-preview"><img data-decoration-avatar src="img/mainavatar.gif" alt="" loading="lazy"><img class="decoration-art" src="img/avatar-decorations/phoenix.png" alt="" loading="lazy"></span><span>Феникс</span></button>
+<button type="button" class="decoration-option" data-decoration="heartbloom" aria-pressed="false"><span class="decoration-preview"><img data-decoration-avatar src="img/mainavatar.gif" alt="" loading="lazy"><img class="decoration-art" src="img/avatar-decorations/heartbloom.png" alt="" loading="lazy"></span><span>Цветение</span></button>
+<button type="button" class="decoration-option" data-decoration="shy" aria-pressed="false"><span class="decoration-preview"><img data-decoration-avatar src="img/mainavatar.gif" alt="" loading="lazy"><img class="decoration-art" src="img/avatar-decorations/shy.png" alt="" loading="lazy"></span><span>Смущение</span></button>
+<button type="button" class="decoration-option" data-decoration="sakura" aria-pressed="false"><span class="decoration-preview"><img data-decoration-avatar src="img/mainavatar.gif" alt="" loading="lazy"><img class="decoration-art" src="img/avatar-decorations/sakura.png" alt="" loading="lazy"></span><span>Сакура</span></button>
+<button type="button" class="decoration-option" data-decoration="moon" aria-pressed="false"><span class="decoration-preview"><img data-decoration-avatar src="img/mainavatar.gif" alt="" loading="lazy"><img class="decoration-art" src="img/avatar-decorations/moon.png" alt="" loading="lazy"></span><span>Лунные фазы</span></button>
+<button type="button" class="decoration-option" data-decoration="embers" aria-pressed="false"><span class="decoration-preview"><img data-decoration-avatar src="img/mainavatar.gif" alt="" loading="lazy"><img class="decoration-art" src="img/avatar-decorations/embers.png" alt="" loading="lazy"></span><span>Огоньки</span></button>
+<button type="button" class="decoration-option" data-decoration="aurora" aria-pressed="false"><span class="decoration-preview"><img data-decoration-avatar src="img/mainavatar.gif" alt="" loading="lazy"><img class="decoration-art" src="img/avatar-decorations/aurora.png" alt="" loading="lazy"></span><span>Аврора</span></button>
+<button type="button" class="decoration-option" data-decoration="cat" aria-pressed="false"><span class="decoration-preview"><img data-decoration-avatar src="img/mainavatar.gif" alt="" loading="lazy"><img class="decoration-art" src="img/avatar-decorations/cat.png" alt="" loading="lazy"></span><span>Кошачьи ушки</span></button>
+          <!-- decoration-picker:end -->
+          </div><p class="hint">Оригинальные украшения Discord. «Из Discord» использует синхронизацию аккаунта.</p></details>
           <div class="form-grid">
             <label class="field">Ник на странице<input id="nickname" maxlength="40" placeholder="Как тебя зовут?" required></label>
             <label class="field">Название вкладки<input id="title" maxlength="80" placeholder="Моя страница" required></label>
+            <label class="field wide">Анимация ника<select id="nicknameAnimation">
+            <!-- nickname-animations:start -->
+<option value="none">Без анимации</option>
+<option value="glow">Мягкое свечение</option>
+<option value="pulse">Пульс</option>
+<option value="float">Парение</option>
+<option value="shimmer">Перелив</option>
+<option value="glitch">Глитч</option>
+<option value="typewriter">Печатная машинка</option>
+<option value="blur">Фокус</option>
+<option value="flicker">Мерцание</option>
+<option value="bounce">Пружина</option>
+<option value="wave">Волна</option>
+          <!-- nickname-animations:end -->
+            </select></label>
             <label class="field wide">О себе<textarea id="description" maxlength="500" rows="4" placeholder="Пара слов, цитата или просто настроение"></textarea><span class="hint" id="descriptionCount">0 / 500</span></label>
             <label class="field wide">Текст на экране входа<input id="entryText" maxlength="80" placeholder="click to enter..."></label>
           </div>
@@ -104,10 +135,26 @@
           <label class="checkbox-field"><input id="musicLoop" type="checkbox" checked><span>Повторять трек</span></label>
         </section>
         <section class="settings-section hidden" data-settings-section="links" aria-labelledby="linksHeading">
-          <h2 id="linksHeading">Соцсети</h2><p class="section-description">Оставь поле пустым, чтобы скрыть ссылку со страницы.</p>
-          <label class="field">Discord<input id="discord" maxlength="60" placeholder="username"><span class="hint">При нажатии на значок ник скопируется.</span></label>
-          <label class="field">Telegram<input id="telegram" type="url" maxlength="200" placeholder="https://t.me/…"></label>
-          <label class="field">Steam<input id="steam" type="url" maxlength="200" placeholder="https://steamcommunity.com/id/…"></label>
+          <h2 id="linksHeading">Соцсети</h2><p class="section-description">Выбери сеть и добавь ссылку.</p>
+          <div class="social-editor" id="socialEditor">
+          <!-- social-editor:start -->
+<details class="social-field" data-social-field="discord"><summary><img src="img/socials/discord.svg" alt="" loading="lazy"><span>Discord</span><small data-social-state>Добавить</small></summary><div class="social-field-body"><label class="field">Имя в Discord<input id="discord" type="text" maxlength="60" placeholder="username" autocomplete="off"></label><button type="button" class="text-button" data-social-remove="discord">Убрать</button></div></details>
+<details class="social-field" data-social-field="telegram"><summary><img src="img/socials/telegram.svg" alt="" loading="lazy"><span>Telegram</span><small data-social-state>Добавить</small></summary><div class="social-field-body"><label class="field">Ссылка<input id="telegram" type="url" maxlength="500" placeholder="https://t.me/username" autocomplete="off"></label><button type="button" class="text-button" data-social-remove="telegram">Убрать</button></div></details>
+<details class="social-field" data-social-field="steam"><summary><img src="img/socials/steam.svg" alt="" loading="lazy"><span>Steam</span><small data-social-state>Добавить</small></summary><div class="social-field-body"><label class="field">Ссылка<input id="steam" type="url" maxlength="500" placeholder="https://steamcommunity.com/id/username" autocomplete="off"></label><button type="button" class="text-button" data-social-remove="steam">Убрать</button></div></details>
+<details class="social-field" data-social-field="vk"><summary><img src="img/socials/vk.svg" alt="" loading="lazy"><span>VK</span><small data-social-state>Добавить</small></summary><div class="social-field-body"><label class="field">Ссылка<input id="vk" type="url" maxlength="500" placeholder="https://vk.com/username" autocomplete="off"></label><button type="button" class="text-button" data-social-remove="vk">Убрать</button></div></details>
+<details class="social-field" data-social-field="youtube"><summary><img src="img/socials/youtube.svg" alt="" loading="lazy"><span>YouTube</span><small data-social-state>Добавить</small></summary><div class="social-field-body"><label class="field">Ссылка<input id="youtube" type="url" maxlength="500" placeholder="https://youtube.com/@username" autocomplete="off"></label><button type="button" class="text-button" data-social-remove="youtube">Убрать</button></div></details>
+<details class="social-field" data-social-field="twitch"><summary><img src="img/socials/twitch.svg" alt="" loading="lazy"><span>Twitch</span><small data-social-state>Добавить</small></summary><div class="social-field-body"><label class="field">Ссылка<input id="twitch" type="url" maxlength="500" placeholder="https://twitch.tv/username" autocomplete="off"></label><button type="button" class="text-button" data-social-remove="twitch">Убрать</button></div></details>
+<details class="social-field" data-social-field="tiktok"><summary><img src="img/socials/tiktok.svg" alt="" loading="lazy"><span>TikTok</span><small data-social-state>Добавить</small></summary><div class="social-field-body"><label class="field">Ссылка<input id="tiktok" type="url" maxlength="500" placeholder="https://tiktok.com/@username" autocomplete="off"></label><button type="button" class="text-button" data-social-remove="tiktok">Убрать</button></div></details>
+<details class="social-field" data-social-field="instagram"><summary><img src="img/socials/instagram.svg" alt="" loading="lazy"><span>Instagram</span><small data-social-state>Добавить</small></summary><div class="social-field-body"><label class="field">Ссылка<input id="instagram" type="url" maxlength="500" placeholder="https://instagram.com/username" autocomplete="off"></label><button type="button" class="text-button" data-social-remove="instagram">Убрать</button></div></details>
+<details class="social-field" data-social-field="github"><summary><img src="img/socials/github.svg" alt="" loading="lazy"><span>GitHub</span><small data-social-state>Добавить</small></summary><div class="social-field-body"><label class="field">Ссылка<input id="github" type="url" maxlength="500" placeholder="https://github.com/username" autocomplete="off"></label><button type="button" class="text-button" data-social-remove="github">Убрать</button></div></details>
+<details class="social-field" data-social-field="spotify"><summary><img src="img/socials/spotify.svg" alt="" loading="lazy"><span>Spotify</span><small data-social-state>Добавить</small></summary><div class="social-field-body"><label class="field">Ссылка<input id="spotify" type="url" maxlength="500" placeholder="https://open.spotify.com/user/username" autocomplete="off"></label><button type="button" class="text-button" data-social-remove="spotify">Убрать</button></div></details>
+<details class="social-field" data-social-field="x"><summary><img src="img/socials/x.svg" alt="" loading="lazy"><span>X / Twitter</span><small data-social-state>Добавить</small></summary><div class="social-field-body"><label class="field">Ссылка<input id="x" type="url" maxlength="500" placeholder="https://x.com/username" autocomplete="off"></label><button type="button" class="text-button" data-social-remove="x">Убрать</button></div></details>
+<details class="social-field" data-social-field="soundcloud"><summary><img src="img/socials/soundcloud.svg" alt="" loading="lazy"><span>SoundCloud</span><small data-social-state>Добавить</small></summary><div class="social-field-body"><label class="field">Ссылка<input id="soundcloud" type="url" maxlength="500" placeholder="https://soundcloud.com/username" autocomplete="off"></label><button type="button" class="text-button" data-social-remove="soundcloud">Убрать</button></div></details>
+<details class="social-field" data-social-field="reddit"><summary><img src="img/socials/reddit.svg" alt="" loading="lazy"><span>Reddit</span><small data-social-state>Добавить</small></summary><div class="social-field-body"><label class="field">Ссылка<input id="reddit" type="url" maxlength="500" placeholder="https://reddit.com/user/username" autocomplete="off"></label><button type="button" class="text-button" data-social-remove="reddit">Убрать</button></div></details>
+<details class="social-field" data-social-field="boosty"><summary><img src="img/socials/boosty.svg" alt="" loading="lazy"><span>Boosty</span><small data-social-state>Добавить</small></summary><div class="social-field-body"><label class="field">Ссылка<input id="boosty" type="url" maxlength="500" placeholder="https://boosty.to/username" autocomplete="off"></label><button type="button" class="text-button" data-social-remove="boosty">Убрать</button></div></details>
+<details class="social-field" data-social-field="website"><summary><img src="img/socials/website.svg" alt="" loading="lazy"><span>Сайт</span><small data-social-state>Добавить</small></summary><div class="social-field-body"><label class="field">Ссылка<input id="website" type="url" maxlength="500" placeholder="https://example.com" autocomplete="off"></label><button type="button" class="text-button" data-social-remove="website">Убрать</button></div></details>
+          <!-- social-editor:end -->
+          </div>
           <label class="checkbox-field"><input id="showDiscord" type="checkbox" checked><span>Показывать карточку Discord</span></label>
           <div class="settings-group">
             <h3>Discord в твоей карточке</h3>

@@ -174,6 +174,7 @@
     function drawDiscord(data) {
       const valid = data?.member === true && data.guildId === discordGuildId && typeof data.updatedAt === "number" && Date.now() - data.updatedAt < 86_400_000 && data.updatedAt < Date.now() + 300_000;
       const profile = valid ? data : null;
+      window.IwtxzProfileFeatures?.applyAvatarDecoration(nodes.avatar, settings.avatarDecoration, profile?.avatarDecoration);
       const copyName = text(profile?.username || settings.discord, 60);
       const displayName = text(profile?.displayName || copyName, 80);
       const enabled = Boolean(copyName || (settings.discordSync && requestedUser));
@@ -254,6 +255,7 @@
         const gradient = site.nicknameGradient === true;
         nodes.name.classList.toggle("iwtxz-gradient-name", gradient);
         nodes.name.style.setProperty("--nickname-gradient", `linear-gradient(${clamp(site.nicknameGradientAngle, 0, 360, 90)}deg, ${color(site.nicknameGradientStart, "#ffffff")}, ${color(site.nicknameGradientEnd, "#a1a1aa")})`);
+        window.IwtxzProfileFeatures?.applyNameAnimation(nodes.name, site.nicknameAnimation);
       }
       if (nodes.avatar) {
         let decoratedPreset = false;

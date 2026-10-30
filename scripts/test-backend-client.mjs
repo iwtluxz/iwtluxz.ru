@@ -76,7 +76,7 @@ function load(overrides = {}) {
       if (state.rpcError) return { data: null, error: state.rpcError };
       if (name === "builder_capabilities") return state.oldCustomizationServer
         ? { data: null, error: { code: "PGRST202" } }
-        : { data: { profileSettingsVersion: 2, customFonts: true }, error: null };
+        : { data: { profileSettingsVersion: state.oldEffectsServer ? 2 : 3, customFonts: true, profileEffects: !state.oldEffectsServer }, error: null };
       if (name === "builder_get_profile") return { data: state.draft || { id: state.username, owner: state.username, nickname: state.username }, error: null };
       if (name === "builder_save_profile") { state.draft = structuredClone(input.input); return { data: state.draft, error: null }; }
       if (name === "builder_publish_profile") {
@@ -297,6 +297,26 @@ test("anonymous published profile reads request only public columns and never au
 test("missing SQL schema reports setup failure instead of malformed profile success", async () => {
   const { api } = load({ queryError: { code: "PGRST205", message: "Table not found" } });
   await rejects(api.request("/api/builder/sites/list"), 503, "backend_setup_required");
+});
+
+test("new effects cannot be silently discarded by a server without the migration", async () => {
+  const { api, state } = load({ oldEffectsServer: true });
+  for (const site of [{ nicknameAnimation: "glitch" }, { avatarDecoration: "sakura" }, { github: "https://github.com/alice" }]) {
+    await rejects(api.request("/api/builder/sites/save", post({ site })), 503, "backend_features_update_required");
+  }
+  assert.equal(state.calls.some(call => call.name === "builder_save_profile"), false);
+  await api.request("/api/builder/sites/save", post({ site: { nickname: "Old features", nicknameAnimation: "none", avatarDecoration: "none", github: "" } }));
+});
+
+test("a v3 server saves and publishes animations, decorations and additional social links", async () => {
+  const { api } = load();
+  const site = { id: "alice", owner: "alice", nickname: "Alice", nicknameAnimation: "shimmer", avatarDecoration: "aurora", youtube: "https://youtube.com/@alice", github: "https://github.com/alice" };
+  await api.request("/api/builder/sites/save", post({ site }));
+  await api.request("/api/builder/publish", post({}));
+  const published = await api.getPublishedProfile("alice");
+  assert.equal(published.nicknameAnimation, "shimmer");
+  assert.equal(published.avatarDecoration, "aurora");
+  assert.equal(published.github, site.github);
 });
 
 test("a missing draft preserves the published settings, while malformed saved data never becomes defaults", async () => {
