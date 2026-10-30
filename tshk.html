@@ -8,13 +8,15 @@
   <meta name="theme-color" content="#09090c">
   <base href="/">
   <link rel="icon" type="image/png" href="img/tree.png">
-  <link rel="stylesheet" href="profile.css">
+  <link rel="stylesheet" href="profile.css?v=e3f563259c28">
+  <link rel="stylesheet" href="profile-customization.css?v=a880321f18ec">
   <title>Профиль | iwtxz</title>
-  <script src="profile-links.js?v=a55d02ddb7c2" defer></script>
+  <script src="profile-links.js?v=490adf0a2122" defer></script>
   <script src="vendor/supabase-2.102.0.min.js" defer></script>
-  <script src="backend-config.js?v=78f8eb922108" defer></script>
-  <script src="backend-client.js?v=5fc9fdb16042" defer></script>
-  <script src="profile.js?v=3a4aa90f3762" defer></script>
+  <script src="backend-config.js?v=de3f63c10bfd" defer></script>
+  <script src="backend-client.js?v=71906c9c239e" defer></script>
+  <script src="profile-customization.js?v=14e7ba692737" defer></script>
+  <script src="profile.js?v=f87b4db27b55" defer></script>
 </head>
 <body class="is-loading">
   <video class="profile-background-video" id="backgroundVideo" muted loop playsinline aria-hidden="true" hidden></video>
@@ -25,6 +27,7 @@
   <main class="profile" id="profile" aria-label="Профиль" hidden>
     <img class="profile-avatar" id="profileAvatar" src="img/mainavatar.gif" alt="Аватар">
     <h1 class="profile-name" id="profileName"></h1>
+    <div class="iwtxz-profile-badges" id="profileBadges" aria-label="Украшения профиля" hidden></div>
     <p class="profile-description" id="profileDescription"></p>
     <nav class="profile-socials" aria-label="Социальные сети">
       <button class="social-link" id="discordButton" type="button" aria-label="Скопировать Discord" hidden><img src="img/discord.png" alt=""></button>
@@ -32,8 +35,8 @@
       <a class="social-link" id="steamLink" target="_blank" rel="noopener noreferrer" aria-label="Steam" hidden><img src="img/steam.png" alt=""></a>
     </nav>
     <button class="discord-profile" id="discordCard" type="button" aria-label="Скопировать Discord" hidden>
-      <img id="discordAvatar" src="img/mainavatar.gif" alt="">
-      <span><strong id="discordName"></strong><span class="discord-note">Discord <span aria-hidden="true">·</span> нажми, чтобы скопировать</span></span>
+      <span class="discord-avatar-wrap"><img id="discordAvatar" src="img/mainavatar.gif" alt=""><span class="discord-presence" id="discordPresence" hidden></span></span>
+      <span class="discord-profile-body"><span class="discord-profile-top"><strong id="discordName"></strong><span class="discord-earned-badges" id="discordBadges" aria-label="Значки Discord и украшения"></span></span><span class="discord-note" id="discordStatus" hidden></span><span class="discord-sync-activity" id="discordActivity" hidden></span><span class="discord-note discord-copy-note">Discord <span aria-hidden="true">·</span> нажми, чтобы скопировать</span></span>
       <span class="copy-symbol" aria-hidden="true">⧉</span>
     </button>
   </main>
@@ -48,10 +51,14 @@
         <span class="music-time" id="musicDuration">0:00</span>
       </div>
     </div>
+    <div class="music-controls">
+    <button class="music-skip music-previous" type="button" aria-label="Предыдущий трек" title="В плеере один трек" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h2v14H6zm12 0L8 12l10 7Z"/></svg></button>
     <button class="music-toggle" id="musicToggle" type="button" aria-label="Включить музыку" aria-pressed="false">
       <svg class="play-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4.5a1 1 0 0 1 1.55-.83l10 6.5a2.2 2.2 0 0 1 0 3.66l-10 6.5A1 1 0 0 1 8 19.5Z"/></svg>
       <svg class="pause-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h4v16H6zm8 0h4v16h-4z"/></svg>
     </button>
+    <button class="music-skip music-next" type="button" aria-label="Следующий трек" title="В плеере один трек" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 5h2v14h-2zM6 5l10 7-10 7Z"/></svg></button>
+    </div>
     <label class="music-volume" for="musicVolume"><span aria-hidden="true">♫</span><span class="sr-only">Громкость</span><input id="musicVolume" type="range" min="0" max="100" step="1" value="45" aria-label="Громкость музыки"></label>
     <p class="music-error" id="musicError" role="status" hidden></p>
   </section>

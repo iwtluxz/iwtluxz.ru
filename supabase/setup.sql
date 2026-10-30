@@ -159,6 +159,12 @@ begin
     'music', 'sound/sound.mp3?v=146f58f1ac20', 'musicTitle', 'one more time', 'musicCover', 'img/mysoundicon.png?v=452f20b76fc7',
     'avatarSize', 150, 'backgroundDim', 58, 'accentColor', '#f5f5f7', 'font', 'minecraft',
     'entryText', 'click to enter...', 'showDiscord', true, 'musicLoop', true,
+    'customFont', '', 'musicPlayerStyle', 'classic', 'avatarShape', 'circle',
+    'nicknameGradient', false, 'nicknameGradientStart', '#ffffff', 'nicknameGradientEnd', '#a1a1aa', 'nicknameGradientAngle', 90,
+    'discordUserId', '', 'discordSync', false, 'discordCardStyle', 'glass', 'discordCardColor', '#111111',
+    'discordCardOpacity', 65, 'discordCardRadius', 18, 'discordUseAvatar', true,
+    'discordShowStatus', true, 'discordShowBadges', true, 'discordShowActivity', true,
+    'showButterfly', true, 'profileBadges', '[]'::jsonb, 'settingsVersion', 2,
     'publicUrl', '/profile.html?u=' || username,
     'updatedAt', floor(extract(epoch from now()) * 1000)::bigint
   );
@@ -198,11 +204,11 @@ returns text language plpgsql immutable set search_path = '' as $$
 declare match text[];
 begin
   if value = '' then return value; end if;
-  if value ~ '^/?(img|sound)/[A-Za-z0-9_./-]+([?][A-Za-z0-9_=&.-]*)?$'
+  if value ~ '^/?(img|sound|font)/[A-Za-z0-9_./-]+([?][A-Za-z0-9_=&.-]*)?$'
     and split_part(value, '?', 1) !~ '(^|/)[.][.](/|$)' then return value; end if;
   if not private.profile_https(value) then raise exception using errcode = '22023', message = 'Неверная ссылка на файл.'; end if;
   if value like '%/storage/v1/object/public/profile-assets/%' then
-    match := regexp_match(value, '^https://[^/]+/storage/v1/object/public/profile-assets/([a-f0-9-]{36})/[a-f0-9]{32}[.](png|jpg|jpeg|gif|webp|mp3|ogg|wav|m4a|mp4|webm)$');
+    match := regexp_match(value, '^https://[^/]+/storage/v1/object/public/profile-assets/([a-f0-9-]{36})/[a-f0-9]{32}[.](png|jpg|jpeg|gif|webp|mp3|ogg|wav|m4a|mp4|webm|woff|woff2|ttf|otf)$');
     if match is null or match[1] <> user_id::text then raise exception using errcode = '42501', message = 'Можно использовать только свои загруженные файлы.'; end if;
   end if;
   return value;
@@ -234,6 +240,8 @@ declare
   result jsonb;
   item record;
   value text;
+  badge jsonb;
+  badges jsonb := '[]'::jsonb;
 begin
   if input is null or jsonb_typeof(input) <> 'object' or octet_length(input::text) > 32768 then
     raise exception using errcode = '22023', message = 'Некорректные настройки страницы.';
@@ -255,24 +263,64 @@ begin
       raise exception using errcode = '22023', message = 'Ссылки на соцсети должны начинаться с https://.';
     end if;
   end loop;
-  foreach value in array array['avatar','background','music','musicCover'] loop
+  foreach value in array array['avatar','background','music','musicCover','customFont'] loop
     result := result || jsonb_build_object(value, private.profile_asset(private.profile_text(input, value, defaults->>value, 2048), user_id));
   end loop;
   value := private.profile_text(input, 'backgroundType', defaults->>'backgroundType', 10);
   if value not in ('image','video') then raise exception using errcode = '22023', message = 'Неизвестный тип фона.'; end if;
   result := result || jsonb_build_object('backgroundType', value);
   value := private.profile_text(input, 'font', defaults->>'font', 20);
-  if value not in ('minecraft','system') then raise exception using errcode = '22023', message = 'Неизвестный шрифт.'; end if;
+  if value not in ('minecraft','system','custom') then raise exception using errcode = '22023', message = 'Неизвестный шрифт.'; end if;
   result := result || jsonb_build_object('font', value);
-  value := private.profile_text(input, 'accentColor', defaults->>'accentColor', 7);
-  if value !~ '^#[a-fA-F0-9]{6}$' then raise exception using errcode = '22023', message = 'Некорректный цвет.'; end if;
-  return result || jsonb_build_object('accentColor', value,
+  for item in select * from (values ('accentColor','#f5f5f7'),('nicknameGradientStart','#ffffff'),('nicknameGradientEnd','#a1a1aa'),('discordCardColor','#111111')) as colors(key, fallback) loop
+    value := private.profile_text(input, item.key, item.fallback, 7);
+    if value !~ '^#[a-fA-F0-9]{6}$' then raise exception using errcode = '22023', message = 'Некорректный цвет: ' || item.key; end if;
+    result := result || jsonb_build_object(item.key, lower(value));
+  end loop;
+  value := private.profile_text(input, 'musicPlayerStyle', 'classic', 12);
+  if value not in ('classic','compact') then raise exception using errcode = '22023', message = 'Неизвестный вид плеера.'; end if;
+  result := result || jsonb_build_object('musicPlayerStyle', value);
+  value := private.profile_text(input, 'avatarShape', 'circle', 12);
+  if value not in ('circle','rounded','square') then raise exception using errcode = '22023', message = 'Неизвестная форма аватарки.'; end if;
+  result := result || jsonb_build_object('avatarShape', value);
+  value := private.profile_text(input, 'discordCardStyle', 'glass', 12);
+  if value not in ('glass','solid','minimal') then raise exception using errcode = '22023', message = 'Неизвестный вид карточки Discord.'; end if;
+  result := result || jsonb_build_object('discordCardStyle', value);
+  value := private.profile_text(input, 'discordUserId', '', 20);
+  if value <> '' and value !~ '^[0-9]{17,20}$' then raise exception using errcode = '22023', message = 'ID Discord должен содержать от 17 до 20 цифр.'; end if;
+  result := result || jsonb_build_object('discordUserId', value);
+  if input ? 'profileBadges' then
+    if jsonb_typeof(input->'profileBadges') <> 'array' or jsonb_array_length(input->'profileBadges') > 7 then
+      raise exception using errcode = '22023', message = 'Некорректный список украшений.';
+    end if;
+    for badge in select * from jsonb_array_elements(input->'profileBadges') loop
+      if jsonb_typeof(badge) <> 'string' or (badge #>> '{}') not in ('star','heart','moon','sparkle','code','music','flower') then
+        raise exception using errcode = '22023', message = 'Неизвестное украшение профиля.';
+      end if;
+      if not badges @> jsonb_build_array(badge) then badges := badges || jsonb_build_array(badge); end if;
+    end loop;
+  end if;
+  result := result || jsonb_build_object('profileBadges', badges, 'settingsVersion', 2);
+  foreach value in array array['nicknameGradient','discordSync','discordUseAvatar','discordShowStatus','discordShowBadges','discordShowActivity','showButterfly'] loop
+    result := result || jsonb_build_object(value, private.profile_boolean(input, value, coalesce((defaults->>value)::boolean, false)));
+  end loop;
+  return result || jsonb_build_object(
     'avatarSize', private.profile_number(input, 'avatarSize',150,80,220),
     'backgroundDim', private.profile_number(input, 'backgroundDim',58,0,85),
+    'nicknameGradientAngle', private.profile_number(input, 'nicknameGradientAngle',90,0,360),
+    'discordCardOpacity', private.profile_number(input, 'discordCardOpacity',65,0,100),
+    'discordCardRadius', private.profile_number(input, 'discordCardRadius',18,0,32),
     'showDiscord', private.profile_boolean(input,'showDiscord',true),
     'musicLoop', private.profile_boolean(input,'musicLoop',true));
 end;
 $$;
+
+create or replace function public.builder_capabilities()
+returns jsonb language sql stable set search_path = '' as $$
+  select jsonb_build_object('profileSettingsVersion', 2, 'customFonts', true);
+$$;
+revoke all on function public.builder_capabilities() from public;
+grant execute on function public.builder_capabilities() to anon, authenticated;
 
 create or replace function public.builder_get_profile()
 returns jsonb language plpgsql security definer set search_path = '' as $$
@@ -337,13 +385,13 @@ do $$ begin
   end if;
 end $$;
 insert into storage.buckets(id, name, public, file_size_limit, allowed_mime_types)
-values ('profile-assets','profile-assets',true,4194304,array['image/png','image/jpeg','image/gif','image/webp','audio/mpeg','audio/mp3','audio/ogg','audio/wav','audio/x-wav','audio/mp4','audio/webm','video/mp4','video/webm'])
+values ('profile-assets','profile-assets',true,4194304,array['image/png','image/jpeg','image/gif','image/webp','audio/mpeg','audio/mp3','audio/ogg','audio/wav','audio/x-wav','audio/mp4','audio/webm','video/mp4','video/webm','font/woff','font/woff2','font/ttf','font/otf'])
 on conflict (id) do update set file_size_limit = excluded.file_size_limit, allowed_mime_types = excluded.allowed_mime_types;
 
 drop policy if exists iwtxz_assets_insert_own on storage.objects;
 create policy iwtxz_assets_insert_own on storage.objects for insert to authenticated with check (
   bucket_id = 'profile-assets' and (storage.foldername(name))[1] = (select auth.uid())::text
-  and name ~ '^[a-f0-9-]{36}/[a-f0-9]{32}[.](png|jpg|jpeg|gif|webp|mp3|ogg|wav|m4a|mp4|webm)$'
+  and name ~ '^[a-f0-9-]{36}/[a-f0-9]{32}[.](png|jpg|jpeg|gif|webp|mp3|ogg|wav|m4a|mp4|webm|woff|woff2|ttf|otf)$'
 );
 drop policy if exists iwtxz_assets_read_own on storage.objects;
 create policy iwtxz_assets_read_own on storage.objects for select to authenticated using (
@@ -358,7 +406,7 @@ create policy iwtxz_assets_guard on storage.objects as restrictive for all to au
   using (bucket_id <> 'profile-assets' or (storage.foldername(name))[1] = (select auth.uid())::text)
   with check (bucket_id <> 'profile-assets' or (
     (storage.foldername(name))[1] = (select auth.uid())::text
-    and name ~ '^[a-f0-9-]{36}/[a-f0-9]{32}[.](png|jpg|jpeg|gif|webp|mp3|ogg|wav|m4a|mp4|webm)$'
+    and name ~ '^[a-f0-9-]{36}/[a-f0-9]{32}[.](png|jpg|jpeg|gif|webp|mp3|ogg|wav|m4a|mp4|webm|woff|woff2|ttf|otf)$'
   ));
 drop policy if exists iwtxz_assets_anonymous_guard on storage.objects;
 create policy iwtxz_assets_anonymous_guard on storage.objects as restrictive for all to anon

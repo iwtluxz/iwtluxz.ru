@@ -4,7 +4,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const shared = ["backend-config.js", "backend-client.js", "builder.js", "builder.css", "profile.js", "profile-settings.js", "profile-links.js", "profile-fallback.js"];
+const shared = ["backend-config.js", "backend-client.js", "builder.js", "builder.css", "profile.js", "profile.css", "profile-settings.js", "profile-links.js", "profile-fallback.js", "profile-customization.js", "profile-customization.css"];
 const profileMedia = ["img/mainavatar.gif", "img/mysoundicon.png", "sound/sound.mp3"];
 const hashes = new Map();
 for (const asset of [...shared, ...profileMedia]) {

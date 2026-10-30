@@ -2,16 +2,21 @@
   "use strict";
   const $ = (selector) => document.querySelector(selector);
   const all = (selector) => [...document.querySelectorAll(selector)];
-  const textFields = ["title", "nickname", "description", "entryText", "musicTitle", "discord", "telegram", "steam"];
-  const numberFields = ["avatarSize", "backgroundDim"];
-  const optionFields = ["font", "accentColor", "backgroundType"];
-  const boolFields = ["musicLoop", "showDiscord"];
-  const assetFields = ["avatar", "background", "music", "musicCover"];
+  const textFields = ["title", "nickname", "description", "entryText", "musicTitle", "discord", "telegram", "steam", "discordUserId"];
+  const numberFields = ["avatarSize", "backgroundDim", "nicknameGradientAngle", "discordCardOpacity", "discordCardRadius"];
+  const optionFields = ["font", "accentColor", "backgroundType", "nicknameGradientStart", "nicknameGradientEnd", "musicPlayerStyle", "discordCardStyle", "discordCardColor"];
+  const boolFields = ["musicLoop", "showDiscord", "nicknameGradient", "showButterfly", "discordSync", "discordUseAvatar", "discordShowStatus", "discordShowBadges", "discordShowActivity"];
+  const assetFields = ["avatar", "background", "music", "musicCover", "customFont"];
+  const decorativeBadges = new Set(["star", "heart", "moon", "sparkle", "code", "music", "flower"]);
   const defaults = {
     title: "", nickname: "", description: "", entryText: "click to enter...", discord: "", telegram: "", steam: "",
     avatar: "img/mainavatar.gif", background: "img/background.mp4", backgroundType: "video",
     music: "sound/sound.mp3", musicTitle: "one more time", musicCover: "img/mysoundicon.png",
-    avatarSize: 150, backgroundDim: 58, accentColor: "#f5f5f7", font: "minecraft", musicLoop: true, showDiscord: true
+    avatarSize: 150, avatarShape: "circle", backgroundDim: 58, accentColor: "#f5f5f7", font: "minecraft", customFont: "", musicLoop: true, showDiscord: true,
+    nicknameGradient: false, nicknameGradientStart: "#ffffff", nicknameGradientEnd: "#a1a1aa", nicknameGradientAngle: 90,
+    musicPlayerStyle: "classic", showButterfly: true, profileBadges: [], discordUserId: "", discordSync: false,
+    discordCardStyle: "glass", discordCardColor: "#111111", discordCardOpacity: 65, discordCardRadius: 18,
+    discordUseAvatar: true, discordShowStatus: true, discordShowBadges: true, discordShowActivity: true
   };
   const fileHints = Object.fromEntries(all("[data-file-note]").map((e) => [e.dataset.fileNote, e.textContent]));
   const previewFrame = $("#previewFrame");
@@ -25,6 +30,7 @@
   let sessionVersion = 0;
   let previewTimer;
   let toastTimer;
+  let discordSnapshotStatus = null;
 
   function status(selector, message, type = "") {
     const element = $(selector);
@@ -90,20 +96,24 @@
     numberFields.forEach((key) => { site[key] = Number($("#" + key).value); });
     optionFields.forEach((key) => { site[key] = $("#" + key).value; });
     boolFields.forEach((key) => { site[key] = $("#" + key).checked; });
+    site.profileBadges = all("[data-profile-badge]:checked").map((input) => input.dataset.profileBadge).filter((badge) => decorativeBadges.has(badge));
     return site;
   }
 
   function snapshot(site) {
-    return JSON.stringify(Object.fromEntries([...textFields, ...numberFields, ...optionFields, ...boolFields, ...assetFields].map((key) => [key, site[key]])));
+    return JSON.stringify(Object.fromEntries([...textFields, ...numberFields, ...optionFields, ...boolFields, ...assetFields, "profileBadges"].map((key) => [key, site[key]])));
   }
 
   function writeEditor(site) {
     currentSite = { ...defaults, ...site };
     textFields.concat(numberFields, optionFields).forEach((key) => { $("#" + key).value = currentSite[key] ?? ""; });
     boolFields.forEach((key) => { $("#" + key).checked = Boolean(currentSite[key]); });
+    const badges = new Set(Array.isArray(currentSite.profileBadges) ? currentSite.profileBadges : []);
+    all("[data-profile-badge]").forEach((input) => { input.checked = badges.has(input.dataset.profileBadge); });
     all("[data-asset-url]").forEach((field) => { field.value = /^https:\/\//i.test(currentSite[field.dataset.assetUrl] || "") ? currentSite[field.dataset.assetUrl] : ""; });
     all("[data-upload]").forEach((field) => { field.value = ""; });
     all("[data-file-note]").forEach((note) => { note.textContent = fileHints[note.dataset.fileNote]; });
+    if (currentSite.customFont) document.querySelector('[data-file-note="customFont"]').textContent = "Свой шрифт добавлен · можно заменить другим файлом";
     savedSnapshot = snapshot(readEditor());
     dirty = false;
     updatePreview();
@@ -124,11 +134,38 @@
     $("#descriptionCount").textContent = `${$("#description").value.length} / 500`;
     $("#avatarSizeValue").value = `${currentSite.avatarSize} px`;
     $("#backgroundDimValue").value = `${currentSite.backgroundDim}%`;
+    $("#nicknameGradientAngleValue").value = `${currentSite.nicknameGradientAngle}°`;
+    $("#discordCardOpacityValue").value = `${currentSite.discordCardOpacity}%`;
+    $("#discordCardRadiusValue").value = `${currentSite.discordCardRadius} px`;
+    updateDiscordHint();
     $("#avatarThumbnail").src = currentSite.avatar || "img/tree.png";
     $("#accountAvatar").src = currentSite.avatar || "img/tree.png";
     $("#coverThumbnail").src = currentSite.musicCover || "img/tree.png";
     clearTimeout(previewTimer);
     previewTimer = setTimeout(sendPreview, 70);
+  }
+
+  function updateDiscordHint() {
+    const hint = $("#discordSyncHint");
+    if (!currentSite.discordSync) {
+      hint.textContent = "Синхронизация выключена. В карточке используются твои настройки.";
+    } else if (!/^[0-9]{17,20}$/.test(currentSite.discordUserId)) {
+      hint.textContent = "Укажи числовой ID Discord, чтобы обновлять карточку.";
+    } else if (discordSnapshotStatus?.userId === currentSite.discordUserId) {
+      const state = discordSnapshotStatus.state;
+      if (state === "ready") {
+        const time = Number(discordSnapshotStatus.updatedAt);
+        hint.textContent = Number.isFinite(time) && time > 0
+          ? `Данные Discord получены · ${new Date(time).toLocaleString("ru-RU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}`
+          : "Данные Discord получены. Карточка обновляется автоматически.";
+      } else if (state === "not-member") {
+        hint.textContent = "Аккаунт пока не найден на сервере. Вступи по ссылке выше и дождись обновления.";
+      } else {
+        hint.textContent = "Данных пока нет. После вступления и публикации страницы дождись автоматического обновления.";
+      }
+    } else {
+      hint.textContent = "Сохрани и примени настройки. После вступления на сервер данные появятся при следующем обновлении.";
+    }
   }
 
   function profileUrl() {
@@ -174,6 +211,7 @@
   function resetSession() {
     sessionVersion += 1;
     currentUser = null;
+    discordSnapshotStatus = null;
     dirty = false;
     savedSnapshot = "";
     document.body.classList.add("auth-locked");
@@ -232,6 +270,21 @@
     for (const input of all("[data-asset-url]")) {
       if (input.value && !/^https:\/\//i.test(input.value)) throw new Error("Для файлов по ссылке используй адрес с https://.");
     }
+    if (site.font === "custom" && !site.customFont) {
+      setSection("appearance");
+      $("#customFontFile").focus();
+      throw new Error("Загрузи свой шрифт или добавь прямую ссылку на него.");
+    }
+    if (site.discordUserId && !/^[0-9]{17,20}$/.test(site.discordUserId)) {
+      setSection("links");
+      $("#discordUserId").focus();
+      throw new Error("ID Discord должен состоять из 17–20 цифр.");
+    }
+    if (site.discordSync && !site.discordUserId) {
+      setSection("links");
+      $("#discordUserId").focus();
+      throw new Error("Для обновления карточки укажи ID пользователя Discord.");
+    }
     return site;
   }
 
@@ -260,15 +313,17 @@
     finally { busy = false; updateBusy(); }
   }
 
-  const mimeByExtension = { png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", webp: "image/webp", mp4: "video/mp4", webm: "video/webm", mp3: "audio/mpeg", ogg: "audio/ogg", wav: "audio/wav", m4a: "audio/mp4" };
+  const mimeByExtension = { png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", webp: "image/webp", mp4: "video/mp4", webm: "video/webm", mp3: "audio/mpeg", ogg: "audio/ogg", wav: "audio/wav", m4a: "audio/mp4", woff: "font/woff", woff2: "font/woff2", ttf: "font/ttf", otf: "font/otf" };
   async function uploadFile(input) {
     const file = input.files?.[0];
     if (!file || !currentUser) return;
     const key = input.dataset.upload;
     const version = sessionVersion;
-    const type = file.type || mimeByExtension[file.name.split(".").pop().toLowerCase()] || "";
+    const extensionType = mimeByExtension[file.name.split(".").pop().toLowerCase()] || "";
+    const type = key === "customFont" ? extensionType : file.type || extensionType;
     const image = /^image\/(png|jpeg|gif|webp)$/.test(type);
-    const allowed = key === "music" ? /^audio\/(mpeg|mp3|ogg|wav|x-wav|mp4|webm)$/.test(type)
+    const allowed = key === "customFont" ? /^font\/(woff|woff2|ttf|otf)$/.test(type)
+      : key === "music" ? /^audio\/(mpeg|mp3|ogg|wav|x-wav|mp4|webm)$/.test(type)
       : image || (key === "background" && /^video\/(mp4|webm)$/.test(type));
     if (!allowed || !file.size || file.size > 4 * 1024 * 1024) {
       input.value = "";
@@ -287,6 +342,7 @@
       if (urlInput) urlInput.value = "";
       if (key === "background") $("#backgroundType").value = type.startsWith("video/") ? "video" : "image";
       if (key === "music" && !$("#musicTitle").value) $("#musicTitle").value = file.name.replace(/\.[^.]+$/, "");
+      if (key === "customFont") $("#font").value = "custom";
       document.querySelector(`[data-file-note="${key}"]`).textContent = `${file.name} · ${(file.size / 1024 / 1024).toFixed(1)} МБ · загружено`;
       updatePreview();
       status("#editorStatus", "Файл загружен. Сохрани черновик или примени изменения к странице.", "ok");
@@ -348,6 +404,7 @@
     if (event.target.type === "file") return;
     const key = event.target.dataset.assetUrl;
     if (key) currentSite[key] = event.target.value.trim();
+    if (key === "customFont" && currentSite.customFont) $("#font").value = "custom";
     updatePreview();
   });
   $("#editorForm").addEventListener("change", (event) => { if (event.target.type !== "file") updatePreview(); });
@@ -356,6 +413,7 @@
     const key = button.dataset.remove;
     if (uploadCount) return;
     currentSite[key] = "";
+    if (key === "customFont" && $("#font").value === "custom") $("#font").value = "minecraft";
     const field = document.querySelector(`[data-asset-url="${key}"]`);
     if (field) field.value = "";
     document.querySelector(`[data-file-note="${key}"]`).textContent = "Файл убран. Можно загрузить другой.";
@@ -396,7 +454,19 @@
     finally { if (button) button.disabled = false; busy = false; updateBusy(); }
   });
   window.addEventListener("message", (event) => {
-    if (event.origin === location.origin && event.source === previewFrame.contentWindow && event.data?.type === "iwtxz-profile-ready") sendPreview();
+    if (event.origin !== location.origin || event.source !== previewFrame.contentWindow) return;
+    if (event.data?.type === "iwtxz-profile-ready") sendPreview();
+    if (event.data?.type === "iwtxz-font-status" && event.data.source === currentSite.customFont) {
+      const labels = {
+        loading: "Шрифт загружается в превью…", ready: "Свой шрифт загружен. Интерфейс кабинета остаётся в Minecraft.",
+        unavailable: "Не удалось загрузить шрифт. Проверь файл и доступ по ссылке; пока используется Minecraft.", disabled: ""
+      };
+      $("#customFontStatus").textContent = labels[event.data.state] || "";
+    }
+    if (event.data?.type === "iwtxz-discord-status" && event.data.userId === currentSite.discordUserId) {
+      discordSnapshotStatus = { userId: event.data.userId, state: event.data.state, updatedAt: event.data.updatedAt };
+      updateDiscordHint();
+    }
   });
   previewFrame.addEventListener("load", sendPreview);
   window.addEventListener("iwtxz-auth-change", (event) => {

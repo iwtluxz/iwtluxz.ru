@@ -17,24 +17,69 @@ export async function fetchDiscordJson(path, token, timeoutMs = 6000) {
     signal: AbortSignal.timeout(timeoutMs),
     headers: { authorization: `Bot ${token.replace(/^Bot\s+/i, "").trim()}` }
   });
-  if (!response.ok) throw new Error(`Discord API returned ${response.status}`);
+  if (!response.ok) {
+    const details = await response.json().catch(() => null);
+    const discordCode = Number.isSafeInteger(details?.code) ? details.code : null;
+    throw Object.assign(new Error(`Discord API returned ${response.status}`), { status: response.status, discordCode });
+  }
   return response.json();
 }
 
-export async function fetchDiscordIdentity(userId, token, guildId) {
+// Only documented public account flags describe earned Discord badges. Nitro is
+// not a public bot field; a boost below refers only to this particular guild.
+// https://docs.discord.com/developers/resources/user#user-object-user-flags
+const badgeFlags = [
+  [0, "staff", "Discord Staff"], [1, "partner", "Partnered Server Owner"],
+  [2, "hypesquad-events", "HypeSquad Events"], [3, "bug-hunter-level-1", "Bug Hunter Level 1"],
+  [6, "house-bravery", "HypeSquad Bravery"], [7, "house-brilliance", "HypeSquad Brilliance"],
+  [8, "house-balance", "HypeSquad Balance"], [9, "early-supporter", "Early Supporter"],
+  [14, "bug-hunter-level-2", "Bug Hunter Level 2"], [16, "verified-bot", "Verified Bot"],
+  [17, "early-verified-developer", "Early Verified Bot Developer"], [18, "moderator-alumni", "Moderator Programs Alumni"]
+];
+
+export function getDiscordBadges(publicFlags, member) {
+  const flags = Number.isSafeInteger(publicFlags) && publicFlags >= 0 ? BigInt(publicFlags) : 0n;
+  const badges = badgeFlags.filter(([bit]) => (flags & (1n << BigInt(bit))) !== 0n)
+    .map(([, id, label]) => ({ id, label }));
+  if (typeof member?.premium_since === "string" && Number.isFinite(Date.parse(member.premium_since))) {
+    badges.push({ id: "server-booster", label: "Server Booster" });
+  }
+  return badges;
+}
+
+export async function fetchDiscordMembership(userId, token, guildId) {
+  if (!guildId) return { member: null, data: null };
+  try {
+    const data = await fetchDiscordJson(`/guilds/${guildId}/members/${userId}`, token, 6000);
+    if (!data?.user || data.user.id !== userId) throw new Error("Invalid Discord member response");
+    return { member: true, data };
+  } catch (error) {
+    if (error.status === 404 && error.discordCode === 10007) return { member: false, data: null };
+    throw error;
+  }
+}
+
+export async function fetchDiscordIdentity(userId, token, guildId, { requireMembership = false } = {}) {
+  const membership = await fetchDiscordMembership(userId, token, guildId).catch(error => {
+    if (requireMembership) throw error;
+    return { member: null, data: null };
+  });
+  if (requireMembership && membership.member !== true) {
+    return { id: userId, guildId: guildId || null, member: membership.member, badges: [] };
+  }
   const user = await fetchDiscordJson(`/users/${userId}`, token);
   if (user.id !== userId || typeof user.username !== "string") throw new Error("Invalid Discord user response");
-  let member = null;
-  if (guildId) {
-    member = await fetchDiscordJson(`/guilds/${guildId}/members/${userId}`, token, 3000).catch(() => null);
-  }
+  const member = membership.data;
   return {
     id: user.id,
+    guildId: guildId || null,
+    member: membership.member,
     username: user.username,
     globalName: user.global_name ?? null,
     displayName: member?.nick || user.global_name || user.username,
     avatarHash: user.avatar ?? null,
-    avatarUrl: getAvatarUrl(user)
+    avatarUrl: getAvatarUrl(user),
+    badges: getDiscordBadges(user.public_flags, member)
   };
 }
 
@@ -45,16 +90,27 @@ export function getCustomStatus(presence) {
   return typeof activity?.state === "string" ? activity.state : "";
 }
 
+export function getDiscordActivity(presence) {
+  if (!presence || !Array.isArray(presence.activities) || presence.status === "offline") return null;
+  const activity = presence.activities.find(entry => [0, 1, 2, 3, 5].includes(entry.type) && typeof entry.name === "string");
+  if (!activity) return null;
+  const clip = value => typeof value === "string" ? value.slice(0, 200) : "";
+  return { type: activity.type, name: clip(activity.name), details: clip(activity.details), state: clip(activity.state) };
+}
+
 export function fetchDiscordPresences(token, guildId, userIds, {
   WebSocketImpl = globalThis.WebSocket,
   timeoutMs = 12000
 } = {}) {
   if (!guildId || typeof WebSocketImpl !== "function" || !userIds.length) return Promise.resolve(new Map());
-  // One connection for the batch; persistent listeners prevent lost READY/chunks.
+  // Discord accepts at most 100 explicit IDs per member request. Use one
+  // connection for all batches, each with a distinct nonce.
+  userIds = [...new Set(userIds)];
+  const batches = Array.from({ length: Math.ceil(userIds.length / 100) }, (_, index) => userIds.slice(index * 100, index * 100 + 100));
   return new Promise((resolve, reject) => {
     const socket = new WebSocketImpl(DISCORD_GATEWAY);
     const presences = new Map();
-    const nonce = "profile-sync";
+    const pending = new Set(batches.map((_, index) => `profile-sync-${index}`));
     let sequence = null;
     let heartbeat = 0;
     let settled = false;
@@ -95,19 +151,22 @@ export function fetchDiscordPresences(token, guildId, userIds, {
           finish(new Error("Discord gateway session unavailable"));
         } else if (message.t === "READY" && !requested) {
           requested = true;
-          send(8, { guild_id: guildId, user_ids: userIds, presences: true, nonce });
+          for (let index = 0; index < batches.length; index += 1) {
+            send(8, { guild_id: guildId, user_ids: batches[index], presences: true, nonce: `profile-sync-${index}` });
+          }
         } else if (message.t === "GUILD_CREATE" && message.d?.id === guildId) {
           remember(message.d.presences);
         } else if (message.t === "PRESENCE_UPDATE" && message.d?.guild_id === guildId) {
           remember([message.d]);
-        } else if (message.t === "GUILD_MEMBERS_CHUNK" && message.d?.guild_id === guildId && message.d.nonce === nonce) {
+        } else if (message.t === "GUILD_MEMBERS_CHUNK" && message.d?.guild_id === guildId && pending.has(message.d.nonce)) {
           remember(message.d.presences);
           for (const member of message.d.members ?? []) {
             if (userIds.includes(member.user?.id) && !presences.has(member.user.id)) {
               presences.set(member.user.id, { user: member.user, status: "offline", activities: [] });
             }
           }
-          if (message.d.chunk_index + 1 >= message.d.chunk_count) finish();
+          if (message.d.chunk_index + 1 >= message.d.chunk_count) pending.delete(message.d.nonce);
+          if (!pending.size) finish();
         }
       } catch (error) { finish(error); }
     };

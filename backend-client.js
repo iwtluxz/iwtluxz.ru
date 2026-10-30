@@ -2,12 +2,15 @@
   "use strict";
 
   const maximumUploadBytes = 4 * 1024 * 1024;
-  const mediaKinds = new Set(["avatar", "background", "music", "musicCover"]);
+  const mediaKinds = new Set(["avatar", "background", "music", "musicCover", "customFont"]);
   const imageTypes = new Set(["image/png", "image/jpeg", "image/gif", "image/webp"]);
   const audioTypes = new Set(["audio/mpeg", "audio/mp3", "audio/wav", "audio/x-wav", "audio/ogg", "audio/mp4", "audio/webm"]);
   const videoTypes = new Set(["video/mp4", "video/webm"]);
+  const fontTypes = new Set(["font/woff", "font/woff2", "font/ttf", "font/otf"]);
+  const declaredFontTypes = new Set([...fontTypes, "application/font-woff", "application/x-font-woff", "application/x-font-ttf", "application/x-font-opentype", "application/vnd.ms-opentype", "application/octet-stream", ""]);
   const reservedUsernames = new Set(["iwtlu", "shakzy", "strelokk", "icetearz", "eris", "admin", "api", "index", "assets"]);
   let client;
+  let customizationReady = false;
 
   function error(status, message, code = "request_failed") {
     return Object.assign(new Error(message), { status, code });
@@ -113,7 +116,7 @@
     if (code === "23505") return error(409, "Этот логин уже занят.", "username_taken");
     if (["PGRST301", "PGRST302"].includes(code)) return error(401, "Время входа истекло. Войди ещё раз.", "unauthorized");
     if (code === "42501") return error(403, "Нет доступа к этой операции.", "forbidden");
-    if (cause?.message && code === "P0001") return error(400, String(cause.message).slice(0, 350), "invalid_setting");
+    if (cause?.message && ["P0001", "22023"].includes(code)) return error(400, String(cause.message).slice(0, 350), "invalid_setting");
     return error(cause?.status >= 400 && cause?.status < 500 ? cause.status : 503, "Сервер временно недоступен. Проверь соединение и попробуй ещё раз.", "service_unavailable");
   }
 
@@ -205,6 +208,36 @@
 
   function sniffType(bytes, kind) {
     const ascii = (start, end) => String.fromCharCode(...bytes.slice(start, end));
+    if (kind === "customFont") {
+      if (bytes.length < 12) return "";
+      const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+      const signature = ascii(0, 4);
+      if (["wOFF", "wOF2"].includes(signature)) {
+        const minimum = signature === "wOFF" ? 44 : 48;
+        if (bytes.length < minimum || view.getUint32(8) !== bytes.length || !view.getUint16(12)) return "";
+        if (view.getUint32(16) > 32 * 1024 * 1024) return "";
+        if (signature === "wOFF") {
+          const count = view.getUint16(12);
+          if (44 + count * 20 > bytes.length) return "";
+          for (let index = 0; index < count; index += 1) {
+            const offset = view.getUint32(44 + index * 20 + 4);
+            const length = view.getUint32(44 + index * 20 + 8);
+            if (offset < 44 + count * 20 || offset + length > bytes.length) return "";
+          }
+          return "font/woff";
+        }
+        return view.getUint32(20) > 0 && view.getUint32(20) <= bytes.length - 48 ? "font/woff2" : "";
+      }
+      if (signature !== "OTTO" && view.getUint32(0) !== 0x00010000 && signature !== "true") return "";
+      const count = view.getUint16(4);
+      if (!count || 12 + count * 16 > bytes.length) return "";
+      for (let index = 0; index < count; index += 1) {
+        const offset = view.getUint32(12 + index * 16 + 8);
+        const length = view.getUint32(12 + index * 16 + 12);
+        if (offset < 12 + count * 16 || offset + length > bytes.length) return "";
+      }
+      return signature === "OTTO" ? "font/otf" : "font/ttf";
+    }
     if (bytes.length >= 8 && [137, 80, 78, 71, 13, 10, 26, 10].every((byte, index) => bytes[index] === byte)) return "image/png";
     if (bytes.length >= 3 && bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255) return "image/jpeg";
     if (["GIF87a", "GIF89a"].includes(ascii(0, 6))) return "image/gif";
@@ -220,18 +253,19 @@
   async function uploadAsset(url, options, account) {
     const kind = url.searchParams.get("kind");
     if (!mediaKinds.has(kind)) throw error(400, "Неизвестный тип файла.", "invalid_asset_kind");
+    if (kind === "customFont") await requireCustomization();
     const body = options.body;
     if (!body || typeof body.arrayBuffer !== "function") throw error(400, "Выбери файл для загрузки.", "invalid_asset");
     if (!body.size || body.size > maximumUploadBytes) throw error(413, "Размер файла должен быть больше нуля и не больше 4 МБ.", "request_too_large");
     const declared = (new Headers(options.headers).get("content-type") || body.type || "").split(";")[0].trim().toLowerCase();
-    const allowed = kind === "music" ? audioTypes : kind === "background" ? new Set([...imageTypes, ...videoTypes]) : imageTypes;
-    if (!allowed.has(declared)) throw error(415, "Этот формат файла не поддерживается.", "invalid_asset_type");
+    const allowed = kind === "customFont" ? fontTypes : kind === "music" ? audioTypes : kind === "background" ? new Set([...imageTypes, ...videoTypes]) : imageTypes;
+    if (!(kind === "customFont" ? declaredFontTypes : allowed).has(declared)) throw error(415, "Этот формат файла не поддерживается.", "invalid_asset_type");
     const bytes = new Uint8Array(await body.arrayBuffer());
     if (!bytes.length || bytes.length > maximumUploadBytes) throw error(413, "Максимальный размер файла — 4 МБ.", "request_too_large");
     const type = sniffType(bytes, kind);
     if (!allowed.has(type)) throw error(415, "Содержимое файла не соответствует поддерживаемому формату.", "invalid_asset_type");
     if (!/^[a-f0-9-]{36}$/i.test(account.userId)) throw error(503, "Сервер вернул неверный аккаунт.", "invalid_response");
-    const extension = { "image/png": "png", "image/jpeg": "jpg", "image/gif": "gif", "image/webp": "webp", "audio/mpeg": "mp3", "audio/wav": "wav", "audio/ogg": "ogg", "audio/mp4": "m4a", "audio/webm": "webm", "video/mp4": "mp4", "video/webm": "webm" }[type];
+    const extension = { "image/png": "png", "image/jpeg": "jpg", "image/gif": "gif", "image/webp": "webp", "audio/mpeg": "mp3", "audio/wav": "wav", "audio/ogg": "ogg", "audio/mp4": "m4a", "audio/webm": "webm", "video/mp4": "mp4", "video/webm": "webm", "font/woff": "woff", "font/woff2": "woff2", "font/ttf": "ttf", "font/otf": "otf" }[type];
     const nonce = [...window.crypto.getRandomValues(new Uint8Array(16))].map((byte) => byte.toString(16).padStart(2, "0")).join("");
     const path = `${account.userId}/${nonce}.${extension}`;
     const bucket = getClient().storage.from(config().bucket);
@@ -252,6 +286,15 @@
       if (!body || typeof body !== "object" || Array.isArray(body)) throw new Error();
       return body;
     } catch { throw error(400, "Некорректный запрос.", "invalid_json"); }
+  }
+
+  async function requireCustomization() {
+    if (customizationReady) return;
+    const result = await getClient().rpc("builder_capabilities");
+    if (result?.error || result?.data?.profileSettingsVersion !== 2) {
+      throw error(503, "Владелец сайта должен обновить сервер для новых настроек. Файл: supabase/migrations/20261030_profile_customization.sql. Твои сохранённые настройки не потеряны.", "backend_update_required");
+    }
+    customizationReady = true;
   }
 
   async function request(path, options = {}) {
@@ -305,6 +348,7 @@
       const body = jsonBody(options);
       const site = body.site ?? body;
       ownership(site, account);
+      if (site.font === "custom" || ["customFont", "musicPlayerStyle", "avatarShape", "nicknameGradient", "nicknameGradientStart", "nicknameGradientEnd", "nicknameGradientAngle", "discordUserId", "discordSync", "discordCardStyle", "discordCardColor", "discordCardOpacity", "discordCardRadius", "discordUseAvatar", "discordShowStatus", "discordShowBadges", "discordShowActivity", "profileBadges", "showButterfly"].some((key) => Object.hasOwn(site, key))) await requireCustomization();
       return { site: { ...await rpc("builder_save_profile", { input: site }), publicUrl: publicUrl(account.username) } };
     }
     if (url.pathname === "/api/builder/sites/delete") {

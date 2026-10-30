@@ -1,0 +1,34 @@
+@font-face { font-family: "Minecraft"; src: url("font/minecraft.ttf") format("truetype"); font-display: swap; }
+.iwtxz-profile-badges[hidden], .discord-sync-activity[hidden], .discord-earned-badges[hidden], .discord-presence[hidden], .discord-avatar-wrap[hidden], .iwtxz-discord-card[hidden], .iwtxz-discord-card [hidden] { display: none !important; }
+.iwtxz-round-avatar { border-radius: 50% !important; background-clip: padding-box; }
+.iwtxz-discord-card, .iwtxz-player-classic, .iwtxz-player-compact { font-family: var(--profile-font, inherit) !important; }
+.iwtxz-gradient-name { color: transparent !important; background-image: var(--nickname-gradient) !important; background-clip: text !important; -webkit-background-clip: text !important; -webkit-text-fill-color: transparent; text-shadow: none !important; }
+.iwtxz-profile-badges { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 9px; color: var(--accent, #fff); }
+.iwtxz-profile-badges:empty { display: none; }
+.iwtxz-badge { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 19px; width: 19px; height: 19px; color: inherit; }
+.iwtxz-badge > img, .iwtxz-badge > svg { display: block; width: 100%; height: 100%; object-fit: contain; }
+.iwtxz-discord-card { border-radius: var(--discord-radius, 18px) !important; background: color-mix(in srgb, var(--discord-color, #111111) var(--discord-opacity, 65%), transparent) !important; border: 1px solid #ffffff16 !important; }
+.iwtxz-discord-card[data-card-style="glass"] { backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+.iwtxz-discord-card[data-card-style="solid"] { background: var(--discord-color, #111111) !important; backdrop-filter: none; -webkit-backdrop-filter: none; }
+.iwtxz-discord-card[data-card-style="minimal"] { background: transparent !important; border-color: transparent !important; box-shadow: none !important; backdrop-filter: none; -webkit-backdrop-filter: none; }
+.iwtxz-discord-card .discord-card-body { height: auto; min-height: 41px; }
+.iwtxz-discord-card .discord-card-top { max-height: none; flex-wrap: wrap; overflow: visible; }
+.iwtxz-discord-card .discord-card-badges, .discord-earned-badges { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 5px; color: #f5f5f7; }
+.iwtxz-discord-card .discord-card-badges { overflow: visible; }
+.iwtxz-discord-card .discord-card-name { min-width: 0; max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.iwtxz-discord-card .discord-card-status { max-height: none; white-space: normal; font-size: 11px; line-height: 1.5; margin-top: 2px; overflow-wrap: anywhere; }
+.discord-sync-activity { display: block; margin-top: 3px; color: #c2c0c8; font-size: 10px; line-height: 1.6; overflow-wrap: anywhere; }
+.discord-presence, .iwtxz-discord-card .discord-card-dot { position: absolute; bottom: -1px; right: -1px; width: 13px; height: 13px; border-radius: 50%; border: 2px solid #111; background: #747f8d; }
+.discord-presence[data-presence="online"], .iwtxz-discord-card .discord-card-dot[data-presence="online"] { background: #43b581; }
+.discord-presence[data-presence="idle"], .iwtxz-discord-card .discord-card-dot[data-presence="idle"] { background: #faa61a; }
+.discord-presence[data-presence="dnd"], .iwtxz-discord-card .discord-card-dot[data-presence="dnd"] { background: #ed4245; }
+.discord-presence[data-presence="offline"], .iwtxz-discord-card .discord-card-dot[data-presence="offline"] { background: #747f8d; }
+.iwtxz-player-compact.track-card { width: min(600px, calc(100vw - 32px)); gap: 11px; padding: 13px 15px; border: 1px solid #ffffff16; border-radius: 15px; background: #09090caa; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
+.iwtxz-player-compact.track-card .track-card-cover-wrap, .iwtxz-player-compact.track-card .track-card-cover { width: 44px; height: 44px; }
+.iwtxz-player-compact.track-card { grid-template-columns: 44px minmax(0, 1fr); }
+.iwtxz-player-compact.track-card .track-card-title { font-size: 12px; transform: none; }
+.iwtxz-player-compact.track-card .track-card-time { font-size: 10px; }
+.iwtxz-player-compact.track-card .track-card-progress-row { gap: 8px; }
+.iwtxz-player-compact.track-card .track-card-action { width: 24px; height: 24px; }
+.iwtxz-player-compact.track-card .track-card-action-prev, .iwtxz-player-compact.track-card .track-card-action-next { display: none; }
+@media (max-width: 460px) { .iwtxz-badge { flex-basis: 17px; width: 17px; height: 17px; } }

@@ -3,6 +3,25 @@
 
   const profile = document.currentScript?.dataset.profile;
   if (!/^[a-z0-9_-]{3,32}$/.test(profile || "") || window.location.protocol === "file:") return;
+  const nicknameBadges = document.createElement("div");
+  nicknameBadges.className = "iwtxz-profile-badges";
+  nicknameBadges.setAttribute("aria-label", "Украшения профиля");
+  nicknameBadges.hidden = true;
+  document.querySelector(".name")?.after(nicknameBadges);
+  const discordBody = document.querySelector(".discord-card-body");
+  const discordActivity = document.createElement("span");
+  discordActivity.className = "discord-sync-activity";
+  discordActivity.hidden = true;
+  discordBody?.append(discordActivity);
+  const customization = window.IwtxzProfileCustomization?.createCustomizer({
+    name: document.querySelector(".name-text"), avatar: document.querySelector(".avatar"), nicknameBadges,
+    discordCard: document.querySelector(".discord-card"), discordAvatar: document.querySelector(".discord-card-avatar"),
+    discordName: document.querySelector(".discord-card-name"), discordStatus: document.querySelector(".discord-card-status"),
+    discordActivity, discordBadges: document.querySelector(".discord-card-badges"),
+    discordPresence: document.querySelector(".discord-card-dot"), socialDiscord: document.querySelector(".socials [data-discord-copy]"),
+    player: document.querySelector(".track-card"),
+    onFontReady() { if (typeof lockNameSize === "function") lockNameSize(); }
+  });
 
   function safeAsset(value) {
     if (typeof value !== "string" || !value.trim()) return "";
@@ -160,6 +179,7 @@
     }
     const entry = document.getElementById("entryButton");
     if (entry) entry.textContent = typeof site.entryText === "string" ? site.entryText.slice(0, 80) : "click to enter…";
+    customization?.apply(site);
     if (typeof lockNameSize === "function") {
       lockNameSize();
       document.fonts?.ready.then(lockNameSize);

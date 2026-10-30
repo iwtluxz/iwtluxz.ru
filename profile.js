@@ -18,6 +18,14 @@
   let entered = isPreview;
   let toastTimer;
   let mediaKey = "iwtxz-profile-volume";
+  let discordCopyName = "";
+  const customization = window.IwtxzProfileCustomization?.createCustomizer({
+    name: byId("profileName"), avatar: byId("profileAvatar"), nicknameBadges: byId("profileBadges"),
+    discordCard: byId("discordCard"), discordAvatar: byId("discordAvatar"), discordName: byId("discordName"),
+    discordStatus: byId("discordStatus"), discordActivity: byId("discordActivity"), discordBadges: byId("discordBadges"),
+    discordPresence: byId("discordPresence"), socialDiscord: byId("discordButton"), player,
+    onDiscordUsername(value) { discordCopyName = value; }
+  });
 
   function text(value, limit = 240) {
     return typeof value === "string" ? value.slice(0, limit) : "";
@@ -96,13 +104,14 @@
   }
 
   async function copyDiscord() {
-    if (!currentSite?.discord) return;
+    const discord = discordCopyName || currentSite?.discord;
+    if (!discord) return;
     try {
       if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(currentSite.discord);
+        await navigator.clipboard.writeText(discord);
       } else {
         const field = document.createElement("textarea");
-        field.value = currentSite.discord;
+        field.value = discord;
         field.style.position = "fixed";
         field.style.opacity = "0";
         document.body.append(field);
@@ -113,7 +122,7 @@
       }
       showToast("Имя Discord скопировано");
     } catch {
-      showToast(`Discord: ${currentSite.discord}`);
+      showToast(`Discord: ${discord}`);
     }
   }
 
@@ -216,6 +225,7 @@
     byId("discordButton").setAttribute("aria-label", `Скопировать Discord: ${site.discord}`);
     byId("discordCard").hidden = !site.discord || site.showDiscord === false;
     byId("discordCard").setAttribute("aria-label", `Скопировать Discord: ${site.discord}`);
+    customization?.apply(site);
     setLink("telegramLink", site.telegram);
     setLink("steamLink", site.steam);
     byId("musicTitle").textContent = site.musicTitle;

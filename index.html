@@ -3,16 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#09090c">
+  <meta name="theme-color" content="#000000">
   <meta name="description" content="Твоя страница iwtxz: аватар, музыка, фон и ссылки.">
   <link rel="icon" type="image/png" href="img/tree.png">
-  <link rel="stylesheet" href="builder.css?v=996d552d628f">
+  <link rel="preload" href="font/minecraft.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="stylesheet" href="builder.css?v=7b7ffe416221">
   <title>Личный кабинет · iwtxz</title>
-  <script src="profile-links.js?v=a55d02ddb7c2" defer></script>
+  <script src="profile-links.js?v=490adf0a2122" defer></script>
   <script src="vendor/supabase-2.102.0.min.js" defer></script>
-  <script src="backend-config.js?v=78f8eb922108" defer></script>
-  <script src="backend-client.js?v=5fc9fdb16042" defer></script>
-  <script src="builder.js?v=f84c6e9e56a2" defer></script>
+  <script src="backend-config.js?v=de3f63c10bfd" defer></script>
+  <script src="backend-client.js?v=71906c9c239e" defer></script>
+  <script src="builder.js?v=3e57d580d3f5" defer></script>
 </head>
 <body class="auth-locked">
   <header class="topbar">
@@ -61,6 +62,12 @@
             <label class="field wide">О себе<textarea id="description" maxlength="500" rows="4" placeholder="Пара слов, цитата или просто настроение"></textarea><span class="hint" id="descriptionCount">0 / 500</span></label>
             <label class="field wide">Текст на экране входа<input id="entryText" maxlength="80" placeholder="click to enter..."></label>
           </div>
+          <div class="settings-group">
+            <h3>Градиент ника</h3>
+            <label class="checkbox-field"><input id="nicknameGradient" type="checkbox"><span>Окрасить ник градиентом</span></label>
+            <div class="form-grid"><label class="field">Первый цвет<input id="nicknameGradientStart" type="color" value="#ffffff"></label><label class="field">Второй цвет<input id="nicknameGradientEnd" type="color" value="#a1a1aa"></label></div>
+            <label class="field range-field">Направление<output for="nicknameGradientAngle" id="nicknameGradientAngleValue">90°</output><input id="nicknameGradientAngle" type="range" min="0" max="360" value="90"></label>
+          </div>
         </section>
         <section class="settings-section hidden" data-settings-section="appearance" aria-labelledby="appearanceHeading">
           <h2 id="appearanceHeading">Оформление</h2>
@@ -68,10 +75,27 @@
           <div class="upload-card"><div class="upload-details"><label for="backgroundFile">Фон страницы</label><input id="backgroundFile" data-upload="background" type="file" accept="image/png,image/jpeg,image/gif,image/webp,video/mp4,video/webm"><span class="hint" data-file-note="background">Картинка, GIF, MP4 или WebM · до 4 МБ</span></div><button type="button" class="text-button" data-remove="background">Убрать</button></div>
           <details class="url-details"><summary>Или указать ссылку на фон</summary><label class="field">Ссылка<input id="backgroundUrl" data-asset-url="background" type="url" placeholder="https://…"></label><label class="field">Тип фона<select id="backgroundType"><option value="image">Картинка / GIF</option><option value="video">Видео</option></select></label></details>
           <label class="field range-field">Затемнение фона<output for="backgroundDim" id="backgroundDimValue">58%</output><input id="backgroundDim" type="range" min="0" max="85" value="58"></label>
-          <div class="form-grid"><label class="field">Цвет акцента<input id="accentColor" type="color" value="#f5f5f7"></label><label class="field">Шрифт<select id="font"><option value="minecraft">Minecraft</option><option value="system">Обычный</option></select></label></div>
+          <div class="form-grid"><label class="field">Цвет акцента страницы<input id="accentColor" type="color" value="#f5f5f7"></label><label class="field">Шрифт страницы<select id="font"><option value="minecraft">Minecraft</option><option value="system">Обычный</option><option value="custom">Свой шрифт</option></select><span class="hint">Меняет превью и твою страницу. Кабинет остаётся в Minecraft.</span></label></div>
+          <div class="upload-card"><span class="font-file-icon" aria-hidden="true">Aa</span><div class="upload-details"><label for="customFontFile">Свой шрифт</label><input id="customFontFile" data-upload="customFont" type="file" accept=".woff,.woff2,.ttf,.otf,font/woff,font/woff2,font/ttf,font/otf"><span class="hint" data-file-note="customFont">WOFF, WOFF2, TTF или OTF · до 4 МБ</span></div><button type="button" class="text-button" data-remove="customFont">Убрать</button></div>
+          <details class="url-details"><summary>Или указать ссылку на шрифт</summary><label class="field">Прямая ссылка на файл<input id="customFontUrl" data-asset-url="customFont" type="url" placeholder="https://…/font.woff2"></label><span class="hint">Сервер со шрифтом должен разрешать загрузку с других сайтов.</span></details>
+          <p class="hint" id="customFontStatus" role="status" aria-live="polite"></p>
+          <div class="settings-group">
+            <h3>Украшения</h3>
+            <label class="checkbox-field"><input id="showButterfly" type="checkbox" checked><span>Показывать бабочку в карточке Discord</span></label>
+            <fieldset class="badge-picker"><legend>Значки на странице</legend><p class="hint">Декоративные значки можно выбрать самому. Значки Discord появятся из аккаунта при синхронизации.</p><div class="badge-options">
+              <label><input type="checkbox" data-profile-badge="star"><span aria-hidden="true">★</span> Звезда</label>
+              <label><input type="checkbox" data-profile-badge="heart"><span aria-hidden="true">♡</span> Сердце</label>
+              <label><input type="checkbox" data-profile-badge="moon"><span aria-hidden="true">☾</span> Луна</label>
+              <label><input type="checkbox" data-profile-badge="sparkle"><span aria-hidden="true">✦</span> Искра</label>
+              <label><input type="checkbox" data-profile-badge="code"><span aria-hidden="true">&lt;/&gt;</span> Код</label>
+              <label><input type="checkbox" data-profile-badge="music"><span aria-hidden="true">♪</span> Музыка</label>
+              <label><input type="checkbox" data-profile-badge="flower"><span aria-hidden="true">✿</span> Цветок</label>
+            </div></fieldset>
+          </div>
         </section>
         <section class="settings-section hidden" data-settings-section="music" aria-labelledby="musicHeading">
           <h2 id="musicHeading">Музыка</h2><p class="section-description">Трек включится после нажатия на экран входа. В превью его можно послушать кнопкой воспроизведения.</p>
+          <label class="field">Вид плеера<select id="musicPlayerStyle"><option value="classic">Классический · как у iwtlu</option><option value="compact">Компактный · прежний вариант</option></select></label>
           <div class="upload-card"><div class="upload-details"><label for="musicFile">Твой трек</label><input id="musicFile" data-upload="music" type="file" accept="audio/mpeg,audio/mp3,audio/ogg,audio/wav,audio/x-wav,audio/mp4,audio/webm"><span class="hint" data-file-note="music">MP3, OGG, WAV, M4A или WebM · до 4 МБ</span></div><button type="button" class="text-button" data-remove="music">Убрать</button></div>
           <details class="url-details"><summary>Или указать ссылку на музыку</summary><label class="field">Ссылка на аудиофайл<input id="musicUrl" data-asset-url="music" type="url" placeholder="https://…/track.mp3"></label><span class="hint">Нужна прямая ссылка на файл. Страница Spotify или YouTube не подойдёт.</span></details>
           <label class="field">Название трека<input id="musicTitle" maxlength="80" placeholder="Исполнитель — название"></label>
@@ -84,6 +108,24 @@
           <label class="field">Telegram<input id="telegram" type="url" maxlength="200" placeholder="https://t.me/…"></label>
           <label class="field">Steam<input id="steam" type="url" maxlength="200" placeholder="https://steamcommunity.com/id/…"></label>
           <label class="checkbox-field"><input id="showDiscord" type="checkbox" checked><span>Показывать карточку Discord</span></label>
+          <div class="settings-group">
+            <h3>Discord в твоей карточке</h3>
+            <div class="discord-join-note"><p>Для обновления аватарки, статуса и значков вступи на наш сервер и укажи свой ID Discord.</p><a class="button small" href="https://discord.gg/fnmEdMKr" target="_blank" rel="noopener noreferrer">Вступить в Discord ↗</a></div>
+            <label class="field">ID пользователя Discord<input id="discordUserId" inputmode="numeric" pattern="[0-9]{17,20}" minlength="17" maxlength="20" placeholder="Например, 484816707798564894"><span class="hint">Это числовой ID, а не ник. Данные карточки берутся из указанного аккаунта.</span></label>
+            <details class="url-details"><summary>Где найти свой ID?</summary><p class="hint">В Discord открой «Настройки → Расширенные» и включи режим разработчика. Затем нажми правой кнопкой по своему профилю → «Копировать ID пользователя».</p></details>
+            <label class="checkbox-field"><input id="discordSync" type="checkbox"><span>Обновлять данные карточки из Discord</span></label>
+            <p class="hint" id="discordSyncHint" aria-live="polite">Добавь ID и вступи на сервер, чтобы включить обновление.</p>
+            <div class="form-grid"><label class="field">Стиль карточки<select id="discordCardStyle"><option value="glass">Стекло</option><option value="solid">Сплошной фон</option><option value="minimal">Минимальный</option></select></label><label class="field">Цвет карточки<input id="discordCardColor" type="color" value="#111111"></label></div>
+            <label class="field range-field">Плотность фона<output for="discordCardOpacity" id="discordCardOpacityValue">65%</output><input id="discordCardOpacity" type="range" min="0" max="100" value="65"></label>
+            <label class="field range-field">Скругление<output for="discordCardRadius" id="discordCardRadiusValue">18 px</output><input id="discordCardRadius" type="range" min="0" max="32" value="18"></label>
+            <div class="toggle-grid">
+              <label class="checkbox-field"><input id="discordUseAvatar" type="checkbox" checked><span>Аватарка из Discord</span></label>
+              <label class="checkbox-field"><input id="discordShowStatus" type="checkbox" checked><span>Статус</span></label>
+              <label class="checkbox-field"><input id="discordShowBadges" type="checkbox" checked><span>Значки Discord</span></label>
+              <label class="checkbox-field"><input id="discordShowActivity" type="checkbox" checked><span>Активность и трек</span></label>
+            </div>
+            <p class="hint">Discord отдаёт только доступные боту данные и публичные значки. Закрытые значки и оформление Nitro могут быть недоступны.</p>
+          </div>
         </section>
       </form>
       <section class="settings-section hidden" data-settings-section="security" aria-labelledby="securityHeading">

@@ -73,6 +73,9 @@ function load(overrides = {}) {
     async rpc(name, input) {
       state.calls.push({ method: "rpc", name, input });
       if (state.rpcError) return { data: null, error: state.rpcError };
+      if (name === "builder_capabilities") return state.oldCustomizationServer
+        ? { data: null, error: { code: "PGRST202" } }
+        : { data: { profileSettingsVersion: 2, customFonts: true }, error: null };
       if (name === "builder_get_profile") return { data: state.draft || { id: state.username, owner: state.username, nickname: state.username }, error: null };
       if (name === "builder_save_profile") { state.draft = structuredClone(input.input); return { data: state.draft, error: null }; }
       if (name === "builder_publish_profile") {
@@ -312,6 +315,39 @@ test("SVG, disguised HTML, oversized uploads and bad kinds never reach storage",
   await rejects(attempt("avatar", "image/png", "<script>alert(1)</script>"), 415, "invalid_asset_type");
   await rejects(attempt("music", "audio/mpeg", new Uint8Array(4 * 1024 * 1024 + 1)), 413, "request_too_large");
   await rejects(attempt("script", "image/png", "x"), 400, "invalid_asset_kind");
+  assert.equal(state.uploads.length, 0);
+});
+
+test("custom-font uploads validate real font bytes and store a canonical MIME and extension", async () => {
+  const { api, state } = load();
+  const ttf = await readFile(resolve(root, "font/minecraft.ttf"));
+  const result = await api.request("/api/builder/assets/upload?kind=customFont&name=custom.ttf", {
+    method: "POST", headers: { "content-type": "application/octet-stream" }, body: new Blob([ttf])
+  });
+  assert.equal(result.type, "font/ttf");
+  assert.equal(result.kind, "customFont");
+  assert.ok(state.uploads[0].bytes.equals(ttf));
+  assert.match(state.uploads[0].path, /[a-f0-9]{32}\.ttf$/);
+  assert.equal(state.uploads[0].options.contentType, "font/ttf");
+  const attempt = contents => api.request("/api/builder/assets/upload?kind=customFont", {
+    method: "POST", headers: { "content-type": "font/ttf" }, body: new Blob([contents])
+  });
+  await rejects(attempt("<script>alert(1)</script>"), 415, "invalid_asset_type");
+  await rejects(attempt(ttf.subarray(0, 50)), 415, "invalid_asset_type");
+  const corrupt = Buffer.from(ttf);
+  corrupt.writeUInt32BE(corrupt.length + 1, 20);
+  await rejects(attempt(corrupt), 415, "invalid_asset_type");
+  assert.equal(state.uploads.length, 1);
+});
+
+test("an old server cannot silently discard customization settings or accept a font upload", async () => {
+  const { api, state } = load({ oldCustomizationServer: true });
+  for (const update of [{ nicknameGradient: true }, { discordCardColor: "#111111" }, { discordUserId: "484816707798564894" }, { font: "custom" }]) {
+    await rejects(api.request("/api/builder/sites/save", post({ site: { id: "alice", ...update } })), 503, "backend_update_required");
+  }
+  const ttf = await readFile(resolve(root, "font/minecraft.ttf"));
+  await rejects(api.request("/api/builder/assets/upload?kind=customFont", { method: "POST", body: new Blob([ttf], { type: "font/ttf" }) }), 503, "backend_update_required");
+  assert.equal(state.calls.some(call => call.name === "builder_save_profile"), false);
   assert.equal(state.uploads.length, 0);
 });
 
