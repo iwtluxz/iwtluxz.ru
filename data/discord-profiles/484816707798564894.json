@@ -20,7 +20,12 @@
   },
   "statusText": "love @me",
   "status": "idle",
-  "activity": null,
+  "activity": {
+    "type": 2,
+    "name": "Dotify",
+    "details": "дядя полицейский (Speed Up)",
+    "state": "koonki"
+  },
   "managedBy": "iwtxz-public-discord-sync",
-  "updatedAt": 1793360691116
+  "updatedAt": 1793361803887
 }
