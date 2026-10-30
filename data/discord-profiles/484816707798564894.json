@@ -23,13 +23,8 @@
     "skuId": "1252404760448077864"
   },
   "statusText": "love @me",
-  "status": "idle",
-  "activity": {
-    "type": 2,
-    "name": "Dotify",
-    "details": "one more time",
-    "state": "тёмный принц"
-  },
+  "status": "offline",
+  "activity": null,
   "managedBy": "iwtxz-public-discord-sync",
-  "updatedAt": 1793382460887
+  "updatedAt": 1793385333617
 }
