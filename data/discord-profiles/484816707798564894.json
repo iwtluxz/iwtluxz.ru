@@ -13,13 +13,18 @@
       "label": "HypeSquad Bravery"
     }
   ],
+  "primaryGuild": {
+    "guildId": "1336820993393430549",
+    "tag": "ٴٴ",
+    "badge": "3061c2920569023dde8f0d630ced6c26"
+  },
   "statusText": "love @me",
   "status": "idle",
   "activity": {
     "type": 2,
     "name": "Dotify",
-    "details": "one more time",
+    "details": "утекай",
     "state": "тёмный принц"
   },
-  "updatedAt": 1793349522303
+  "updatedAt": 1793357671986
 }

@@ -13,8 +13,13 @@
       "label": "HypeSquad Brilliance"
     }
   ],
+  "primaryGuild": {
+    "guildId": "1121612253322555452",
+    "tag": "2011",
+    "badge": "a4d7fd73f90f0da3f4d28f9a8d708579"
+  },
   "statusText": null,
   "status": null,
   "activity": null,
-  "updatedAt": 1793347939026
+  "updatedAt": 1793357673189
 }
