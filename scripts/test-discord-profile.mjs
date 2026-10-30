@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, readFile, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve, sep } from "node:path";
-import { fetchDiscordIdentity, fetchDiscordPresences, getAvatarUrl, getCustomStatus, getDiscordBadges, getDiscordActivity } from "./lib/discord-profile.mjs";
+import { fetchDiscordIdentity, fetchDiscordPresences, getAvatarUrl, getCustomStatus, getDiscordBadges, getDiscordActivity, getDiscordPrimaryGuild } from "./lib/discord-profile.mjs";
 import { checkDiscordGuildAvailability, discoverDiscordProfiles, removeUnusedDiscordSnapshots, syncProfile } from "./sync-discord-avatars.mjs";
 
 const userId = "484816707798564894";
@@ -34,6 +34,17 @@ test("public badges use documented flags and this guild's actual boost, never Ni
   assert.deepEqual(getDiscordBadges(0, { premium_since: "2026-01-01T00:00:00Z" }), [{ id: "server-booster", label: "Server Booster" }]);
   assert.deepEqual(getDiscordBadges(-1, { premium_type: 2 }), []);
   assert.deepEqual(getDiscordBadges("64", { premium_since: "bad date" }), []);
+});
+
+test("server tags retain Discord's original badge hash and disappear when disabled", () => {
+  const primary = { identity_enabled: true, identity_guild_id: guildId, tag: "Devil", badge: "a".repeat(32) };
+  assert.equal(getDiscordPrimaryGuild({ primary_guild: primary }), null);
+  primary.tag = "DOTA";
+  assert.deepEqual(getDiscordPrimaryGuild({ primary_guild: primary }), { guildId, tag: "DOTA", badge: "a".repeat(32) });
+  for (const update of [{ identity_enabled: false }, { identity_enabled: null }, { badge: "../../image" }, { identity_guild_id: "invalid" }, { tag: "\n" }]) {
+    assert.equal(getDiscordPrimaryGuild({ primary_guild: { ...primary, ...update } }), null);
+  }
+  assert.equal(getDiscordPrimaryGuild({}), null);
 });
 
 test("strict member checks never fetch a nonmember's account details", async t => {

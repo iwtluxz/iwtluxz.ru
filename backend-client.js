@@ -12,6 +12,7 @@
   let client;
   let publicClient;
   const clientContexts = new WeakMap();
+  const memoryStorage = new Map();
   let customizationReady = false;
 
   function error(status, message, code = "request_failed") {
@@ -52,26 +53,69 @@
     return error(504, "Не удалось завершить запрос вовремя. Попробуй ещё раз.", "request_timeout");
   }
 
-  async function boundedAuthLock(name, _acquireTimeout, action) {
-    if (typeof window.navigator?.locks?.request !== "function") return action();
+  async function boundedAuthLock(context, name, acquireTimeout, action) {
+    const retiredResult = () => ({ data: { session: null, user: null }, error: requestTimeout() });
+    if (context.retired) return retiredResult();
     const controller = new AbortController();
+    context.controllers.add(controller);
     let timer;
-    const timeout = new Promise((_, reject) => {
-      timer = setTimeout(() => { controller.abort(); reject(requestTimeout()); }, 5000);
+    let abort;
+    const interruption = new Promise((resolve, reject) => {
+      // SDK 2.102 starts unobserved initial-session notifications. A retired
+      // client's lock must settle without rejecting those background tasks.
+      abort = () => context.retired ? resolve(retiredResult()) : reject(requestTimeout());
+      controller.signal.addEventListener("abort", abort, { once: true });
     });
     try {
+      const run = () => {
+        clearTimeout(timer);
+        if (context.retired) return retiredResult();
+        if (controller.signal.aborted) throw requestTimeout();
+        return Promise.race([Promise.resolve().then(action), interruption]);
+      };
+      if (typeof window.navigator?.locks?.request !== "function") return await run();
+      // Auto-refresh uses a zero timeout to skip a busy lock, never queue it.
+      const options = acquireTimeout === 0 ? { mode: "exclusive", ifAvailable: true }
+        : { mode: "exclusive", signal: controller.signal };
+      if (acquireTimeout !== 0) timer = setTimeout(() => controller.abort(), acquireTimeout > 0 ? Math.min(acquireTimeout, 5000) : 5000);
       return await Promise.race([
-        window.navigator.locks.request(name, { mode: "exclusive", signal: controller.signal }, async () => {
-          clearTimeout(timer);
-          if (controller.signal.aborted) throw requestTimeout();
-          return action();
+        window.navigator.locks.request(name, options, async (lock) => {
+          if (!lock) throw Object.assign(requestTimeout(), { isAcquireTimeout: true });
+          return run();
         }),
-        timeout
+        interruption
       ]);
     } catch (cause) {
+      if (context.retired) return retiredResult();
       if (controller.signal.aborted) throw requestTimeout();
       throw cause;
-    } finally { clearTimeout(timer); }
+    } finally {
+      clearTimeout(timer);
+      controller.signal.removeEventListener("abort", abort);
+      context.controllers.delete(controller);
+    }
+  }
+
+  function sessionStorage(context, storageKey, freshSession) {
+    let sessionWritten = false;
+    return {
+      getItem(key) {
+        if (context.retired || (freshSession && key === storageKey && !sessionWritten)) return null;
+        try { return window.localStorage ? window.localStorage.getItem(key) : memoryStorage.get(key) ?? null; }
+        catch { return memoryStorage.get(key) ?? null; }
+      },
+      setItem(key, value) {
+        if (context.retired) return;
+        if (key === storageKey) sessionWritten = true;
+        memoryStorage.set(key, value);
+        try { window.localStorage?.setItem(key, value); } catch {}
+      },
+      removeItem(key) {
+        if (context.retired) return;
+        memoryStorage.delete(key);
+        try { window.localStorage?.removeItem(key); } catch {}
+      }
+    };
   }
 
   async function timedFetch(context, input, options = {}) {
@@ -95,25 +139,28 @@
     } finally { clearTimeout(timer); context.controllers.delete(controller); options.signal?.removeEventListener("abort", abort); }
   }
 
-  function createSupabaseClient(authOptions = {}) {
+  function createSupabaseClient(authOptions = {}, freshSession = false) {
     const settings = config();
     if (typeof window.supabase?.createClient !== "function") {
       throw error(503, "Не загрузилась библиотека сервера. Обнови страницу.", "backend_library_missing");
     }
     const context = { retired: false, controllers: new Set(), operations: new Set(), subscription: null };
+    const storageKey = authOptions.storageKey || `sb-${new URL(settings.url).hostname.split(".")[0]}-auth-token`;
     const instance = window.supabase.createClient(settings.url, settings.key, {
       auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false,
-        lock: authOptions.persistSession === false ? async (_name, _timeout, action) => action() : boundedAuthLock, ...authOptions },
+        storageKey, storage: sessionStorage(context, storageKey, freshSession),
+        lock: (name, timeout, action) => boundedAuthLock(context, name, timeout, action), ...authOptions },
       global: { fetch: (input, options) => timedFetch(context, input, options) }
     });
     clientContexts.set(instance, context);
     return instance;
   }
 
-  function getClient() {
+  function getClient(freshSession = false) {
     config();
+    if (freshSession && client) retireClient(client);
     if (client) return client;
-    const instance = createSupabaseClient();
+    const instance = createSupabaseClient({}, freshSession);
     client = instance;
     const context = clientContexts.get(instance);
     const listener = instance.auth.onAuthStateChange((event) => {
@@ -136,7 +183,12 @@
     context.retired = true;
     for (const controller of context.controllers) controller.abort();
     context.subscription?.unsubscribe();
+    // There is no SDK destroy method. Disconnect the retired client's channel
+    // so a late refresh cannot broadcast an obsolete session to another tab.
+    const channel = instance.auth.broadcastChannel;
+    if (channel) { instance.auth.broadcastChannel = null; channel.close(); }
     try { void Promise.resolve(instance.auth.stopAutoRefresh?.()).catch(() => {}); } catch {}
+    try { void instance.auth.initialize?.().then(() => instance.auth.stopAutoRefresh?.()).catch(() => {}); } catch {}
     if (client === instance) { client = null; customizationReady = false; }
     if (publicClient === instance) publicClient = null;
   }
@@ -156,7 +208,12 @@
         if (!context.operations.size || options.authMutation) retireClient(instance);
         reject(failure);
       }, options.upload ? 60000 : 20000);
-      cancel = () => { failure = error(499, "Запрос отменён.", "request_cancelled"); reject(failure); };
+      cancel = () => {
+        failure = error(499, "Запрос отменён.", "request_cancelled");
+        context.operations.delete(operation);
+        if (!context.operations.size || options.authMutation) retireClient(instance);
+        reject(failure);
+      };
       if (options.signal?.aborted) cancel();
       else options.signal?.addEventListener("abort", cancel, { once: true });
     });
@@ -193,7 +250,7 @@
   }
 
   function translateFailure(cause, operation = "request") {
-    if (cause?.code === "request_timeout" || cause?.originalError?.code === "request_timeout" || String(cause?.message || "").includes("Сервер не ответил вовремя.")) return requestTimeout();
+    if (cause?.code === "request_timeout" || cause?.originalError?.code === "request_timeout" || ["Сервер не ответил вовремя.", requestTimeout().message].some(message => String(cause?.message || "").includes(message))) return requestTimeout();
     if (cause?.status && cause?.code && cause instanceof Error && !cause.name?.startsWith("Auth")) return cause;
     const code = cause?.code || "";
     if (["invalid_credentials", "invalid_grant"].includes(code)) {
@@ -474,7 +531,10 @@
   }
 
   async function request(path, options = {}) {
-    const instance = typeof path === "string" && /^\/api\/builder\/profile\/[a-z0-9_-]+$/i.test(path) ? getPublicClient() : getClient();
+    // A deliberate login must not wait for an expired session's refresh or a
+    // cancelled bootstrap. Retired clients cannot write over the new session.
+    const freshSession = /^\/api\/builder\/auth\/(signup|login)$/.test(path) && String(options.method).toUpperCase() === "POST" && !options.signal?.aborted;
+    const instance = typeof path === "string" && /^\/api\/builder\/profile\/[a-z0-9_-]+$/i.test(path) ? getPublicClient() : getClient(freshSession);
     return boundedOperation(instance, (assertActive) => dispatchRequest(path, options, assertActive), { ...options, authMutation: /^\/api\/builder\/auth\/(signup|login|password)$/.test(path) });
   }
 

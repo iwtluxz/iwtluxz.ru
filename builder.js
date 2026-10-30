@@ -64,10 +64,41 @@
   }
 
   async function api(path, options = {}) {
+    const controller = new AbortController();
+    const cancel = () => controller.abort(options.signal?.reason);
+    const cancelled = () => Object.assign(new Error("Запрос отменён."), { code: "request_cancelled" });
+    let timeout;
+    let abort;
+    const interruption = new Promise((_, reject) => {
+      abort = () => reject(cancelled());
+      controller.signal.addEventListener("abort", abort, { once: true });
+      timeout = setTimeout(() => {
+        reject(Object.assign(new Error("Сервер не ответил вовремя. Попробуй ещё раз."), { code: "request_timeout" }));
+        controller.abort();
+      }, options.upload ? 65000 : 22000);
+    });
+    if (options.signal?.aborted) cancel();
+    else options.signal?.addEventListener("abort", cancel, { once: true });
+    try {
+      return await Promise.race([
+        Promise.resolve().then(() => {
+          if (controller.signal.aborted) throw cancelled();
+          return performApiRequest(path, { ...options, signal: controller.signal });
+        }), interruption
+      ]);
+    } finally {
+      clearTimeout(timeout);
+      controller.signal.removeEventListener("abort", abort);
+      options.signal?.removeEventListener("abort", cancel);
+    }
+  }
+
+  async function performApiRequest(path, options) {
     if (location.protocol === "file:") throw new Error("Для входа открой кабинет через локальный сервер, а не как файл. Инструкция — в README-BUILDER.md.");
     if (window.IwtxzBackend?.isConfigured()) {
       try { return await window.IwtxzBackend.request(path, options); }
       catch (error) {
+        if (options.signal.aborted) throw error;
         if (error.status === 401 && error.code === "unauthorized" && currentUser) {
           resetSession();
           status("#authStatus", "Время входа истекло. Войди ещё раз.", "error");
@@ -80,25 +111,23 @@
       error.code = "backend_not_configured";
       throw error;
     }
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), options.upload ? 45000 : 15000);
     const headers = new Headers(options.headers);
     if (options.body && !headers.has("content-type")) headers.set("content-type", "application/json");
-    try {
-      const response = await fetch(path, { ...options, headers, credentials: "same-origin", cache: "no-store", signal: controller.signal });
-      const data = await response.json().catch(() => null);
-      if (!data) throw new Error("Сервис кабинета недоступен. Убедись, что сайт открыт через сервер с поддержкой входа.");
-      if (!response.ok) {
-        const error = new Error(data.error || "Не получилось выполнить действие.");
-        error.status = response.status;
-        if (response.status === 401 && data.code === "unauthorized" && currentUser) {
-          resetSession();
-          status("#authStatus", "Время входа истекло. Войди ещё раз.", "error");
-        }
-        throw error;
+    const response = await fetch(path, { ...options, headers, credentials: "same-origin", cache: "no-store" });
+    const data = await response.json().catch(() => null);
+    if (options.signal.aborted) throw Object.assign(new Error("Запрос отменён."), { code: "request_cancelled" });
+    if (!data) throw new Error("Сервис кабинета недоступен. Убедись, что сайт открыт через сервер с поддержкой входа.");
+    if (!response.ok) {
+      const error = new Error(data.error || "Не получилось выполнить действие.");
+      error.status = response.status;
+      error.code = data.code;
+      if (response.status === 401 && data.code === "unauthorized" && currentUser) {
+        resetSession();
+        status("#authStatus", "Время входа истекло. Войди ещё раз.", "error");
       }
-      return data;
-    } finally { clearTimeout(timeout); }
+      throw error;
+    }
+    return data;
   }
 
   function readEditor() {
@@ -401,19 +430,23 @@
     authPending = true;
     $("#switchToLogin").classList.add("hidden");
     const credentials = { username: $("#username").value.trim(), password: $("#password").value };
+    let signedIn = false;
     if (mode === "signup" && $("#ownerClaim").value.trim()) credentials.ownerClaim = $("#ownerClaim").value.trim();
     all("#authForm button, [data-auth-mode]").forEach((button) => { button.disabled = true; });
     try {
       status("#authStatus", mode === "signup" ? "Создаём аккаунт…" : "Входим…");
       const result = await api(`/api/builder/auth/${mode}`, { method: "POST", body: JSON.stringify(credentials) });
       if (attempt !== authAttemptVersion) return;
+      signedIn = true;
       status("#authStatus", mode === "signup" ? "Аккаунт создан. Загружаем кабинет…" : "Вход выполнен. Загружаем кабинет…");
       await enterAccount(result.user, attempt);
     } catch (error) {
       if (attempt !== authAttemptVersion) return;
       const duplicate = mode === "signup" && error.code === "username_taken";
       const timedOutSignup = mode === "signup" && error.code === "request_timeout";
-      status("#authStatus", duplicate
+      status("#authStatus", signedIn
+        ? `Вход выполнен, но кабинет не загрузился. ${friendlyError(error)}`
+        : duplicate
         ? "Этот логин уже зарегистрирован. Если ты уже создавал аккаунт, перейди ко входу и используй свой пароль."
         : timedOutSignup
           ? "Сервер не ответил вовремя. Аккаунт мог успеть создаться — попробуй войти с тем же логином и паролем."

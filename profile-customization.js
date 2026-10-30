@@ -3,7 +3,13 @@
 
   const minecraft = '"Minecraft", "Trebuchet MS", "Segoe UI", sans-serif';
   const system = '"Trebuchet MS", "Segoe UI", sans-serif';
-  const badgeIds = new Set(["staff", "partner", "hypesquad-events", "bug-hunter-level-1", "house-bravery", "house-brilliance", "house-balance", "early-supporter", "bug-hunter-level-2", "verified-bot", "early-verified-developer", "moderator-alumni", "server-booster"]);
+  const badgeImages = Object.freeze({
+    staff: "staff.png", partner: "partner.png", "hypesquad-events": "hypesquad-events.svg",
+    "bug-hunter-level-1": "bug-hunter-level-1.png", "bug-hunter-level-2": "bug-hunter-level-2.png",
+    "house-bravery": "house-bravery.png", "house-brilliance": "house-brilliance.png", "house-balance": "house-balance.png",
+    "early-supporter": "early-supporter.png", "early-verified-developer": "early-verified-developer.png",
+    "moderator-alumni": "moderator-alumni.svg", "server-booster": "server-booster.svg"
+  });
   const decorations = {
     star: ["Звезда", "m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9Z"],
     heart: ["Сердце", "M20.8 4.6a5.5 5.5 0 0 0-7.8 0l-1 1-1-1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"],
@@ -71,31 +77,25 @@
   }
   function earnedBadge(item) {
     const label = text(item.label, 100) || item.id;
-    let imagePath = "";
-    if (item.id === "server-booster") imagePath = "/img/server_booster.png";
-    if (imagePath) {
-      const image = document.createElement("img");
-      image.src = imagePath;
-      image.alt = "";
-      return badge(`${label} · Discord`, image, "discord");
-    }
-    const symbols = {
-      "house-bravery": ["#9d78e5", "m5 19 3-3m-2-3 5 5M8 16 19 5l-4 1L6 15m9-9 3 3"],
-      "house-brilliance": ["#ef9b59", "m12 2 9 10-9 10L3 12Zm0 0-4 10 4 10 4-10Zm-9 10h18"],
-      "house-balance": ["#71d6b5", "M12 3v18m-6 0h12M4 7h16M6 7l-4 8h8Zm12 0-4 8h8Z"],
-      "hypesquad-events": ["#e9bd6c", "m12 2 9 5v10l-9 5-9-5V7Zm0 4 2 4 4 2-4 2-2 4-2-4-4-2 4-2Z"],
-      staff: ["#62a8ea", "M12 3 5 7v10l7 4 7-4V7ZM8 8h8m-8 4h8m-8 4h5"],
-      partner: ["#a78bfa", "m8 6 4 4 4-4 5 6-9 9-9-9Zm0 0-5 6 5 2 4-4 4 4 5-2"],
-      "early-supporter": ["#ed8baa", "M12 21S2 15 2 8a5 5 0 0 1 10-1 5 5 0 0 1 10 1c0 7-10 13-10 13Z"],
-      "bug-hunter-level-1": ["#7acb82", "M8 7h8v10a4 4 0 0 1-8 0ZM9 3l3 4 3-4M4 9l4 2m8 0 4-2M3 15h5m8 0h5M4 21l4-3m8 0 4 3M12 7v13"],
-      "bug-hunter-level-2": ["#e9b44c", "M8 7h8v10a4 4 0 0 1-8 0ZM9 3l3 4 3-4M4 9l4 2m8 0 4-2M3 15h5m8 0h5M4 21l4-3m8 0 4 3M12 7v13"],
-      "verified-bot": ["#72b7f5", "M5 5h14v14H5ZM9 10l2 2 4-4M9 2v3m6-3v3M9 19v3m6-3v3"],
-      "early-verified-developer": ["#b7a3ff", "m8 6-6 6 6 6m8-12 6 6-6 6M14 3l-4 18"],
-      "moderator-alumni": ["#74a8da", "M12 2 4 5v6c0 5 8 11 8 11s8-6 8-11V5ZM8 12l3 3 5-6"]
-    };
-    const symbol = symbols[item.id] || ["#c2c0ff", "m8 6-6 6 6 6m8-12 6 6-6 6M14 3l-4 18"];
-    const element = badge(`${label} · Discord`, icon(symbol[1]), "discord");
-    element.style.color = symbol[0];
+    const image = document.createElement("img");
+    image.src = `/img/discord-badges/${badgeImages[item.id]}`;
+    image.alt = "";
+    image.draggable = false;
+    return badge(`${label} · Discord`, image, "discord");
+  }
+  function primaryGuildTag(value) {
+    if (!value || !/^\d{17,20}$/.test(value.guildId || "") || !/^[a-f0-9]{32}$/i.test(value.badge || "") ||
+        typeof value.tag !== "string" || !value.tag.trim() || [...value.tag].length > 4 || /[\u0000-\u001f\u007f]/.test(value.tag)) return null;
+    const element = document.createElement("span");
+    element.className = "discord-guild-tag";
+    element.title = `Тег сервера Discord · ${value.tag}`;
+    const image = document.createElement("img");
+    image.src = `https://cdn.discordapp.com/guild-tag-badges/${value.guildId}/${value.badge}.png?size=32`;
+    image.alt = "";
+    image.draggable = false;
+    const label = document.createElement("span");
+    label.textContent = value.tag;
+    element.append(image, label);
     return element;
   }
   async function snapshot(userId) {
@@ -207,13 +207,20 @@
       if (nodes.discordBadges) {
         const content = [];
         if (settings.showButterfly !== false) content.push(butterfly());
+        if (profile && settings.discordShowBadges !== false) {
+          const tag = primaryGuildTag(profile.primaryGuild);
+          if (tag) content.push(tag);
+        }
         if (profile && settings.discordShowBadges !== false && Array.isArray(profile.badges)) {
           const seen = new Set();
+          const strip = document.createElement("span");
+          strip.className = "discord-badge-strip";
           for (const item of profile.badges.slice(0, 20)) {
-            if (!item || !badgeIds.has(item.id) || seen.has(item.id)) continue;
-            content.push(earnedBadge(item));
+            if (!item || !Object.hasOwn(badgeImages, item.id) || seen.has(item.id)) continue;
+            strip.append(earnedBadge(item));
             seen.add(item.id);
           }
+          if (seen.size) content.push(strip);
         }
         nodes.discordBadges.replaceChildren(...content);
         nodes.discordBadges.hidden = !content.length;

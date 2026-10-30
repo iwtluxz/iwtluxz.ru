@@ -398,7 +398,7 @@ test("a returned initialization error also prevents server account creation", as
   assert.equal(state.calls.some(call => call.method === "signUp"), false);
 });
 
-test("a cancelled bootstrap does not retire or time out a later manual login", async () => {
+test("a cancelled bootstrap is retired without timing out a later manual login", async () => {
   const { api, state } = load({ hangSession: true, fastTimers: true });
   const controller = new AbortController();
   const bootstrap = api.request("/api/builder/auth/me", { signal: controller.signal });
@@ -410,7 +410,7 @@ test("a cancelled bootstrap does not retire or time out a later manual login", a
   await api.request("/api/builder/auth/login", post({ username: "alice", password: state.password }));
   releaseBootstrap({ data: { session: null }, error: null });
   await new Promise(resolve => setTimeout(resolve, 25));
-  assert.equal(state.createCalls, 1);
+  assert.equal(state.createCalls, 2);
   assert.equal(state.active, true);
 });
 
