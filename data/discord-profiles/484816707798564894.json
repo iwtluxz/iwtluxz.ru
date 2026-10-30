@@ -20,12 +20,7 @@
   },
   "statusText": "love @me",
   "status": "idle",
-  "activity": {
-    "type": 2,
-    "name": "Dotify",
-    "details": "madk1d - Ресток (без тубо)",
-    "state": "madk1d"
-  },
+  "activity": null,
   "managedBy": "iwtxz-public-discord-sync",
-  "updatedAt": 1793358496778
+  "updatedAt": 1793360153137
 }
