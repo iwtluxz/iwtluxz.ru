@@ -3,9 +3,9 @@
 .iwtxz-round-avatar { border-radius: 50% !important; background-clip: padding-box; }
 .iwtxz-discord-card, .iwtxz-player-classic, .iwtxz-player-compact { font-family: var(--profile-font, inherit) !important; }
 .iwtxz-gradient-name { color: transparent !important; background-image: var(--nickname-gradient) !important; background-clip: text !important; -webkit-background-clip: text !important; -webkit-text-fill-color: transparent; text-shadow: none !important; }
-.iwtxz-name-row { display: flex; align-items: center; justify-content: center; gap: 10px; width: fit-content; max-width: 100%; min-width: 0; }
-.iwtxz-name-row > .profile-name, .iwtxz-name-row > .name { flex: 0 1 auto; min-width: 0; max-width: 100%; }
-.iwtxz-name-row .name-text { min-width: 0; white-space: normal; overflow-wrap: anywhere; }
+.iwtxz-name-row { display: flex; align-items: center; justify-content: center; gap: 10px; width: max-content; max-width: 100%; min-width: 0; flex-wrap: nowrap; }
+.iwtxz-name-row > .profile-name, .iwtxz-name-row > .name { flex: 0 1 auto; min-width: 0; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; word-break: normal; }
+.iwtxz-name-row .name-text { display: inline-block; max-width: 100%; min-width: 0; white-space: nowrap; overflow-wrap: normal; word-break: normal; }
 .iwtxz-name-row > .iwtxz-profile-badges { flex: 0 0 auto; max-width: min(180px, 40%); justify-content: flex-start; gap: 6px; }
 .iwtxz-profile-badges { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 9px; color: var(--accent, #fff); }
 .iwtxz-profile-badges:empty { display: none; }
