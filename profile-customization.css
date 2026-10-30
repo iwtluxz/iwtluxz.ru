@@ -41,3 +41,72 @@
 .iwtxz-player-compact.track-card .track-card-action { width: 24px; height: 24px; }
 .iwtxz-player-compact.track-card .track-card-action-prev, .iwtxz-player-compact.track-card .track-card-action-next { display: none; }
 @media (max-width: 460px) { .iwtxz-badge { flex-basis: 17px; width: 17px; height: 17px; } .iwtxz-name-row { gap: 8px; } .iwtxz-name-row > .iwtxz-profile-badges { max-width: min(96px, 40%); gap: 5px; } }
+
+/* iwtlu visual fixes – avatar, nickname and icon alignment */
+
+/* Keep nicknames and their badges together instead of clipping the glow. */
+.iwtxz-name-row {
+  display: inline-flex;
+  width: fit-content;
+  max-width: calc(100vw - 32px);
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  overflow: visible;
+  margin-inline: auto;
+}
+.iwtxz-name-row > .name {
+  width: auto !important;
+  min-height: 0 !important;
+  max-width: 100%;
+  flex: 0 1 auto;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: nowrap;
+}
+.iwtxz-name-row .name-text {
+  display: inline-block;
+  white-space: nowrap !important;
+  overflow: visible !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}
+.iwtxz-name-row > .iwtxz-profile-badges {
+  flex: 0 0 auto;
+  display: inline-flex;
+  width: auto;
+  max-width: min(100px, 30vw);
+  flex-wrap: wrap;
+  align-self: center;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 5px;
+  line-height: 1;
+}
+.iwtxz-profile-badges .iwtxz-badge,
+.iwtxz-profile-badges .iwtxz-badge > svg {
+  overflow: hidden;
+}
+
+/* The built-in image on iwtlu is a decorated avatar, not a circular crop. */
+body:has(script[data-profile="iwtlu"]) .avatar.iwtxz-round-avatar {
+  border-radius: 0 !important;
+  background-clip: border-box !important;
+  background-size: contain !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+  overflow: visible !important;
+}
+
+/* Avoid a hard rectangular cutoff and excessive Minecraft-font glow. */
+body:has(script[data-profile="iwtlu"]) .iwtxz-name-row > .name {
+  text-shadow: none !important;
+}
+body:has(script[data-profile="iwtlu"]) .name.is-animated .name-text {
+  animation: none !important;
+}
+body:has(script[data-profile="iwtlu"]) .iwtxz-name-row .name-text:not(.iwtxz-gradient-name) {
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.32),
+               0 0 12px rgba(255, 255, 255, 0.13) !important;
+}
