@@ -5,7 +5,7 @@
   const textFields = ["title", "nickname", "description", "entryText", "musicTitle", "discord", "telegram", "steam", "discordUserId"];
   const numberFields = ["avatarSize", "backgroundDim", "nicknameGradientAngle", "discordCardOpacity", "discordCardRadius"];
   const optionFields = ["font", "accentColor", "backgroundType", "nicknameGradientStart", "nicknameGradientEnd", "musicPlayerStyle", "discordCardStyle", "discordCardColor"];
-  const boolFields = ["musicLoop", "showDiscord", "nicknameGradient", "showButterfly", "discordSync", "discordUseAvatar", "discordShowStatus", "discordShowBadges", "discordShowActivity"];
+  const boolFields = ["musicLoop", "showDiscord", "nicknameGradient", "discordSync", "discordUseAvatar", "discordShowStatus", "discordShowBadges", "discordShowActivity"];
   const assetFields = ["avatar", "background", "music", "musicCover", "customFont"];
   const decorativeBadges = new Set(["star", "heart", "moon", "sparkle", "code", "music", "flower"]);
   const defaults = {
@@ -14,7 +14,7 @@
     music: "sound/sound.mp3", musicTitle: "one more time", musicCover: "img/mysoundicon.png",
     avatarSize: 150, avatarShape: "circle", backgroundDim: 58, accentColor: "#f5f5f7", font: "minecraft", customFont: "", musicLoop: true, showDiscord: true,
     nicknameGradient: false, nicknameGradientStart: "#ffffff", nicknameGradientEnd: "#a1a1aa", nicknameGradientAngle: 90,
-    musicPlayerStyle: "classic", showButterfly: true, profileBadges: [], discordUserId: "", discordSync: false,
+    musicPlayerStyle: "classic", showButterfly: false, profileBadges: [], discordUserId: "", discordSync: false,
     discordCardStyle: "glass", discordCardColor: "#111111", discordCardOpacity: 65, discordCardRadius: 18,
     discordUseAvatar: true, discordShowStatus: true, discordShowBadges: true, discordShowActivity: true
   };
@@ -288,6 +288,7 @@
     $("#accountName").textContent = `@${user.username}`;
     $("#accountControls").classList.remove("hidden");
     document.body.classList.remove("auth-locked");
+    status("#authStatus", "");
     $("#password").value = "";
     $("#confirmPassword").value = "";
     $("#ownerClaim").value = "";

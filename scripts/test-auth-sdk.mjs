@@ -7,7 +7,7 @@ import { webcrypto } from "node:crypto";
 const sdk = await readFile(new URL("../vendor/supabase-2.102.0.min.js", import.meta.url), "utf8");
 const adapter = await readFile(new URL("../backend-client.js", import.meta.url), "utf8");
 const user = { id: "967385a2-8f95-4499-97b1-8ff92d973cfe", email: "alice@accounts.iwtxz.ru", user_metadata: { username: "alice" } };
-const sessionKey = "sb-fixture-auth-token";
+const sessionKey = "iwtxz-fixture-auth-v2";
 const session = (token, expiresAt = Math.floor(Date.now() / 1000) + 3600) => ({ access_token: token, refresh_token: `${token}-refresh`, expires_at: expiresAt, expires_in: 3600, token_type: "bearer", user });
 const credentials = { method: "POST", body: JSON.stringify({ username: "alice", password: "Test-password-123!" }) };
 
@@ -39,14 +39,14 @@ function testLocks() {
   } };
 }
 
-function load({ expired = false, stallPassword = false, stallProfile = false } = {}) {
-  const storage = new Map(expired ? [[sessionKey, JSON.stringify(session("expired", 1))]] : []);
+function load({ expired = false, stallPassword = false, stallProfile = false, locks, sharedStorage } = {}) {
+  const storage = sharedStorage || new Map(expired ? [[sessionKey, JSON.stringify(session("expired", 1))]] : []);
   const state = { calls: [], events: [], clients: [], logs: [], refreshStarted: deferred(), releaseRefresh: deferred(), stallPassword, stallProfile };
   const listeners = new Map();
   const window = {
     IWTXZ_BACKEND_CONFIG: { provider: "supabase", url: "https://fixture.supabase.co", publishableKey: "sb_publishable_fixture" },
     location: { origin: "https://example.test", href: "https://example.test/" },
-    navigator: { locks: globalThis.navigator?.locks || testLocks() }, crypto: webcrypto,
+    navigator: { locks: locks || globalThis.navigator?.locks || testLocks() }, crypto: webcrypto,
     localStorage: { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value), removeItem: key => storage.delete(key) },
     addEventListener(type, callback) { const set = listeners.get(type) || new Set(); set.add(callback); listeners.set(type, set); },
     removeEventListener(type, callback) { listeners.get(type)?.delete(callback); },
@@ -132,4 +132,54 @@ test("real SDK: a stalled cabinet read fails after successful login and can be r
     state.stallProfile = false;
     assert.equal((await api.request("/api/builder/sites/list")).sites[0].title, "Saved profile");
   } finally { close(); }
+});
+
+function sessionWithScope(scope) {
+  const token = `qa.${Buffer.from(JSON.stringify({ session_id: scope })).toString("base64url")}.fixture`;
+  return session(token);
+}
+
+test("real SDK: a frozen tab's session lock cannot block a new login or its cabinet", { timeout: 3000 }, async () => {
+  const heldName = `lock:${sessionKey}:session:old-session`;
+  const held = deferred();
+  const acquired = [];
+  const available = testLocks();
+  const locks = { request(name, options, action) {
+    acquired.push(name);
+    if (name !== heldName) return available.request(name, options, action);
+    held.resolve();
+    return new Promise((_, reject) => options.signal.addEventListener("abort", () => reject(options.signal.reason), { once: true }));
+  } };
+  const sharedStorage = new Map([[sessionKey, JSON.stringify(sessionWithScope("old-session"))], ["sb-fixture-auth-token", JSON.stringify(session("legacy-token"))]]);
+  const { api, state, storage, close } = load({ locks, sharedStorage });
+  const controller = new AbortController();
+  try {
+    const bootstrap = api.request("/api/builder/auth/me", { signal: controller.signal });
+    const cancelled = assert.rejects(bootstrap, { code: "request_cancelled" });
+    await held.promise;
+    controller.abort();
+    await cancelled;
+    assert.equal((await api.request("/api/builder/auth/login", credentials)).user.username, "alice");
+    assert.equal((await api.request("/api/builder/sites/list")).sites[0].nickname, "Alice");
+    assert.equal(acquired.filter(name => name === heldName).length, 1);
+    assert.ok(acquired.some(name => name.startsWith(`lock:${sessionKey}:session:`) && name !== heldName));
+    assert.equal(JSON.parse(storage.get("sb-fixture-auth-token")).access_token, "legacy-token");
+    assert.equal(JSON.parse(storage.get(sessionKey)).access_token, "fresh-login");
+    assert.equal(state.logs.flat().some(value => value instanceof Error), false);
+  } finally { close(); }
+});
+
+test("real SDK: tabs resuming the same session use the same refresh lock", { timeout: 3000 }, async () => {
+  const acquired = [];
+  const available = testLocks();
+  const locks = { request(name, options, action) { acquired.push(name); return available.request(name, options, action); } };
+  const sharedStorage = new Map([[sessionKey, JSON.stringify(sessionWithScope("shared-session"))]]);
+  const first = load({ locks, sharedStorage });
+  const second = load({ locks, sharedStorage });
+  try {
+    assert.equal((await first.api.request("/api/builder/auth/me")).user.username, "alice");
+    assert.equal((await second.api.request("/api/builder/auth/me")).user.username, "alice");
+    assert.ok(acquired.length >= 2);
+    assert.ok(acquired.every(name => name === `lock:${sessionKey}:session:shared-session`));
+  } finally { first.close(); second.close(); }
 });

@@ -69,12 +69,6 @@
     element.append(graphic);
     return element;
   }
-  function butterfly() {
-    const image = document.createElement("img");
-    image.src = "/img/butterfly.png";
-    image.alt = "";
-    return badge("Бабочка · украшение", image, "decoration");
-  }
   function earnedBadge(item) {
     const label = text(item.label, 100) || item.id;
     const image = document.createElement("img");
@@ -206,7 +200,6 @@
       if (nodes.discordActivity) { nodes.discordActivity.textContent = activityText; nodes.discordActivity.hidden = !activityText; }
       if (nodes.discordBadges) {
         const content = [];
-        if (settings.showButterfly !== false) content.push(butterfly());
         if (profile && settings.discordShowBadges !== false) {
           const tag = primaryGuildTag(profile.primaryGuild);
           if (tag) content.push(tag);

@@ -53,6 +53,16 @@
     return error(504, "Не удалось завершить запрос вовремя. Попробуй ещё раз.", "request_timeout");
   }
 
+  function authSessionScope(storage, storageKey, fallback) {
+    try {
+      const session = JSON.parse(storage.getItem(storageKey));
+      const payload = session?.access_token?.split(".")[1];
+      const sessionId = payload && JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/"))).session_id;
+      if (typeof sessionId === "string" && /^[a-z0-9_-]{1,80}$/i.test(sessionId)) return sessionId;
+    } catch {}
+    return fallback;
+  }
+
   async function boundedAuthLock(context, name, acquireTimeout, action) {
     const retiredResult = () => ({ data: { session: null, user: null }, error: requestTimeout() });
     if (context.retired) return retiredResult();
@@ -79,7 +89,7 @@
         : { mode: "exclusive", signal: controller.signal };
       if (acquireTimeout !== 0) timer = setTimeout(() => controller.abort(), acquireTimeout > 0 ? Math.min(acquireTimeout, 5000) : 5000);
       return await Promise.race([
-        window.navigator.locks.request(name, options, async (lock) => {
+        window.navigator.locks.request(context.lockName?.(name) || name, options, async (lock) => {
           if (!lock) throw Object.assign(requestTimeout(), { isAcquireTimeout: true });
           return run();
         }),
@@ -145,10 +155,17 @@
       throw error(503, "Не загрузилась библиотека сервера. Обнови страницу.", "backend_library_missing");
     }
     const context = { retired: false, controllers: new Set(), operations: new Set(), subscription: null };
-    const storageKey = authOptions.storageKey || `sb-${new URL(settings.url).hostname.split(".")[0]}-auth-token`;
+    // Keep the new session separate from old open versions of the site. Those
+    // clients may still complete a stalled refresh and write their old tokens.
+    const storageKey = authOptions.storageKey || `iwtxz-${new URL(settings.url).hostname.split(".")[0]}-auth-v2`;
+    const storage = sessionStorage(context, storageKey, freshSession);
+    const initialScope = [...window.crypto.getRandomValues(new Uint8Array(16))].map(byte => byte.toString(16).padStart(2, "0")).join("");
+    // Tabs sharing one session still serialize refreshes. A deliberate login
+    // starts without that session and cannot queue behind its abandoned lock.
+    context.lockName = name => `${name}:session:${authSessionScope(storage, storageKey, initialScope)}`;
     const instance = window.supabase.createClient(settings.url, settings.key, {
       auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false,
-        storageKey, storage: sessionStorage(context, storageKey, freshSession),
+        storageKey, storage,
         lock: (name, timeout, action) => boundedAuthLock(context, name, timeout, action), ...authOptions },
       global: { fetch: (input, options) => timedFetch(context, input, options) }
     });

@@ -64,6 +64,7 @@ for (const stage of ["login", "list"]) {
       await ui.submit();
       assert.equal(ui.body.classList.contains("auth-locked"), false);
       assert.equal(ui.elements.get("nickname").value, "Alice");
+      assert.equal(ui.elements.get("authStatus").textContent, "");
     } finally { ui.close(); }
   });
 }
@@ -94,7 +95,7 @@ test("Discord renderer uses original badges and server-tag artwork, deduplicates
   vm.runInNewContext(customization, { window, document, location: new URL("https://example.test/"), URL, AbortSignal,
     fetch: async () => Response.json(profile), setInterval: () => 1, clearInterval() {} });
   const renderer = window.IwtxzProfileCustomization.createCustomizer({ discordBadges });
-  const settings = { discordSync: true, discordUserId: profile.id, showButterfly: false };
+  const settings = { discordSync: true, discordUserId: profile.id, showButterfly: true };
   try {
     renderer.apply(settings);
     await new Promise(resolve => setImmediate(resolve));
