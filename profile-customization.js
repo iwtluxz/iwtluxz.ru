@@ -246,7 +246,10 @@
       if (nodes.avatar) {
         nodes.avatar.classList.add("iwtxz-round-avatar");
         nodes.avatar.style.borderRadius = "50%";
-        if (nodes.avatar.tagName === "IMG") nodes.avatar.style.objectFit = "cover";
+        if (nodes.avatar.tagName === "IMG") {
+          nodes.avatar.style.objectFit = "contain";
+          nodes.avatar.style.objectPosition = "center";
+        }
         else nodes.avatar.style.backgroundSize = "cover";
       }
       if (nodes.nicknameBadges) {
