@@ -1,0 +1,53 @@
+/* A shared catalog, styled for the service currently being explored. */
+[data-music-service="yandex"] { --music-brand: #ffdc60; --music-wash: #342b09; }
+[data-music-service="youtube"] { --music-brand: #ff4747; --music-wash: #350e14; }
+[data-music-service="spotify"] { --music-brand: #1ed760; --music-wash: #0a301b; }
+.music-catalog { margin-bottom: 24px; border: 1px solid #ffffff21; border-radius: 17px; overflow: hidden; background: #070707; color: #fff; font-family: "Segoe UI", Arial, sans-serif; transition: border-color .2s; }
+.catalog-services { display: flex; gap: 5px; padding: 12px; background: #000; }
+.catalog-services button { display: inline-flex; flex: 1; min-width: 0; justify-content: center; align-items: center; gap: 6px; padding: 10px 5px; border: 1px solid transparent; border-radius: 9px; color: #aaa; background: #0b0b0b; font: 600 11px/1.4 "Segoe UI", sans-serif; }
+.catalog-services button[aria-pressed="true"] { color: var(--music-brand); border-color: color-mix(in srgb,var(--music-brand) 55%,transparent); background: var(--music-wash); }
+.catalog-services img { width: 19px; height: 19px; object-fit: contain; }
+.catalog-hero { position: relative; display: flex; gap: 16px; align-items: center; padding: 23px 18px; background: linear-gradient(125deg,var(--music-wash),#070707); }
+.catalog-hero > img { width: 44px; height: 44px; object-fit: contain; flex: 0 0 auto; filter: drop-shadow(0 4px 16px #0008); }
+.catalog-hero small { display: block; color: var(--music-brand); font-size: 10px; letter-spacing: .15em; text-transform: uppercase; }
+.catalog-hero h3 { margin: 5px 0 6px; font: 700 24px/1.15 "Segoe UI", sans-serif; letter-spacing: -.04em; }
+.catalog-hero p { margin: 0; font-size: 11px; color: #c5c5c5; line-height: 1.5; }
+.catalog-tools { padding: 14px 16px 10px; }
+.catalog-tools input { min-width: 0; width: 100%; padding: 12px 13px; border: 1px solid #ffffff1c; border-radius: 10px; background: #111; color: #fff; font: 13px/1.4 "Segoe UI", sans-serif; }
+.catalog-tools input:focus { outline-color: var(--music-brand); }
+.catalog-moods { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 11px; }
+.catalog-moods button { padding: 6px 10px; border: 1px solid #ffffff18; border-radius: 30px; background: transparent; color: #999; font: 11px/1.4 "Segoe UI", sans-serif; }
+.catalog-moods button[aria-pressed="true"] { background: var(--music-brand); color: #050505; border-color: var(--music-brand); }
+.catalog-count { margin: 0; padding: 2px 17px 10px; color: #777; font-size: 11px; }
+.catalog-tracks { display: grid; gap: 3px; margin: 0; padding: 0 9px 10px; list-style: none; max-height: 395px; overflow-y: auto; }
+.catalog-track { display: grid; grid-template-columns: 43px minmax(0,1fr) 28px auto; align-items: center; gap: 10px; min-width: 0; padding: 8px; border: 1px solid transparent; border-radius: 9px; }
+.catalog-track:hover { background: #ffffff07; }
+.catalog-track.selected { background: var(--music-wash); border-color: color-mix(in srgb,var(--music-brand) 35%,transparent); }
+.catalog-cover { display: block; width: 43px; height: 43px; border-radius: 7px; object-fit: cover; background: var(--music-wash); }
+.catalog-cover.unavailable { opacity: 0; }
+.catalog-track-info { min-width: 0; }
+.catalog-track-info strong, .catalog-track-info span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.6; }
+.catalog-track-info strong { font-size: 12px; font-weight: 600; }
+.catalog-track-info span { font-size: 10px; color: #999; }
+.catalog-listen { border: 0; background: transparent; color: #ddd; padding: 6px; font: 13px/1 sans-serif; }
+.catalog-choose { border: 1px solid #ffffff2b; border-radius: 24px; background: transparent; color: #fff; padding: 8px 10px; font: 600 10px/1.4 "Segoe UI", sans-serif; }
+.catalog-choose:hover, .catalog-track.selected .catalog-choose { background: var(--music-brand); color: #050505; border-color: var(--music-brand); }
+.catalog-empty { padding: 25px 16px; margin: 0; text-align: center; color: #999; font-size: 12px; }
+.catalog-footnote { padding: 0 17px 14px; color: #777; font-size: 10px; line-height: 1.6; }
+.catalog-status { padding: 0 17px; font-size: 11px; color: var(--music-brand); line-height: 1.7; }
+.catalog-status:empty { display: none; }
+.catalog-preview { padding: 0 16px 16px; }
+.catalog-preview-close { display: block; margin: 0 0 8px auto; color: #bbb; border: 0; background: transparent; font: 11px/1.5 "Segoe UI", sans-serif; }
+.catalog-preview iframe, .service-player iframe { display: block; width: 100%; border: 0; border-radius: 10px; background: #111; }
+.music-own-files { margin-bottom: 24px; }
+.music-own-files > summary { cursor: pointer; color: #aaa; padding: 10px 0 15px; font-size: 11px; }
+.music-own-files .music-library { margin-top: 12px; }
+.service-player { position: fixed; z-index: 5; bottom: max(24px,env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); width: min(430px,calc(100vw - 32px)); padding: 9px; background: #080808f2; border: 1px solid color-mix(in srgb,var(--music-brand) 35%,transparent); border-radius: 15px; box-shadow: 0 10px 35px #0007; text-align: left; }
+.service-player[hidden], .catalog-preview[hidden], .catalog-empty[hidden] { display: none; }
+.service-player-heading { display: flex; align-items: center; gap: 7px; padding: 1px 3px 9px; font: 600 11px/1.5 "Segoe UI", sans-serif; color: var(--music-brand); }
+.service-player-heading img { width: 18px; height: 18px; object-fit: contain; }
+.service-player-heading a { margin-left: auto; color: #aaa; text-decoration: none; font-weight: 400; }
+body.has-service-music { padding-bottom: 315px; }
+body.has-service-music .iwtxz-join-prompt { bottom: 320px; }
+@media (max-width: 460px) { .catalog-services { padding: 8px; gap: 4px; } .catalog-services button { font-size: 10px; gap: 4px; } .catalog-services img { width: 16px; height: 16px; } .catalog-hero { padding: 20px 13px; gap: 12px; } .catalog-hero h3 { font-size: 22px; } .catalog-tools { padding-inline: 10px; } .catalog-tools input { font-size: 16px; } .catalog-track { gap: 7px; grid-template-columns: 36px minmax(0,1fr) 25px auto; padding: 7px 4px; } .catalog-cover { width: 36px; height: 36px; } .catalog-choose { padding: 7px 8px; font-size: 9px; } .catalog-tracks { padding-inline: 5px; } }
+@media (max-height: 600px) { .service-player { position: relative; left: auto; bottom: auto; transform: none; margin: 24px auto 0; flex-shrink: 0; } body.has-service-music { padding-bottom: 24px; } body.has-service-music .iwtxz-join-prompt { bottom: auto; top: 16px; } }

@@ -21,6 +21,9 @@ for (const file of await readdir(root)) {
     if (!html.includes("data-profile-pending")) html = html.replace("</head>", '  <style data-profile-pending>html.iwtxz-profile-pending{background:#000}html.iwtxz-profile-pending body{visibility:hidden!important}</style>\n  <noscript><style>html.iwtxz-profile-pending body{visibility:visible!important}</style></noscript>\n</head>');
   }
   if (!html.includes('href="profile-features.css')) html = html.replace("</head>", '  <link rel="stylesheet" href="profile-features.css">\n</head>');
+  if (!html.includes('href="music-services.css')) html = html.replace("</head>", '  <link rel="stylesheet" href="music-services.css">\n</head>');
+  if (!html.includes('src="music-services.js')) html = html.replace(/(<script src="(?:builder|profile|profile-settings|profile-customization)\.js[^\"]*"[^>]*>)/, '<script src="music-services.js" defer></script>\n  $1');
+  if (file === 'index.html' && !html.includes('src="music-catalog.js')) html = html.replace(/(<script src="builder\.js[^\"]*"[^>]*>)/, '<script src="music-catalog-data.js" defer></script>\n  <script src="music-catalog.js" defer></script>\n  $1');
   if (!html.includes('src="profile-features.js')) {
     const anchor = html.match(/<script src="(?:builder|profile-customization)\.js[^\"]*"[^>]*>/);
     html = anchor ? html.replace(anchor[0], `<script src="profile-features.js" defer></script>\n  ${anchor[0]}`) : html.replace("</head>", '  <script src="profile-features.js" defer></script>\n</head>');

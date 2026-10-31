@@ -163,8 +163,8 @@ body:not(.is-entered) .music-player { transform: translateX(-50%); }
 .iwtxz-name-row > .profile-name { overflow: visible; text-shadow: 0 0 5px #ffffff45, 0 0 12px #ffffff20; }
 .iwtxz-name-row > .profile-name.is-long-name { overflow: hidden; text-shadow: none; }
 /* The independent volume control follows the authored iwtlu layout. */
-.music-player, .music-player.iwtxz-player-classic { left: 30px; transform: none; width: min(640px, calc(100vw - 116px)); }
-body:not(.is-entered) .music-player { transform: none; }
+.music-player, .music-player.iwtxz-player-classic { left: 50%; transform: translateX(-50%); width: min(640px, calc(100vw - 136px)); }
+body:not(.is-entered) .music-player { transform: translateX(-50%); }
 .music-volume { position: fixed; z-index: 4; right: 30px; bottom: max(30px, env(safe-area-inset-bottom)); display: flex; align-items: center; justify-content: flex-start; width: 36px; height: 34px; gap: 7px; margin: 0; padding: 6px 9px; border: 1px solid #ffffff14; border-radius: 24px; color: #ddd; background: #0005; backdrop-filter: blur(10px); overflow: hidden; transition: width .18s ease; }
 .music-volume:hover, .music-volume:focus-within { width: 126px; }
 .music-volume > span[aria-hidden] { flex: 0 0 16px; font-size: 17px; line-height: 1; }
@@ -172,7 +172,7 @@ body:not(.is-entered) .music-player { transform: none; }
 .music-volume:hover input, .music-volume:focus-within input { opacity: 1; }
 body:not(.is-entered) > .music-volume { visibility: hidden; }
 @media (max-width: 640px) {
- .music-player, .music-player.iwtxz-player-classic { left: 18px; bottom: max(20px, env(safe-area-inset-bottom)); width: calc(100vw - 98px); }
+ .music-player, .music-player.iwtxz-player-classic { bottom: max(20px, env(safe-area-inset-bottom)); }
  .music-volume { right: 20px; bottom: max(20px, env(safe-area-inset-bottom)); }
 }
 @media (max-width: 460px) {
@@ -184,5 +184,6 @@ body:not(.is-entered) > .music-volume { visibility: hidden; }
  .iwtxz-player-classic .music-time { font-size: 8px; }
 }
 @media (max-height: 600px) {
- .music-player, .music-player.iwtxz-player-classic { position: relative; left: auto; bottom: auto; align-self: flex-start; }
+ .music-player, .music-player.iwtxz-player-classic { position: relative; left: auto; bottom: auto; transform: none; align-self: center; }
+ body:not(.is-entered) .music-player { transform: none; }
 }

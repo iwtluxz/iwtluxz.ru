@@ -35,6 +35,16 @@
   let currentUser = null;
   let currentSite = { ...defaults };
   let previousEffects = null;
+  const musicCatalog = window.IwtxzMusicCatalog?.create({ onSelect(track) {
+    if (!accountReady) return;
+    currentSite.music = track.url;
+    currentSite.musicCover = track.cover || "";
+    $("#musicUrl").value = track.url;
+    $("#musicTitle").value = `${track.artist} — ${track.title}`;
+    const coverField = document.querySelector('[data-asset-url="musicCover"]');
+    if (coverField) coverField.value = currentSite.musicCover;
+    updatePreview(); toast("Трек выбран");
+  } });
   const musicLibrary = window.IwtxzMusicLibrary?.create({ onSelect(track) {
     if (!accountReady) return;
     currentSite.music = track.url;
@@ -270,7 +280,11 @@
   }
 
   function setSection(name) {
-    if (name === "music" && accountReady) musicLibrary?.open(currentSite.music);
+    musicCatalog?.close();
+    if (name === "music" && accountReady) {
+      musicCatalog?.open(currentSite.music);
+      if ($("#ownMusicFiles")?.open) musicLibrary?.open(currentSite.music);
+    }
     all("[data-settings-section]").forEach((section) => section.classList.toggle("hidden", section.dataset.settingsSection !== name));
     all("[data-section]").forEach((button) => {
       const active = button.dataset.section === name;
@@ -281,7 +295,7 @@
   }
 
   function resetSession() {
-    musicLibrary?.reset(); previousEffects = null;
+    musicLibrary?.reset(); musicCatalog?.reset(); previousEffects = null;
     authAttemptVersion += 1;
     sessionVersion += 1;
     accountLoadController?.abort();
@@ -571,6 +585,7 @@
     $("#avatarDecoration").value = previousEffects.avatarDecoration;
     previousEffects = null; $("#undoEffects").classList.add("hidden"); updatePreview();
   });
+  $("#ownMusicFiles").addEventListener("toggle", () => { if ($("#ownMusicFiles").open && accountReady) musicLibrary?.open(currentSite.music); });
   $("#editorForm").addEventListener("input", (event) => {
     if (event.target.type === "file") return;
     const key = event.target.dataset.assetUrl;

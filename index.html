@@ -9,14 +9,18 @@
   <link rel="preload" href="font/minecraft.ttf" as="font" type="font/ttf" crossorigin>
   <link rel="stylesheet" href="builder.css?v=594d88b5dbe4">
   <title>Личный кабинет · iwtxz</title>
-  <script src="profile-links.js?v=3259704a6ebe" defer></script>
+  <script src="profile-links.js?v=bc6f154cece1" defer></script>
   <script src="vendor/supabase-2.102.0.min.js" defer></script>
   <script src="backend-config.js?v=bb9848dc3e32" defer></script>
   <script src="backend-client.js?v=b3b1eb91ed1c" defer></script>
   <script src="profile-features.js?v=1a26edc2e72a" defer></script>
   <script src="music-library.js?v=d0108d00f687" defer></script>
-  <script src="builder.js?v=a83db71e5498" defer></script>
+  <script src="music-services.js?v=6795942bc1d8" defer></script>
+  <script src="music-catalog-data.js?v=4d8e8a77ca97" defer></script>
+  <script src="music-catalog.js?v=8b3f3ba673f2" defer></script>
+  <script src="builder.js?v=0d600d565186" defer></script>
   <link rel="stylesheet" href="profile-features.css?v=a4936b7ff8b0">
+  <link rel="stylesheet" href="music-services.css?v=4797d537a39f">
 </head>
 <body class="auth-locked">
   <header class="topbar">
@@ -135,14 +139,24 @@
           </div>
         </section>
         <section class="settings-section hidden" data-settings-section="music" aria-labelledby="musicHeading">
-          <h2 id="musicHeading">Музыка</h2><p class="section-description">Трек включится после нажатия на экран входа. В превью его можно послушать кнопкой воспроизведения.</p>
-          <label class="field">Вид плеера<select id="musicPlayerStyle"><option value="classic">Классический</option><option value="compact">Компактный</option></select></label>
+          <h2 id="musicHeading">Музыка</h2><p class="section-description">Подборки iwtxz для твоей страницы. Выбери сервис и найди своё настроение.</p>
+          <div class="music-catalog" id="musicCatalog" data-music-service="yandex">
+            <div class="catalog-services" data-catalog-services role="group" aria-label="Музыкальный сервис"></div>
+            <div class="catalog-hero"><img data-catalog-logo src="img/music/yandex.png" alt=""><div><small>выбрано iwtxz</small><h3 data-catalog-name>Яндекс Музыка</h3><p data-catalog-tagline>Твоя волна на тёмной стороне</p></div></div>
+            <div class="catalog-tools"><input type="search" data-catalog-search placeholder="Трек или исполнитель" aria-label="Поиск в подборке" autocomplete="off"><div class="catalog-moods" role="group" aria-label="Настроение"><button type="button" data-catalog-mood="all" aria-pressed="true">Всё</button><button type="button" data-catalog-mood="dark" aria-pressed="false">Тёмная сторона</button><button type="button" data-catalog-mood="dream" aria-pressed="false">Мечтать</button><button type="button" data-catalog-mood="indie" aria-pressed="false">Инди</button></div></div>
+            <p class="catalog-count" data-catalog-count></p><ul class="catalog-tracks" data-catalog-tracks></ul><p class="catalog-empty" data-catalog-empty hidden>Ничего не нашлось. Попробуй другое настроение или запрос.</p>
+            <p class="catalog-status" data-catalog-status role="status" aria-live="polite"></p><div class="catalog-preview" data-catalog-preview hidden></div>
+            <div class="catalog-footnote">Прослушивание и плеер на странице — через выбранный сервис. Полная версия трека может требовать входа или подписки.</div>
+          </div>
+          <details class="music-own-files" id="ownMusicFiles"><summary>Свой аудиофайл или загрузка по ссылке</summary>
+          <label class="field">Вид плеера для аудиофайлов<select id="musicPlayerStyle"><option value="classic">Классический</option><option value="compact">Компактный</option></select></label>
           <div class="music-library" id="musicLibrary"><h3>Моя библиотека</h3><p class="hint">YouTube, Bandcamp или Vimeo. SoundCloud пока недоступен.</p><div class="library-import"><input type="url" data-library-url placeholder="Ссылка на трек" aria-label="Ссылка для библиотеки" maxlength="1000"><button class="button" type="button" data-library-import>Добавить</button></div><p class="status" role="status" aria-live="polite" data-library-status></p><ul class="library-list" data-library-list></ul></div>
           <div class="upload-card"><div class="upload-details"><label for="musicFile">Твой трек</label><input id="musicFile" data-upload="music" type="file" accept="audio/mpeg,audio/mp3,audio/ogg,audio/wav,audio/x-wav,audio/mp4,audio/webm"><span class="hint" data-file-note="music">MP3, OGG, WAV, M4A или WebM · до 4 МБ</span></div><button type="button" class="text-button" data-remove="music">Убрать</button></div>
-          <details class="url-details"><summary>Или указать ссылку на музыку</summary><label class="field">Ссылка на аудиофайл<input id="musicUrl" data-asset-url="music" type="url" placeholder="https://…/track.mp3"></label><span class="hint">Нужна прямая ссылка на файл. Страница Spotify или YouTube не подойдёт.</span></details>
+          <details class="url-details"><summary>Или указать ссылку на музыку</summary><label class="field">Ссылка на трек или аудиофайл<input id="musicUrl" data-asset-url="music" type="url" placeholder="https://…"></label><span class="hint">Прямая ссылка на аудио или трек Яндекс Музыки, YouTube, Spotify.</span></details>
           <label class="field">Название трека<input id="musicTitle" maxlength="80" placeholder="Исполнитель — название"></label>
           <div class="upload-card"><img id="coverThumbnail" class="cover-thumbnail" src="img/mysoundicon.png" alt="Обложка трека"><div class="upload-details"><label for="musicCoverFile">Обложка</label><input id="musicCoverFile" data-upload="musicCover" type="file" accept="image/png,image/jpeg,image/gif,image/webp"><span class="hint" data-file-note="musicCover">Картинка · до 4 МБ</span></div><button type="button" class="text-button" data-remove="musicCover">Убрать</button></div>
           <label class="checkbox-field"><input id="musicLoop" type="checkbox" checked><span>Повторять трек</span></label>
+          </details>
         </section>
         <section class="settings-section hidden" data-settings-section="links" aria-labelledby="linksHeading">
           <h2 id="linksHeading">Соцсети</h2><p class="section-description">Выбери сеть и добавь ссылку.</p>

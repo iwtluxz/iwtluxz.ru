@@ -3,6 +3,7 @@
 
   const profile = document.currentScript?.dataset.profile;
   const revealProfile = () => document.documentElement.classList.remove("iwtxz-profile-pending");
+  const servicePlayer = window.IwtxzMusicServices?.createPlayer();
   if (!/^[a-z0-9_-]{3,32}$/.test(profile || "") || window.location.protocol === "file:") { revealProfile(); return; }
   const nicknameBadges = document.createElement("div");
   nicknameBadges.className = "iwtxz-profile-badges";
@@ -156,6 +157,7 @@
     }
     const music = safeAsset(site.music);
     const musicTitle = typeof site.musicTitle === "string" ? site.musicTitle.slice(0, 100) : "sound";
+    const embedded = servicePlayer?.apply(music, musicTitle);
     const track = document.querySelector("[data-track-title]");
     if (track) track.textContent = musicTitle;
     const coverUrl = safeAsset(site.musicCover);
@@ -166,16 +168,16 @@
     });
     const player = document.querySelector(".track-card");
     if (player) {
-      player.style.display = music ? "" : "none";
+      player.style.display = music && !embedded ? "" : "none";
       if (!coverUrl) player.style.gridTemplateColumns = "minmax(0, 1fr)";
       else player.style.removeProperty("grid-template-columns");
     }
-    document.querySelectorAll(".entry-volume, .audio-toggle").forEach((control) => { control.style.display = music ? "" : "none"; });
+    document.querySelectorAll(".entry-volume, .audio-toggle").forEach((control) => { control.style.display = music && !embedded ? "" : "none"; });
     if (typeof bgAudio !== "undefined") {
       bgAudio.loop = site.musicLoop !== false;
-      if (typeof playlist !== "undefined" && playlist[0]) { playlist[0].title = musicTitle; playlist[0].src = music; }
-      if (music && typeof loadTrack === "function") loadTrack(0, { autoplay: document.body.classList.contains("is-entered") });
-      else if (!music) {
+      if (typeof playlist !== "undefined" && playlist[0]) { playlist[0].title = musicTitle; playlist[0].src = embedded ? "" : music; }
+      if (music && !embedded && typeof loadTrack === "function") loadTrack(0, { autoplay: document.body.classList.contains("is-entered") });
+      else if (!music || embedded) {
         if (typeof cancelAudioFade === "function") cancelAudioFade();
         if (typeof setAudioRetryListening === "function") setAudioRetryListening(false);
         if (typeof audioShouldPlay !== "undefined") audioShouldPlay = false;

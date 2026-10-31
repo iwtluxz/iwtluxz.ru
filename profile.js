@@ -13,6 +13,7 @@
   const volume = byId("musicVolume");
   const volumeControl = volume.closest(".music-volume");
   player.after(volumeControl);
+  const servicePlayer = window.IwtxzMusicServices?.createPlayer();
   const overlay = byId("entryOverlay");
   const entryButton = byId("entryButton");
   const pageMessage = byId("pageMessage");
@@ -144,6 +145,7 @@
 
   async function playMusic() {
     if (!currentSite?.music) return;
+    if (window.IwtxzMusicServices?.source(currentSite.music)) return;
     const errorLabel = byId("musicError");
     try {
       await audio.play();
@@ -252,13 +254,14 @@
     player.classList.toggle("no-cover", !cover);
     if (cover) byId("musicCover").src = cover;
     else byId("musicCover").removeAttribute("src");
-    player.hidden = !site.music;
-    volumeControl.hidden = !site.music;
+    const embedded = servicePlayer?.apply(site.music, site.musicTitle);
+    player.hidden = !site.music || embedded;
+    volumeControl.hidden = !site.music || embedded;
     document.body.classList.toggle("no-music", !site.music);
     audio.loop = site.musicLoop !== false;
     if (sourceChanged) {
       audio.pause();
-      if (site.music) audio.src = site.music;
+      if (site.music && !embedded) audio.src = site.music;
       else audio.removeAttribute("src");
       audio.load();
       byId("musicError").hidden = true;
@@ -310,7 +313,7 @@
   });
   for (const event of ["play", "pause", "ended", "timeupdate", "loadedmetadata", "durationchange", "emptied", "seeked"]) audio.addEventListener(event, syncAudio);
   audio.addEventListener("error", () => {
-    if (!currentSite?.music) return;
+    if (!currentSite?.music || window.IwtxzMusicServices?.source(currentSite.music)) return;
     byId("musicError").textContent = "Трек недоступен. Владелец страницы может заменить файл в настройках.";
     byId("musicError").hidden = false;
     syncAudio();
