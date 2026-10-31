@@ -110,8 +110,8 @@ body:has(script[data-profile="iwtlu"]) .iwtxz-name-row .name-text:not(.iwtxz-gra
   text-shadow: 0 0 5px rgba(255, 255, 255, 0.32),
                0 0 12px rgba(255, 255, 255, 0.13) !important;
 }
-/* Опускаем кнопки музыкального плеера */
+
 .track-card button {
     position: relative;
-    top: 25px;
+    top: 15px !important;
 }
