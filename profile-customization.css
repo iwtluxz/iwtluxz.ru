@@ -113,5 +113,5 @@ body:has(script[data-profile="iwtlu"]) .iwtxz-name-row .name-text:not(.iwtxz-gra
 /* Опускаем кнопки музыкального плеера */
 .track-card button {
     position: relative;
-    top: 12px;
+    top: 25px;
 }
