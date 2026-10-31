@@ -101,7 +101,7 @@
       element.style.display = value ? "" : "none";
       let icon = element.querySelector("img");
       if (!icon) { icon = document.createElement("img"); element.append(icon); }
-      icon.src = network.icon;
+      if (icon.getAttribute("src") !== network.icon) icon.src = network.icon;
       icon.alt = "";
       icon.draggable = false;
       if (network.id === "discord") element.dataset.discordCopy = value;

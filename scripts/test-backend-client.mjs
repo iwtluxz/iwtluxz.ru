@@ -134,7 +134,7 @@ function load(overrides = {}) {
     } }
   };
   const schedule = (callback, milliseconds) => setTimeout(callback, state.fastTimers && milliseconds >= 5000 ? Math.min(milliseconds / 1000, 30) : milliseconds);
-  const context = vm.createContext({ window, URL, Headers, Response, Blob, Uint8Array, AbortController, setTimeout: schedule, clearTimeout, queueMicrotask, atob, CustomEvent: class { constructor(type, details) { this.type = type; this.detail = details.detail; } } });
+  const context = vm.createContext({ window, fetch: window.fetch, URL, Headers, Response, Blob, Uint8Array, AbortController, setTimeout: schedule, clearTimeout, queueMicrotask, atob, CustomEvent: class { constructor(type, details) { this.type = type; this.detail = details.detail; } } });
   if (state.profileLinks) vm.runInContext(linksSource, context);
   vm.runInContext(source, context);
   return { api: window.IwtxzBackend, state, client };
@@ -144,6 +144,24 @@ async function rejects(promise, status, code) {
   await assert.rejects(promise, (failure) => failure.status === status && failure.code === code);
 }
 const post = (body) => ({ method: "POST", body: JSON.stringify(body) });
+
+test("music API uses the active session over HTTPS and never exposes the bearer in its result", async () => {
+  const requests=[];
+  const {api}=load({config:{...goodConfig,musicApiUrl:"https://music.example"},fetch:async(url,options)=>{
+    requests.push({url:String(url),options}); return Response.json({tracks:[],jobs:[]});
+  }});
+  const result=await api.request("/api/builder/music/library");
+  assert.equal(requests[0].url,"https://music.example/v1/library");
+  assert.equal(requests[0].options.headers.authorization,"Bearer SDK-managed-session-token");
+  assert.equal(requests[0].options.credentials,"omit");
+  assert.equal(JSON.stringify(result).includes("SDK-managed"),false);
+  await api.request("/api/builder/music/import",post({url:"https://soundcloud.com/artist/track"}));
+  assert.equal(requests[1].options.method,"POST");
+  assert.deepEqual(JSON.parse(requests[1].options.body),{url:"https://soundcloud.com/artist/track"});
+  const missing=load(); await rejects(missing.api.request("/api/builder/music/library"),503,"music_not_configured");
+  const insecure=load({config:{...goodConfig,musicApiUrl:"http://music.example"}});
+  await rejects(insecure.api.request("/api/builder/music/library"),503,"music_not_configured");
+});
 
 test("drafts, publication and public reads expose the same working profile URL", async () => {
   for (const username of ["tshk", "builder"]) {

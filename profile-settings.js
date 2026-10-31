@@ -2,7 +2,8 @@
   "use strict";
 
   const profile = document.currentScript?.dataset.profile;
-  if (!/^[a-z0-9_-]{3,32}$/.test(profile || "") || window.location.protocol === "file:") return;
+  const revealProfile = () => document.documentElement.classList.remove("iwtxz-profile-pending");
+  if (!/^[a-z0-9_-]{3,32}$/.test(profile || "") || window.location.protocol === "file:") { revealProfile(); return; }
   const nicknameBadges = document.createElement("div");
   nicknameBadges.className = "iwtxz-profile-badges";
   nicknameBadges.setAttribute("aria-label", "Украшения профиля");
@@ -196,7 +197,8 @@
   if (window.IwtxzBackend?.isConfigured()) {
     window.IwtxzBackend.request(`/api/builder/profile/${encodeURIComponent(profile)}`)
       .then((data) => { if (data?.site) apply(data.site); })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(revealProfile);
   } else if (["localhost", "127.0.0.1", "[::1]"].includes(location.hostname)) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 7000);
@@ -204,6 +206,6 @@
       .then((response) => response.ok ? response.json() : null)
       .then((data) => { if (data?.site) apply(data.site); })
       .catch(() => {})
-      .finally(() => clearTimeout(timeout));
-  }
+      .finally(() => { clearTimeout(timeout); revealProfile(); });
+  } else revealProfile();
 })();

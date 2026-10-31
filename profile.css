@@ -158,3 +158,31 @@ body:not(.is-entered) .music-player { transform: translateX(-50%); }
   *, *::before, *::after { animation: none !important; transition: none !important; }
   .profile-background-video { display: none; }
 }
+
+/* Keep the glow away from a clipping rectangle around the nickname. */
+.iwtxz-name-row > .profile-name { overflow: visible; text-shadow: 0 0 5px #ffffff45, 0 0 12px #ffffff20; }
+.iwtxz-name-row > .profile-name.is-long-name { overflow: hidden; text-shadow: none; }
+/* The independent volume control follows the authored iwtlu layout. */
+.music-player, .music-player.iwtxz-player-classic { left: 30px; transform: none; width: min(640px, calc(100vw - 116px)); }
+body:not(.is-entered) .music-player { transform: none; }
+.music-volume { position: fixed; z-index: 4; right: 30px; bottom: max(30px, env(safe-area-inset-bottom)); display: flex; align-items: center; justify-content: flex-start; width: 36px; height: 34px; gap: 7px; margin: 0; padding: 6px 9px; border: 1px solid #ffffff14; border-radius: 24px; color: #ddd; background: #0005; backdrop-filter: blur(10px); overflow: hidden; transition: width .18s ease; }
+.music-volume:hover, .music-volume:focus-within { width: 126px; }
+.music-volume > span[aria-hidden] { flex: 0 0 16px; font-size: 17px; line-height: 1; }
+.music-volume input { flex: 0 0 75px; width: 75px; height: 18px; margin: 0; opacity: 0; accent-color: #fff; }
+.music-volume:hover input, .music-volume:focus-within input { opacity: 1; }
+body:not(.is-entered) > .music-volume { visibility: hidden; }
+@media (max-width: 640px) {
+ .music-player, .music-player.iwtxz-player-classic { left: 18px; bottom: max(20px, env(safe-area-inset-bottom)); width: calc(100vw - 98px); }
+ .music-volume { right: 20px; bottom: max(20px, env(safe-area-inset-bottom)); }
+}
+@media (max-width: 460px) {
+ .music-player.iwtxz-player-classic { grid-template-columns: 36px minmax(0, 1fr) 34px; }
+ .music-player.iwtxz-player-classic.no-cover { grid-template-columns: minmax(0, 1fr) 34px; }
+ .iwtxz-player-classic .music-cover { width: 36px; height: 36px; }
+ .iwtxz-player-classic .music-toggle { width: 34px; }
+ .iwtxz-player-classic .music-skip { display: none; }
+ .iwtxz-player-classic .music-time { font-size: 8px; }
+}
+@media (max-height: 600px) {
+ .music-player, .music-player.iwtxz-player-classic { position: relative; left: auto; bottom: auto; align-self: flex-start; }
+}

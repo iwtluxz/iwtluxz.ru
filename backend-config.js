@@ -6,6 +6,7 @@ window.IWTXZ_BACKEND_CONFIG = Object.freeze({
   publishableKey: "sb_publishable_cFWt4EsPvLuEJyk8Q9vGEA_GZR6IZ0j",
   accountEmailDomain: "accounts.iwtxz.ru",
   bucket: "profile-assets",
+  musicApiUrl: "https://music.iwtxz.ru",
   discordGuildId: "1557152366208229486",
   discordInviteUrl: "https://discord.gg/fnmEdMKr"
 });

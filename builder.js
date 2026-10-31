@@ -34,6 +34,14 @@
   } catch {}
   let currentUser = null;
   let currentSite = { ...defaults };
+  let previousEffects = null;
+  const musicLibrary = window.IwtxzMusicLibrary?.create({ onSelect(track) {
+    if (!accountReady) return;
+    currentSite.music = track.url;
+    $("#musicUrl").value = track.url;
+    $("#musicTitle").value = track.title;
+    updatePreview(); toast("Трек выбран");
+  } });
   let savedSnapshot = "";
   let dirty = false;
   let authMode = "login";
@@ -184,9 +192,10 @@
     $("#discordCardOpacityValue").value = `${currentSite.discordCardOpacity}%`;
     $("#discordCardRadiusValue").value = `${currentSite.discordCardRadius} px`;
     updateDiscordHint();
-    $("#avatarThumbnail").src = currentSite.avatar || "img/tree.png";
-    $("#accountAvatar").src = currentSite.avatar || "img/tree.png";
-    $("#coverThumbnail").src = currentSite.musicCover || "img/tree.png";
+    for (const [id, source] of [["avatarThumbnail", currentSite.avatar], ["accountAvatar", currentSite.avatar], ["coverThumbnail", currentSite.musicCover]]) {
+      const image = $("#" + id), value = source || "img/tree.png";
+      if (image.getAttribute?.("src") !== value) image.src = value;
+    }
     all("[data-social-field]").forEach(row => {
       const connected = Boolean(currentSite[row.dataset.socialField]);
       row.classList.toggle("connected", connected);
@@ -197,9 +206,12 @@
       button.classList.toggle("selected", selected);
       button.setAttribute("aria-pressed", String(selected));
     });
-    all("[data-decoration-avatar]").forEach(image => { image.src = currentSite.avatar || "img/tree.png"; });
     $("#decorationLabel").textContent = currentSite.avatarDecoration === "discord" ? "Из Discord"
       : features?.decorations.find(item => item.id === currentSite.avatarDecoration)?.label || "Без украшения";
+    const animationLabel = features?.animations.find(item => item.id === currentSite.nicknameAnimation)?.label || "Без анимации";
+    $("#effectsSummary").textContent = `${animationLabel} · ${$("#decorationLabel").textContent}`;
+    $("#nicknameEffectDemo").textContent = currentSite.nickname || "nickname";
+    features?.applyNameAnimation($("#nicknameEffectDemo"), currentSite.nicknameAnimation);
     clearTimeout(previewTimer);
     previewTimer = setTimeout(sendPreview, 70);
   }
@@ -258,6 +270,7 @@
   }
 
   function setSection(name) {
+    if (name === "music" && accountReady) musicLibrary?.open(currentSite.music);
     all("[data-settings-section]").forEach((section) => section.classList.toggle("hidden", section.dataset.settingsSection !== name));
     all("[data-section]").forEach((button) => {
       const active = button.dataset.section === name;
@@ -268,6 +281,7 @@
   }
 
   function resetSession() {
+    musicLibrary?.reset(); previousEffects = null;
     authAttemptVersion += 1;
     sessionVersion += 1;
     accountLoadController?.abort();
@@ -445,6 +459,7 @@
       if (urlInput) urlInput.value = "";
       if (key === "background") $("#backgroundType").value = type.startsWith("video/") ? "video" : "image";
       if (key === "music" && !$("#musicTitle").value) $("#musicTitle").value = file.name.replace(/\.[^.]+$/, "");
+      if (key === "music") void musicLibrary?.remember(result.url, $("#musicTitle").value || file.name.replace(/\.[^.]+$/, ""));
       if (key === "customFont") $("#font").value = "custom";
       document.querySelector(`[data-file-note="${key}"]`).textContent = `${file.name} · ${(file.size / 1024 / 1024).toFixed(1)} МБ · загружено`;
       updatePreview();
@@ -539,7 +554,23 @@
   all("[data-decoration]").forEach(button => button.addEventListener("click", () => {
     $("#avatarDecoration").value = button.dataset.decoration;
     updatePreview();
+    clearTimeout(previewTimer); sendPreview();
   }));
+  $("#openEffects").addEventListener("click", () => setSection("effects"));
+  $("#randomizeEffects").addEventListener("click", () => {
+    previousEffects = { nicknameAnimation: $("#nicknameAnimation").value, avatarDecoration: $("#avatarDecoration").value };
+    const choose = items => items[Math.floor(Math.random() * items.length)].id;
+    $("#nicknameAnimation").value = choose(features.animations.filter(item => item.id !== "none" && item.id !== previousEffects.nicknameAnimation));
+    $("#avatarDecoration").value = choose(features.decorations.filter(item => item.id !== previousEffects.avatarDecoration));
+    $("#undoEffects").classList.remove("hidden");
+    updatePreview(); clearTimeout(previewTimer); sendPreview();
+  });
+  $("#undoEffects").addEventListener("click", () => {
+    if (!previousEffects) return;
+    $("#nicknameAnimation").value = previousEffects.nicknameAnimation;
+    $("#avatarDecoration").value = previousEffects.avatarDecoration;
+    previousEffects = null; $("#undoEffects").classList.add("hidden"); updatePreview();
+  });
   $("#editorForm").addEventListener("input", (event) => {
     if (event.target.type === "file") return;
     const key = event.target.dataset.assetUrl;

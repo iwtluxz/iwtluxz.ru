@@ -1,0 +1,26 @@
+[Unit]
+Description=iwtxz music library
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=iwtxz-music
+Group=iwtxz-music
+WorkingDirectory=/opt/iwtxz-music
+EnvironmentFile=/etc/iwtxz-music.env
+ExecStart=/opt/iwtxz-music/venv/bin/python /opt/iwtxz-music/app.py
+Restart=on-failure
+RestartSec=5
+StateDirectory=iwtxz-music
+UMask=0077
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ReadWritePaths=/var/lib/iwtxz-music
+MemoryMax=450M
+TasksMax=100
+
+[Install]
+WantedBy=multi-user.target

@@ -528,12 +528,39 @@
     profileFeaturesReady = true;
   }
 
+  async function requestMusic(mode, options, assertActive) {
+    let base;
+    try { base = new URL(window.IWTXZ_BACKEND_CONFIG?.musicApiUrl); } catch { throw error(503, "Музыкальная библиотека пока подключается.", "music_not_configured"); }
+    if (base.protocol !== "https:" || base.username || base.password || base.search || base.hash || base.pathname !== "/") throw error(503, "Не удалось подключиться к библиотеке.", "music_not_configured");
+    const instance = getClient();
+    const session = throwIfError(await instance.auth.getSession());
+    assertActive();
+    if (!session?.session?.access_token) throw error(401, "Войди в аккаунт ещё раз.", "unauthorized");
+    const controller = new AbortController();
+    const context = clientContexts.get(instance);
+    context.controllers.add(controller);
+    const abort = () => controller.abort();
+    options.signal?.addEventListener("abort", abort, { once: true });
+    if (options.signal?.aborted) controller.abort();
+    try {
+      const response = await fetch(new URL(`/v1/${mode}`, base), {
+        method: mode === "library" ? "GET" : "POST", credentials: "omit", cache: "no-store", signal: controller.signal,
+        headers: { authorization: `Bearer ${session.session.access_token}`, ...(mode === "library" ? {} : { "content-type": "application/json" }) },
+        ...(mode === "library" ? {} : { body: JSON.stringify(jsonBody(options)) })
+      });
+      const data = await response.json();
+      assertActive();
+      if (!response.ok) throw error(response.status, typeof data?.error === "string" ? data.error.slice(0, 300) : "Не удалось загрузить библиотеку.", "music_failed");
+      return data;
+    } finally { options.signal?.removeEventListener("abort", abort); context.controllers.delete(controller); }
+  }
+
   async function dispatchRequest(path, options = {}, assertActive) {
     if (typeof path !== "string" || !path.startsWith("/api/builder/")) throw error(404, "Страница не найдена.", "not_found");
     const url = new URL(path, window.location.origin);
     const method = String(options.method || "GET").toUpperCase();
     const mode = url.pathname.split("/").pop();
-    const isGet = url.pathname === "/api/builder/auth/me" || /^\/api\/builder\/sites\/(list|get)$/.test(url.pathname) || /^\/api\/builder\/profile\/[a-z0-9_-]+$/i.test(url.pathname);
+    const isGet = url.pathname === "/api/builder/auth/me" || url.pathname === "/api/builder/music/library" || /^\/api\/builder\/sites\/(list|get)$/.test(url.pathname) || /^\/api\/builder\/profile\/[a-z0-9_-]+$/i.test(url.pathname);
     if (method !== (isGet ? "GET" : "POST")) throw error(405, isGet ? "Используйте GET." : "Используйте POST.", "method_not_allowed");
     if (url.pathname === "/api/builder/auth/me") return getMe(assertActive);
     if (/^\/api\/builder\/auth\/(signup|login)$/.test(url.pathname)) return authenticate(mode, jsonBody(options), assertActive);
@@ -549,6 +576,7 @@
     }
     const account = await requireAccount(assertActive);
     assertActive();
+    if (/^\/api\/builder\/music\/(library|import|remember|remove)$/.test(url.pathname)) return requestMusic(mode, options, assertActive);
     if (url.pathname === "/api/builder/auth/password") {
       const body = jsonBody(options);
       const newPassword = validatePassword(body.newPassword);

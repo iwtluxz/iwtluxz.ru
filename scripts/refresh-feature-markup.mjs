@@ -9,13 +9,17 @@ let index = await readFile(new URL("index.html", root), "utf8");
 const replace = (name, content) => { index = index.replace(new RegExp(`(<!-- ${name}:start -->)[\\s\\S]*?(<!-- ${name}:end -->)`), `$1\n${content}\n          $2`); };
 replace("nickname-animations", animations.map(item => `<option value="${item.id}">${escape(item.label)}</option>`).join("\n"));
 const choices = [{ id: "none", label: "Без украшения" }, { id: "discord", label: "Из Discord" }, ...decorations];
-replace("decoration-picker", choices.map(item => `<button type="button" class="decoration-option${item.id === "none" ? " selected" : ""}" data-decoration="${item.id}" aria-pressed="${item.id === "none"}"><span class="decoration-preview"><img data-decoration-avatar src="img/mainavatar.gif" alt="" loading="lazy">${item.image ? `<img class="decoration-art" src="${item.image.slice(1)}" alt="" loading="lazy">` : `<span class="decoration-mode">${item.id === "discord" ? "DS" : "—"}</span>`}</span><span>${escape(item.label)}</span></button>`).join("\n"));
+replace("decoration-picker", choices.map(item => `<button type="button" class="decoration-option${item.id === "none" ? " selected" : ""}" data-decoration="${item.id}" aria-pressed="${item.id === "none"}"><span class="decoration-preview"><span class="decoration-avatar-placeholder" aria-hidden="true"></span>${item.image ? `<img class="decoration-art" src="${item.image.slice(1).replace(/\.png$/, '.webp')}" alt="" loading="lazy" decoding="async">` : `<span class="decoration-mode">${item.id === "discord" ? "DS" : "—"}</span>`}</span><span>${escape(item.label)}</span></button>`).join("\n"));
 replace("social-editor", socials.map(item => `<details class="social-field" data-social-field="${item.id}"><summary><img src="${item.icon.slice(1)}" alt="" loading="lazy"><span>${escape(item.label)}</span><small data-social-state>Добавить</small></summary><div class="social-field-body"><label class="field">${item.id === "discord" ? "Имя в Discord" : "Ссылка"}<input id="${item.id}" type="${item.id === "discord" ? "text" : "url"}" maxlength="${item.id === "discord" ? "60" : "500"}" placeholder="${escape(item.placeholder)}" autocomplete="off"></label><button type="button" class="text-button" data-social-remove="${item.id}">Убрать</button></div></details>`).join("\n"));
 await writeFile(new URL("index.html", root), index);
 for (const file of await readdir(root)) {
   if (!file.endsWith(".html")) continue;
   const url = new URL(file, root);
   let html = await readFile(url, "utf8");
+  if (/data-profile="[a-z0-9_-]+"/.test(html)) {
+    if (!/<html[^>]*class="[^"]*iwtxz-profile-pending/.test(html)) html = html.replace(/<html\b([^>]*)>/, '<html$1 class="iwtxz-profile-pending">');
+    if (!html.includes("data-profile-pending")) html = html.replace("</head>", '  <style data-profile-pending>html.iwtxz-profile-pending{background:#000}html.iwtxz-profile-pending body{visibility:hidden!important}</style>\n  <noscript><style>html.iwtxz-profile-pending body{visibility:visible!important}</style></noscript>\n</head>');
+  }
   if (!html.includes('href="profile-features.css')) html = html.replace("</head>", '  <link rel="stylesheet" href="profile-features.css">\n</head>');
   if (!html.includes('src="profile-features.js')) {
     const anchor = html.match(/<script src="(?:builder|profile-customization)\.js[^\"]*"[^>]*>/);

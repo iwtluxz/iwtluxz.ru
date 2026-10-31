@@ -11,6 +11,8 @@
   const player = byId("musicPlayer");
   const seek = byId("musicSeek");
   const volume = byId("musicVolume");
+  const volumeControl = volume.closest(".music-volume");
+  player.after(volumeControl);
   const overlay = byId("entryOverlay");
   const entryButton = byId("entryButton");
   const pageMessage = byId("pageMessage");
@@ -24,8 +26,22 @@
     discordCard: byId("discordCard"), discordAvatar: byId("discordAvatar"), discordName: byId("discordName"),
     discordStatus: byId("discordStatus"), discordActivity: byId("discordActivity"), discordBadges: byId("discordBadges"),
     discordPresence: byId("discordPresence"), socialDiscord: byId("discordButton"), player,
-    onDiscordUsername(value) { discordCopyName = value; }
+    onDiscordUsername(value) { discordCopyName = value; }, onFontReady() { fitProfileName(); }
   });
+
+  function fitProfileName() {
+    const name = byId("profileName"), badges = byId("profileBadges");
+    const width = byId("profile").clientWidth || window.innerWidth - 40;
+    const side = badges.hidden ? 0 : Math.min(100, badges.scrollWidth);
+    const available = Math.max(90, width - 2 * side - 20);
+    name.style.fontSize = "";
+    name.style.maxWidth = `${available}px`;
+    const size = parseFloat(getComputedStyle(name).fontSize);
+    if (name.scrollWidth > available) name.style.fontSize = `${Math.max(18, size * available / name.scrollWidth)}px`;
+    name.classList.toggle("is-long-name", name.scrollWidth > available + 1);
+  }
+  if (typeof ResizeObserver === "function") new ResizeObserver(fitProfileName).observe(byId("profile"));
+  document.fonts?.ready.then(fitProfileName);
 
   function text(value, limit = 240) {
     return typeof value === "string" ? value.slice(0, limit) : "";
@@ -229,6 +245,7 @@
     setLink("steamLink", site.steam);
     window.IwtxzProfileFeatures?.renderSocials(document.querySelector(".profile-socials"), site);
     customization?.apply(site);
+    fitProfileName();
     byId("musicTitle").textContent = site.musicTitle;
     const cover = assetUrl(site.musicCover, "musicCover");
     byId("musicCover").hidden = !cover;
@@ -236,6 +253,7 @@
     if (cover) byId("musicCover").src = cover;
     else byId("musicCover").removeAttribute("src");
     player.hidden = !site.music;
+    volumeControl.hidden = !site.music;
     document.body.classList.toggle("no-music", !site.music);
     audio.loop = site.musicLoop !== false;
     if (sourceChanged) {
