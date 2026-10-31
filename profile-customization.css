@@ -111,7 +111,16 @@ body:has(script[data-profile="iwtlu"]) .iwtxz-name-row .name-text:not(.iwtxz-gra
                0 0 12px rgba(255, 255, 255, 0.13) !important;
 }
 
-.track-card button {
-    position: relative;
-    top: 15px !important;
+.music-player.iwtxz-player-classic .music-controls {
+    transform: translateY(14px) !important;
+}
+
+.music-player.iwtxz-player-classic .music-controls button {
+    color: #ffffff !important;
+    opacity: 1 !important;
+}
+
+.music-player.iwtxz-player-classic .music-controls svg {
+    color: #ffffff !important;
+    fill: currentColor !important;
 }
