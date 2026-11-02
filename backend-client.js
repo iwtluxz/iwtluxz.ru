@@ -2,7 +2,7 @@
   "use strict";
 
   const maximumUploadBytes = 4 * 1024 * 1024;
-  const mediaKinds = new Set(["avatar", "background", "music", "musicCover", "customFont"]);
+  const mediaKinds = new Set(["avatar", "background", "music", "musicCover", "customFont", "favicon", "customCursor"]);
   const imageTypes = new Set(["image/png", "image/jpeg", "image/gif", "image/webp"]);
   const audioTypes = new Set(["audio/mpeg", "audio/mp3", "audio/wav", "audio/x-wav", "audio/ogg", "audio/mp4", "audio/webm"]);
   const videoTypes = new Set(["video/mp4", "video/webm"]);
@@ -611,6 +611,10 @@
       ownership(site, account);
       const newSocials = ["vk", "youtube", "twitch", "tiktok", "instagram", "github", "spotify", "x", "soundcloud", "reddit", "boosty", "website"];
       const hasFeatures = (site.nicknameAnimation && site.nicknameAnimation !== "none") || (site.avatarDecoration && site.avatarDecoration !== "none") || newSocials.some(key => Boolean(site[key]));
+      if((site.backgroundEffect&&site.backgroundEffect!=='none')||site.profileTilt||(site.cursorStyle&&site.cursorStyle!=='default')||site.customCursor||site.favicon||site.avatarFit==='contain'){
+        const result=await getClient().rpc('builder_capabilities');
+        if(result.error||result.data?.profileSettingsVersion<4||result.data?.interactiveEffects!==true)throw error(503,'Для этих эффектов нужно обновление базы 20261102_interactive_profiles.sql.','backend_features_update_required');
+      }
       if (hasFeatures) await requireProfileFeatures();
       else if (site.font === "custom" || ["customFont", "musicPlayerStyle", "avatarShape", "nicknameGradient", "nicknameGradientStart", "nicknameGradientEnd", "nicknameGradientAngle", "discordUserId", "discordSync", "discordCardStyle", "discordCardColor", "discordCardOpacity", "discordCardRadius", "discordUseAvatar", "discordShowStatus", "discordShowBadges", "discordShowActivity", "profileBadges", "showButterfly"].some((key) => Object.hasOwn(site, key))) await requireCustomization();
       assertActive();

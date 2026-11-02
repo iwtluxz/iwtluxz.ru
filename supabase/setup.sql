@@ -171,6 +171,11 @@ begin
   result := result || jsonb_build_object('nicknameAnimation', 'none', 'avatarDecoration', 'none',
     'vk', '', 'youtube', '', 'twitch', '', 'tiktok', '', 'instagram', '', 'github', '',
     'spotify', '', 'x', '', 'soundcloud', '', 'reddit', '', 'boosty', '', 'website', '');
+  result := result || jsonb_build_object('backgroundEffect','none','effectIntensity',50,
+    'profileTilt',false,'cursorStyle','default','customCursor','','favicon','', 'avatarFit','cover');
+  if username not in ('iwtlu','shakzy','strelokk') then
+    result := result || jsonb_build_object('avatar','','background','','music','','musicTitle','','musicCover','');
+  end if;
   if username = 'iwtlu' then result := result || jsonb_build_object(
     'nickname', 'Ɨ ω ŧ Ł υ', 'description', 'малыш, ты знала, что все закончится так',
     'discord', 'iwtluz', 'telegram', 'https://t.me/iwtluz', 'steam', 'https://steamcommunity.com/id/meintofores');
@@ -266,7 +271,7 @@ begin
       raise exception using errcode = '22023', message = 'Ссылки на соцсети должны начинаться с https://.';
     end if;
   end loop;
-  foreach value in array array['avatar','background','music','musicCover','customFont'] loop
+  foreach value in array array['avatar','background','music','musicCover','customFont','customCursor','favicon'] loop
     result := result || jsonb_build_object(value, private.profile_asset(private.profile_text(input, value, defaults->>value, 2048), user_id));
   end loop;
   value := private.profile_text(input, 'backgroundType', defaults->>'backgroundType', 10);
@@ -312,7 +317,16 @@ begin
   if value not in ('none','discord','phoenix','heartbloom','shy','sakura','moon','embers','aurora','cat') then
     raise exception using errcode = '22023', message = 'Неизвестное украшение аватара.';
   end if;
-  result := result || jsonb_build_object('avatarDecoration', value, 'profileBadges', badges, 'settingsVersion', 3);
+  result := result || jsonb_build_object('avatarDecoration', value, 'profileBadges', badges, 'settingsVersion', 4);
+  value := private.profile_text(input,'backgroundEffect','none',16);
+  if value not in ('none','snow','rain','matrix','glitch','parallax') then raise exception using errcode='22023',message='Неизвестный эффект фона.'; end if;
+  result := result || jsonb_build_object('backgroundEffect',value,'effectIntensity',private.profile_number(input,'effectIntensity',50,10,100),'profileTilt',private.profile_boolean(input,'profileTilt',false));
+  value := private.profile_text(input,'cursorStyle','default',16);
+  if value not in ('default','dot','ring','crosshair') then raise exception using errcode='22023',message='Неизвестный курсор.'; end if;
+  result := result || jsonb_build_object('cursorStyle',value);
+  value := private.profile_text(input,'avatarFit','cover',12);
+  if value not in ('cover','contain') then raise exception using errcode='22023',message='Неизвестный вид аватара.'; end if;
+  result := result || jsonb_build_object('avatarFit',value);
   foreach value in array array['nicknameGradient','discordSync','discordUseAvatar','discordShowStatus','discordShowBadges','discordShowActivity','showButterfly'] loop
     result := result || jsonb_build_object(value, private.profile_boolean(input, value, coalesce((defaults->>value)::boolean, false)));
   end loop;
@@ -329,7 +343,7 @@ $$;
 
 create or replace function public.builder_capabilities()
 returns jsonb language sql stable set search_path = '' as $$
-  select jsonb_build_object('profileSettingsVersion', 3, 'customFonts', true, 'profileEffects', true);
+  select jsonb_build_object('profileSettingsVersion', 4, 'customFonts', true, 'profileEffects', true, 'interactiveEffects', true);
 $$;
 revoke all on function public.builder_capabilities() from public;
 grant execute on function public.builder_capabilities() to anon, authenticated;

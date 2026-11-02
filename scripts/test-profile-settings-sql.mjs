@@ -54,6 +54,20 @@ test("profile effects migration preserves old data, round-trips features, valida
         await assert.rejects(db.query("select public.builder_save_profile($1::jsonb)", [JSON.stringify({ ...settings, ...update })]), error => error.code === "22023");
       }
     });
+    await t.test("interactive profile migration preserves drafts and validates persistent effects", async () => {
+      await db.exec('reset role;');
+      const before=await db.query('select settings from public.profile_drafts where user_id=$1',[alice]);
+      const interactive=await readFile(new URL('../supabase/migrations/20261102_interactive_profiles.sql',import.meta.url),'utf8');
+      await db.exec(interactive);await db.exec(interactive);
+      assert.deepEqual((await db.query('select settings from public.profile_drafts where user_id=$1',[alice])).rows,before.rows);
+      await db.exec(`set role authenticated; select set_config('request.jwt.claim.sub','${alice}',false);`);
+      const update={...settings,backgroundEffect:'matrix',effectIntensity:70,profileTilt:true,cursorStyle:'ring',customCursor:'https://example.com/cursor.png',favicon:'https://example.com/icon.png',avatarFit:'cover'};
+      const result=await db.query('select public.builder_save_profile($1::jsonb) as value',[JSON.stringify(update)]);
+      for(const key of ['backgroundEffect','effectIntensity','profileTilt','cursorStyle','customCursor','favicon','avatarFit'])assert.equal(result.rows[0].value[key],update[key]);
+      await db.exec('select public.builder_publish_profile();');
+      assert.equal((await db.query("select settings from public.profile_published where username='alice'")).rows[0].settings.favicon,update.favicon);
+      for(const bad of [{backgroundEffect:'injected'},{cursorStyle:'url(evil)'},{effectIntensity:200},{favicon:'javascript:alert(1)'},{avatarFit:'bad'}])await assert.rejects(db.query('select public.builder_save_profile($1::jsonb)',[JSON.stringify({...update,...bad})]),e=>e.code==='22023');
+    });
     await t.test("another account cannot read the draft or save as its owner", async () => {
       await db.exec(`select set_config('request.jwt.claim.sub','${bob}',false);`);
       const draft = await db.query("select * from public.profile_drafts where user_id=$1", [alice]);

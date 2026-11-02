@@ -54,13 +54,8 @@
       current={...next,title};root?.remove();
       root=document.createElement('section');root.className='service-player';root.dataset.musicService=next.service;
       root.setAttribute('aria-label',`Музыка — ${next.name}`);root.hidden=true;
-      const heading=document.createElement('div');heading.className='service-player-heading';
-      const icon=document.createElement('img');icon.src=next.icon;icon.alt='';
-      const label=document.createElement('span');label.textContent=next.name;
-      const link=document.createElement('a');link.href=next.url;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Открыть ↗';
-      heading.append(icon,label,link);
       const content=document.createElement('div');content.className='service-player-content';
-      root.append(heading,content);document.body.append(root);mount();return true;
+      root.append(content);document.body.append(root);mount();return true;
     }};
   }
   window.IwtxzMusicServices=Object.freeze({services,source,frame,createPlayer});

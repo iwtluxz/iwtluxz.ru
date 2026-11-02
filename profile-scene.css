@@ -1,0 +1,18 @@
+.iwtxz-scene { position: fixed; z-index: -1; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.iwtxz-parallax-background { position: fixed; z-index: -2; inset: -20px; background-position: center; background-size: cover; pointer-events: none; transform: translate3d(var(--scene-x,0px),var(--scene-y,0px),0); }
+body[data-background-effect="parallax"] .profile-background-image, body[data-background-effect="parallax"] .profile-background-video, body[data-background-effect="parallax"] .page-bg-video { transform: translate3d(var(--scene-x,0px),var(--scene-y,0px),0) scale(1.06); }
+.iwtxz-cursor { position: fixed; z-index: 99999; left: 0; top: 0; pointer-events: none; will-change: transform; }
+.iwtxz-cursor::before { content: ''; position: absolute; width: 8px; height: 8px; background: #fff; border-radius: 50%; transform: translate(-50%,-50%); box-shadow: 0 0 9px #fff6; }
+.iwtxz-cursor[data-style="ring"]::before { width: 24px; height: 24px; background: transparent; border: 1.5px solid #fff; }
+.iwtxz-cursor[data-style="crosshair"]::before { width: 23px; height: 23px; border-radius: 0; background: linear-gradient(#fff,#fff) center/1px 100% no-repeat,linear-gradient(#fff,#fff) center/100% 1px no-repeat; box-shadow: none; }
+.iwtxz-cursor[data-style="image"]::before { display: none; }
+.iwtxz-cursor img { display: block; width: 32px; height: 32px; object-fit: contain; }
+.iwtxz-cursor[hidden] { display: none; }
+@media (hover: hover) and (pointer: fine) { body.iwtxz-custom-cursor, body.iwtxz-custom-cursor * { cursor: none !important; } body.iwtxz-custom-cursor input, body.iwtxz-custom-cursor textarea { cursor: text !important; } }
+@media (prefers-reduced-motion: reduce) { .iwtxz-scene { display: none; } body[data-background-effect="parallax"] .profile-background-image,body[data-background-effect="parallax"] .profile-background-video,body[data-background-effect="parallax"] .page-bg-video { transform: none; } }
+.decoration-user-avatar { display: block; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: #151515; }
+.decoration-option .decoration-preview { overflow: visible; }
+.decoration-mode { z-index: 2; }
+.decoration-discord-hint { display: block; margin: 10px 0 14px; color: #aaa; font-size: 10px; line-height: 1.7; }
+.scene-fields { border-top: 1px solid #ffffff20; padding-top: 22px; margin-top: 20px; }
+.profile-avatar { object-fit: cover; }

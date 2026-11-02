@@ -5,22 +5,22 @@
   const features = window.IwtxzProfileFeatures;
   const socialFields = features?.socials.map(item => item.id) || ["discord", "telegram", "steam"];
   const textFields = ["title", "nickname", "description", "entryText", "musicTitle", ...socialFields, "discordUserId"];
-  const numberFields = ["avatarSize", "backgroundDim", "nicknameGradientAngle", "discordCardOpacity", "discordCardRadius"];
-  const optionFields = ["font", "accentColor", "backgroundType", "nicknameGradientStart", "nicknameGradientEnd", "musicPlayerStyle", "discordCardStyle", "discordCardColor", "nicknameAnimation", "avatarDecoration"];
-  const boolFields = ["musicLoop", "showDiscord", "nicknameGradient", "discordSync", "discordUseAvatar", "discordShowStatus", "discordShowBadges", "discordShowActivity"];
-  const assetFields = ["avatar", "background", "music", "musicCover", "customFont"];
+  const numberFields = ["avatarSize", "backgroundDim", "nicknameGradientAngle", "discordCardOpacity", "discordCardRadius", "effectIntensity"];
+  const optionFields = ["font", "accentColor", "backgroundType", "nicknameGradientStart", "nicknameGradientEnd", "musicPlayerStyle", "discordCardStyle", "discordCardColor", "nicknameAnimation", "avatarDecoration", "backgroundEffect", "cursorStyle", "avatarFit"];
+  const boolFields = ["musicLoop", "showDiscord", "nicknameGradient", "discordSync", "discordUseAvatar", "discordShowStatus", "discordShowBadges", "discordShowActivity", "profileTilt"];
+  const assetFields = ["avatar", "background", "music", "musicCover", "customFont", "favicon", "customCursor"];
   const decorativeBadges = new Set(["star", "heart", "moon", "sparkle", "code", "music", "flower"]);
   const defaults = {
     ...Object.fromEntries(socialFields.map(key => [key, ""])),
     title: "", nickname: "", description: "", entryText: "click to enter...", discord: "", telegram: "", steam: "",
-    avatar: "img/mainavatar.gif", background: "img/background.mp4", backgroundType: "video",
-    music: "sound/sound.mp3", musicTitle: "one more time", musicCover: "img/mysoundicon.png",
+    avatar: "", background: "", backgroundType: "image",
+    music: "", musicTitle: "", musicCover: "",
     avatarSize: 150, avatarShape: "circle", backgroundDim: 58, accentColor: "#f5f5f7", font: "minecraft", customFont: "", musicLoop: true, showDiscord: true,
     nicknameGradient: false, nicknameGradientStart: "#ffffff", nicknameGradientEnd: "#a1a1aa", nicknameGradientAngle: 90,
     musicPlayerStyle: "classic", showButterfly: false, profileBadges: [], discordUserId: "", discordSync: false,
     discordCardStyle: "glass", discordCardColor: "#111111", discordCardOpacity: 65, discordCardRadius: 18,
     discordUseAvatar: true, discordShowStatus: true, discordShowBadges: true, discordShowActivity: true,
-    nicknameAnimation: "none", avatarDecoration: "none"
+    nicknameAnimation: "none", avatarDecoration: "none", avatarFit:"cover", backgroundEffect:"none",effectIntensity:50,profileTilt:false,cursorStyle:"default",customCursor:"",favicon:""
   };
   const fileHints = Object.fromEntries(all("[data-file-note]").map((e) => [e.dataset.fileNote, e.textContent]));
   const previewFrame = $("#previewFrame");
@@ -66,6 +66,24 @@
   let previewTimer;
   let toastTimer;
   let discordSnapshotStatus = null;
+  let decorationAvatarSource = "", decorationAvatarVersion = 0, discordDecoration = null;
+  function updateDecorationAvatars() {
+    const images=all('[data-decoration-avatar]');if(!images.length)return;
+    const source=currentSite.avatar||'img/tree.png';
+    if(source===decorationAvatarSource)return;decorationAvatarSource=source;const version=++decorationAvatarVersion;
+    images.forEach(image=>{image.src=source;});
+    const picture=new Image();picture.crossOrigin='anonymous';
+    picture.onload=()=>{if(version!==decorationAvatarVersion)return;try{const canvas=document.createElement('canvas');canvas.width=canvas.height=96;const context=canvas.getContext('2d');const ratio=Math.max(96/picture.naturalWidth,96/picture.naturalHeight);context.drawImage(picture,(96-picture.naturalWidth*ratio)/2,(96-picture.naturalHeight*ratio)/2,picture.naturalWidth*ratio,picture.naturalHeight*ratio);const thumbnail=canvas.toDataURL('image/png');images.forEach(image=>{image.src=thumbnail;});}catch{}};
+    picture.src=source;
+  }
+  function updateDiscordDecoration() {
+    const tile=document.querySelector('[data-decoration="discord"]');if(!tile)return;
+    let image=tile.querySelector('.decoration-art');const url=currentSite.discordSync?features?.decorationUrl('discord',discordDecoration):'';
+    if(!image&&url){image=document.createElement('img');image.className='decoration-art';image.alt='';tile.querySelector('.decoration-preview').append(image);}
+    if(image){image.hidden=!url;if(url&&image.getAttribute('src')!==url)image.src=url;}
+    const mode=tile.querySelector('.decoration-mode');if(mode)mode.hidden=Boolean(url);
+    $('#discordDecorationHint').textContent=!currentSite.discordSync?'Для «Из Discord» включи синхронизацию и укажи свой ID в соцсетях.':url?'Текущее украшение твоего аватара в Discord.':discordSnapshotStatus?.state==='ready'?'В Discord сейчас нет украшения аватара.':'Ждём данные Discord. Проверь ID и участие в сервере.';
+  }
 
   function status(selector, message, type = "") {
     const element = $(selector);
@@ -222,6 +240,7 @@
     $("#effectsSummary").textContent = `${animationLabel} · ${$("#decorationLabel").textContent}`;
     $("#nicknameEffectDemo").textContent = currentSite.nickname || "nickname";
     features?.applyNameAnimation($("#nicknameEffectDemo"), currentSite.nicknameAnimation);
+    updateDecorationAvatars();updateDiscordDecoration();
     clearTimeout(previewTimer);
     previewTimer = setTimeout(sendPreview, 70);
   }
@@ -305,6 +324,7 @@
     $("#accountLoadState").classList.add("hidden");
     currentUser = null;
     discordSnapshotStatus = null;
+    discordDecoration = null;decorationAvatarSource="";++decorationAvatarVersion;
     dirty = false;
     savedSnapshot = "";
     document.body.classList.add("auth-locked");
@@ -652,7 +672,9 @@
     if (event.data?.type === "iwtxz-discord-status" && event.data.userId === currentSite.discordUserId) {
       discordSnapshotStatus = { userId: event.data.userId, state: event.data.state, updatedAt: event.data.updatedAt };
       updateDiscordHint();
+      updateDiscordDecoration();
     }
+    if(event.data?.type==='iwtxz-discord-decoration'&&event.data.userId===currentSite.discordUserId){discordDecoration=event.data.decoration;updateDiscordDecoration();}
   });
   previewFrame.addEventListener("load", sendPreview);
   window.addEventListener("iwtxz-auth-change", (event) => {

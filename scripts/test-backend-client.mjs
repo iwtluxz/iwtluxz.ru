@@ -76,7 +76,7 @@ function load(overrides = {}) {
       if (state.rpcError) return { data: null, error: state.rpcError };
       if (name === "builder_capabilities") return state.oldCustomizationServer
         ? { data: null, error: { code: "PGRST202" } }
-        : { data: { profileSettingsVersion: state.oldEffectsServer ? 2 : 3, customFonts: true, profileEffects: !state.oldEffectsServer }, error: null };
+        : { data: { profileSettingsVersion: state.oldEffectsServer ? 2 : state.oldInteractiveServer ? 3 : 4, interactiveEffects: !state.oldInteractiveServer, customFonts: true, profileEffects: !state.oldEffectsServer }, error: null };
       if (name === "builder_get_profile") return { data: state.draft || { id: state.username, owner: state.username, nickname: state.username }, error: null };
       if (name === "builder_save_profile") { state.draft = structuredClone(input.input); return { data: state.draft, error: null }; }
       if (name === "builder_publish_profile") {
@@ -363,6 +363,19 @@ test("uploads sniff safe bytes, correct mislabeled media and use own immutable s
   const audio = await api.request("/api/builder/assets/upload?kind=music&name=sound.mp3", { method: "POST", headers: { "content-type": "audio/mpeg" }, body: new Blob([mp4], { type: "audio/mpeg" }) });
   assert.equal(audio.type, "audio/mp4");
   assert.match(state.uploads[1].path, /\.m4a$/);
+});
+
+test("favicons and custom cursors use validated image uploads and interactive settings require the new schema", async () => {
+  const {api,state}=load();
+  const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO/aLMsAAAAASUVORK5CYII=','base64');
+  for(const kind of ['favicon','customCursor']){
+    const result=await api.request('/api/builder/assets/upload?kind='+kind,{method:'POST',headers:{'content-type':'image/png'},body:new Blob([png],{type:'image/png'})});
+    assert.equal(result.type,'image/png');assert.ok(result.url.includes(userId));
+  }
+  assert.equal(state.uploads.length,2);
+  const old=load({oldInteractiveServer:true});
+  await rejects(old.api.request('/api/builder/sites/save',post({site:{backgroundEffect:'snow',profileTilt:true}})),503,'backend_features_update_required');
+  assert.equal(old.state.calls.some(call=>call.method==='rpc'&&call.name==='builder_save_profile'),false);
 });
 
 test("SVG, disguised HTML, oversized uploads and bad kinds never reach storage", async () => {

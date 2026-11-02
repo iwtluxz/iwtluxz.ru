@@ -127,6 +127,7 @@
     let loadedFontFamily = "";
     let pollTimer = 0;
     let disposed = false;
+    const scene = window.IwtxzProfileScene?.create();
 
     function notify(state, updatedAt) {
       if (window.parent !== window) window.parent.postMessage({ type: "iwtxz-discord-status", userId: requestedUser, state, updatedAt }, location.origin);
@@ -175,6 +176,7 @@
       const valid = data?.member === true && data.guildId === discordGuildId && typeof data.updatedAt === "number" && Date.now() - data.updatedAt < 86_400_000 && data.updatedAt < Date.now() + 300_000;
       const profile = valid ? data : null;
       window.IwtxzProfileFeatures?.applyAvatarDecoration(nodes.avatar, settings.avatarDecoration, profile?.avatarDecoration);
+      if (window.parent !== window) window.parent.postMessage({type:"iwtxz-discord-decoration",userId:requestedUser,decoration:profile?.avatarDecoration||null,ready:Boolean(profile)},location.origin);
       const copyName = text(profile?.username || settings.discord, 60);
       const displayName = text(profile?.displayName || copyName, 80);
       const enabled = Boolean(copyName || (settings.discordSync && requestedUser));
@@ -250,6 +252,7 @@
     function apply(site) {
       if (disposed) return;
       settings = site;
+      scene?.apply(site);
       font(site);
       if (nodes.name) {
         const gradient = site.nicknameGradient === true;
@@ -263,7 +266,7 @@
         nodes.avatar.classList.toggle("iwtxz-round-avatar", !decoratedPreset);
         nodes.avatar.style.borderRadius = decoratedPreset ? "0" : "50%";
         if (nodes.avatar.tagName === "IMG") {
-          nodes.avatar.style.objectFit = "contain";
+          nodes.avatar.style.objectFit = decoratedPreset || site.avatarFit === "contain" ? "contain" : "cover";
           nodes.avatar.style.objectPosition = "center";
         }
         else nodes.avatar.style.backgroundSize = decoratedPreset ? "contain" : "cover";
@@ -303,6 +306,7 @@
     }
     function dispose() {
       disposed = true;
+      scene?.dispose();
       ++fetchSerial;
       ++fontSerial;
       clearInterval(pollTimer);

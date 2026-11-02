@@ -15,7 +15,8 @@ import threading
 import time
 import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import urlsplit, unquote
+from urllib.parse import urlsplit, unquote, parse_qs
+from catalog import Catalog, CatalogError
 from urllib.request import Request, urlopen
 
 UUID = re.compile(r'^[a-f0-9]{32}$')
@@ -177,6 +178,7 @@ class Library:
         return {'ok':True}
 
 def server(library, origins, host='127.0.0.1', port=8787):
+    catalog=Catalog()
     class Handler(BaseHTTPRequestHandler):
         server_version = 'iwtxz-music'
         def setup(self):
@@ -203,6 +205,10 @@ def server(library, origins, host='127.0.0.1', port=8787):
                 match=re.fullmatch(r'/media/([a-f0-9]{32})\.mp3',path)
                 if match and self.command in ('GET','HEAD'): return self.send_audio(match[1],head)
                 if self.headers.get('Origin') and self.headers.get('Origin') not in origins: raise ApiError(403,'Этот сайт не подключён к библиотеке.')
+                if path=='/v1/catalog/search' and self.command=='GET':
+                    query=parse_qs(urlsplit(self.path).query)
+                    try:return self.json(200,catalog.search(query.get('service',[''])[0],query.get('q',[''])[0]))
+                    except CatalogError as error:raise ApiError(503,str(error))
                 if path not in ('/v1/library','/v1/import','/v1/remember','/v1/remove'): raise ApiError(404,'Адрес не найден.')
                 if self.command != ('GET' if path=='/v1/library' else 'POST'): raise ApiError(405,'Неверный метод.')
                 authorization=self.headers.get('Authorization','')
@@ -252,5 +258,5 @@ if __name__=='__main__':
     for executable in (os.environ.get('YTDLP_BIN','yt-dlp'),'ffmpeg'):
         if not shutil.which(executable): raise SystemExit('Required executable unavailable: '+executable)
     library=Library(os.environ.get('MUSIC_DATA_DIR','/var/lib/iwtxz-music'),os.environ['MUSIC_PUBLIC_ORIGIN'],os.environ['SUPABASE_URL'],os.environ['SUPABASE_PUBLISHABLE_KEY'])
-    origins=set(os.environ.get('MUSIC_ALLOWED_ORIGINS','https://iwtxz.ru,https://www.iwtxz.ru').split(','))
+    origins=set(os.environ.get('MUSIC_ALLOWED_ORIGINS','https://iwtxz.su,https://www.iwtxz.su,https://iwtxz.ru,https://www.iwtxz.ru').split(','))
     server(library,origins,port=int(os.environ.get('PORT','8787'))).serve_forever()
