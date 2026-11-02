@@ -1,0 +1,26 @@
+{
+  "id": "711225785150865428",
+  "guildId": "1557152366208229486",
+  "member": true,
+  "username": "facelesshvh",
+  "globalName": "faceless",
+  "displayName": "faceless",
+  "avatarHash": "1d9cad7cb8c79888116a1b50440b27ac",
+  "avatarUrl": "https://cdn.discordapp.com/avatars/711225785150865428/1d9cad7cb8c79888116a1b50440b27ac.png?size=256",
+  "badges": [
+    {
+      "id": "house-bravery",
+      "label": "HypeSquad Bravery"
+    }
+  ],
+  "primaryGuild": null,
+  "avatarDecoration": {
+    "asset": "a_13913a00bd9990ab4102a3bf069f0f3f",
+    "skuId": "1271174640026255380"
+  },
+  "statusText": "",
+  "status": "dnd",
+  "activity": null,
+  "managedBy": "iwtxz-public-discord-sync",
+  "updatedAt": 1793623047677
+}
