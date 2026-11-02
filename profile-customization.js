@@ -1,5 +1,6 @@
 (() => {
   "use strict";
+  const sceneVersion = new URL(document.currentScript?.src || "/profile-customization.js", document.baseURI || location.origin).search || "?v=20261102";
 
   const minecraft = '"Minecraft", "Trebuchet MS", "Segoe UI", sans-serif';
   const system = '"Trebuchet MS", "Segoe UI", sans-serif';
@@ -127,7 +128,15 @@
     let loadedFontFamily = "";
     let pollTimer = 0;
     let disposed = false;
-    const scene = window.IwtxzProfileScene?.create();
+    let scene = window.IwtxzProfileScene?.create();
+    if (!scene && document.head) {
+      if (!document.querySelector('link[href*="profile-scene.css"]')) {
+        const style=document.createElement('link');style.rel='stylesheet';style.href='/profile-scene.css'+sceneVersion;document.head.append(style);
+      }
+      const script=document.createElement('script');script.src='/profile-scene.js'+sceneVersion;
+      script.onload=()=>{if(!disposed){scene=window.IwtxzProfileScene?.create();scene?.apply(settings);}};
+      document.head.append(script);
+    }
 
     function notify(state, updatedAt) {
       if (window.parent !== window) window.parent.postMessage({ type: "iwtxz-discord-status", userId: requestedUser, state, updatedAt }, location.origin);
@@ -269,7 +278,7 @@
           nodes.avatar.style.objectFit = decoratedPreset || site.avatarFit === "contain" ? "contain" : "cover";
           nodes.avatar.style.objectPosition = "center";
         }
-        else nodes.avatar.style.backgroundSize = decoratedPreset ? "contain" : "cover";
+        else nodes.avatar.style.setProperty("background-size", decoratedPreset || site.avatarFit === "contain" ? "contain" : "cover", "important");
       }
       if (nodes.nicknameBadges) {
         const selected = Array.isArray(site.profileBadges) ? [...new Set(site.profileBadges)].filter(id => Object.hasOwn(decorations, id)).slice(0, 7) : [];
