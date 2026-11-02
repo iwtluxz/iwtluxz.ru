@@ -68,6 +68,16 @@ test("profile effects migration preserves old data, round-trips features, valida
       assert.equal((await db.query("select settings from public.profile_published where username='alice'")).rows[0].settings.favicon,update.favicon);
       for(const bad of [{backgroundEffect:'injected'},{cursorStyle:'url(evil)'},{effectIntensity:200},{favicon:'javascript:alert(1)'},{avatarFit:'bad'}])await assert.rejects(db.query('select public.builder_save_profile($1::jsonb)',[JSON.stringify({...update,...bad})]),e=>e.code==='22023');
     });
+    await t.test("layout controls retain saved effects and round-trip sizes and copy visibility", async () => {
+      await db.exec('reset role;');
+      const layout=await readFile(new URL('../supabase/migrations/20261102_profile_layout_controls.sql',import.meta.url),'utf8');
+      await db.exec(layout);await db.exec(layout);
+      await db.exec(`set role authenticated; select set_config('request.jwt.claim.sub','${alice}',false);`);
+      const update={...settings,profileScale:80,nicknameSize:24,discordShowCopyHint:false};
+      const result=await db.query('select public.builder_save_profile($1::jsonb) as value',[JSON.stringify(update)]);
+      for(const key of ['profileScale','nicknameSize','discordShowCopyHint'])assert.equal(result.rows[0].value[key],update[key]);
+      for(const bad of [{profileScale:30},{nicknameSize:200},{discordShowCopyHint:'false'}])await assert.rejects(db.query('select public.builder_save_profile($1::jsonb)',[JSON.stringify({...update,...bad})]),e=>e.code==='22023');
+    });
     await t.test("another account cannot read the draft or save as its owner", async () => {
       await db.exec(`select set_config('request.jwt.claim.sub','${bob}',false);`);
       const draft = await db.query("select * from public.profile_drafts where user_id=$1", [alice]);

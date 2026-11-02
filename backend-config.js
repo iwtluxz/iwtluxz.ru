@@ -8,5 +8,5 @@ window.IWTXZ_BACKEND_CONFIG = Object.freeze({
   bucket: "profile-assets",
   musicApiUrl: "https://music.iwtxz.su",
   discordGuildId: "1557152366208229486",
-  discordInviteUrl: "https://discord.gg/fnmEdMKr"
+  discordInviteUrl: "https://discord.gg/cbtEaVcZHC"
 });

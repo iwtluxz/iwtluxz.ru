@@ -2,12 +2,20 @@
   "use strict";
   const $ = (selector) => document.querySelector(selector);
   const all = (selector) => [...document.querySelectorAll(selector)];
+  // A cached HTML page can request a newer script after a deployment.
+  const uiVersion = "20261102-loading-2";
+  if (["effectIntensity", "backgroundEffect", "avatarFit", "ownMusicFiles", "discordDecorationHint", "profileScale", "nicknameSize", "discordShowCopyHint"].some(id => !$("#"+id))) {
+    const fresh = new URL(location.href);
+    if (fresh.searchParams.get("_ui") !== uiVersion) { fresh.searchParams.set("_ui",uiVersion);location.replace(fresh.href); }
+    else if ($("#authStatus")) $("#authStatus").textContent="Не удалось обновить интерфейс. Обнови страницу с очисткой кеша.";
+    return;
+  }
   const features = window.IwtxzProfileFeatures;
   const socialFields = features?.socials.map(item => item.id) || ["discord", "telegram", "steam"];
   const textFields = ["title", "nickname", "description", "entryText", "musicTitle", ...socialFields, "discordUserId"];
-  const numberFields = ["avatarSize", "backgroundDim", "nicknameGradientAngle", "discordCardOpacity", "discordCardRadius", "effectIntensity"];
+  const numberFields = ["avatarSize", "backgroundDim", "nicknameGradientAngle", "discordCardOpacity", "discordCardRadius", "effectIntensity", "profileScale", "nicknameSize"];
   const optionFields = ["font", "accentColor", "backgroundType", "nicknameGradientStart", "nicknameGradientEnd", "musicPlayerStyle", "discordCardStyle", "discordCardColor", "nicknameAnimation", "avatarDecoration", "backgroundEffect", "cursorStyle", "avatarFit"];
-  const boolFields = ["musicLoop", "showDiscord", "nicknameGradient", "discordSync", "discordUseAvatar", "discordShowStatus", "discordShowBadges", "discordShowActivity", "profileTilt"];
+  const boolFields = ["musicLoop", "showDiscord", "nicknameGradient", "discordSync", "discordUseAvatar", "discordShowStatus", "discordShowBadges", "discordShowActivity", "profileTilt", "discordShowCopyHint"];
   const assetFields = ["avatar", "background", "music", "musicCover", "customFont", "favicon", "customCursor"];
   const decorativeBadges = new Set(["star", "heart", "moon", "sparkle", "code", "music", "flower"]);
   const defaults = {
@@ -20,7 +28,7 @@
     musicPlayerStyle: "classic", showButterfly: false, profileBadges: [], discordUserId: "", discordSync: false,
     discordCardStyle: "glass", discordCardColor: "#111111", discordCardOpacity: 65, discordCardRadius: 18,
     discordUseAvatar: true, discordShowStatus: true, discordShowBadges: true, discordShowActivity: true,
-    nicknameAnimation: "none", avatarDecoration: "none", avatarFit:"cover", backgroundEffect:"none",effectIntensity:50,profileTilt:false,cursorStyle:"default",customCursor:"",favicon:""
+    nicknameAnimation: "none", avatarDecoration: "none", avatarFit:"cover", backgroundEffect:"none",effectIntensity:50,profileTilt:false,cursorStyle:"default",customCursor:"",favicon:"",profileScale:100,nicknameSize:32,discordShowCopyHint:true
   };
   const fileHints = Object.fromEntries(all("[data-file-note]").map((e) => [e.dataset.fileNote, e.textContent]));
   const previewFrame = $("#previewFrame");
@@ -66,6 +74,15 @@
   let previewTimer;
   let toastTimer;
   let discordSnapshotStatus = null;
+  let previewVisible = true;
+  function sendPreviewVisibility() {
+    previewFrame.contentWindow?.postMessage({type:"iwtxz-preview-visibility",visible:previewVisible&&!document.hidden},location.origin);
+  }
+  if (typeof IntersectionObserver === "function") {
+    const observer=new IntersectionObserver(entries=>{previewVisible=entries[0]?.isIntersecting!==false;sendPreviewVisibility();},{rootMargin:"80px"});
+    observer.observe(previewFrame);
+    document.addEventListener("visibilitychange",sendPreviewVisibility);
+  }
   let decorationAvatarSource = "", decorationAvatarVersion = 0, discordDecoration = null;
   function updateDecorationAvatars() {
     const images=all('[data-decoration-avatar]');if(!images.length)return;
@@ -205,6 +222,7 @@
   function sendPreview() {
     if (currentUser && previewFrame.contentWindow) {
       previewFrame.contentWindow.postMessage({ type: "iwtxz-profile-preview", site: readEditor() }, location.origin);
+      sendPreviewVisibility();
     }
   }
 
@@ -439,7 +457,15 @@
 
   async function saveDraft() {
     const site = validateSite();
+    const submittedSnapshot = snapshot(site);
     const data = await api("/api/builder/sites/save", { method: "POST", body: JSON.stringify({ site }) });
+    const labels={avatarDecoration:"украшение аватара",nicknameAnimation:"анимацию ника",backgroundEffect:"эффект фона",profileTilt:"наклон карточки",cursorStyle:"курсор",customCursor:"свой курсор",favicon:"иконку вкладки",music:"трек",musicCover:"обложку",nicknameSize:"размер ника",profileScale:"масштаб",discordShowCopyHint:"подсказку копирования"};
+    const lost=Object.keys(labels).filter(key=>Object.hasOwn(data.site||{},key)||site[key]!==defaults[key]).filter(key=>data.site?.[key]!==site[key]);
+    if(lost.length)throw new Error(`Сервер не подтвердил ${lost.map(key=>labels[key]).join(", ")}. Выбор остался в редакторе. Попробуй сохранить ещё раз.`);
+    if(snapshot(readEditor())!==submittedSnapshot){
+      savedSnapshot=snapshot(data.site);updatePreview();
+      throw new Error("Черновик сохранён, но за время запроса появились новые изменения. Они остались в редакторе — примени их ещё раз.");
+    }
     writeEditor(data.site);
     return data.site;
   }

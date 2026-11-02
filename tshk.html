@@ -8,30 +8,30 @@
   <meta name="theme-color" content="#09090c">
   <base href="/">
   <link rel="icon" type="image/png" href="img/tree.png">
-  <link rel="stylesheet" href="profile.css?v=9dfe65c5ae03">
-  <link rel="stylesheet" href="profile-customization.css?v=d3b8163c43c8">
+  <link rel="stylesheet" href="profile.css?v=b0b0da4eee86">
+  <link rel="stylesheet" href="profile-customization.css?v=b8191a90e513">
   <title>Профиль | iwtxz</title>
   <script src="profile-links.js?v=40c61c4a7df8" defer></script>
   <script src="vendor/supabase-2.102.0.min.js" defer></script>
-  <script src="backend-config.js?v=2b803f141b48" defer></script>
-  <script src="backend-client.js?v=c446e8cb8252" defer></script>
-  <script src="profile-features.js?v=1a26edc2e72a" defer></script>
+  <script src="backend-config.js?v=bde35107dd7e" defer></script>
+  <script src="backend-client.js?v=55520241290b" defer></script>
+  <script src="profile-features.js?v=87e5ff3a13e5" defer></script>
   <script src="music-services.js?v=234bde8af610" defer></script>
-  <script src="profile-scene.js?v=535dfe48c0ee" defer></script>
-  <script src="profile-customization.js?v=0ee9551d2fb4" defer></script>
-  <script src="profile.js?v=932a97180853" defer></script>
-  <link rel="stylesheet" href="profile-features.css?v=a4936b7ff8b0">
+  <script src="profile-scene.js?v=5736e554973a" defer></script>
+  <script src="profile-customization.js?v=30aaef7868a5" defer></script>
+  <script src="profile.js?v=4aff1461eafa" defer></script>
+  <link rel="stylesheet" href="profile-features.css?v=249439027b2b">
   <link rel="stylesheet" href="music-services.css?v=f21e22eef0ad">
-  <link rel="stylesheet" href="profile-scene.css?v=710273cbbc74">
+  <link rel="stylesheet" href="profile-scene.css?v=6bdc3000a41e">
 </head>
 <body class="is-loading">
-  <video class="profile-background-video" id="backgroundVideo" muted loop playsinline aria-hidden="true" hidden></video>
+  <video class="profile-background-video" id="backgroundVideo" preload="metadata" muted loop playsinline aria-hidden="true" hidden></video>
   <div class="profile-background-image" id="backgroundImage" aria-hidden="true"></div>
   <div class="profile-shade" aria-hidden="true"></div>
 
   <p class="page-message" id="pageMessage" role="status">Загружаю профиль…</p>
   <main class="profile" id="profile" aria-label="Профиль" hidden>
-    <span class="profile-avatar-frame"><img class="profile-avatar" id="profileAvatar" src="img/mainavatar.gif" alt="Аватар"></span>
+    <span class="profile-avatar-frame"><img class="profile-avatar" id="profileAvatar" alt="Аватар"></span>
     <div class="iwtxz-name-row">
       <h1 class="profile-name" id="profileName"></h1>
       <div class="iwtxz-profile-badges" id="profileBadges" aria-label="Украшения профиля" hidden></div>
@@ -43,14 +43,14 @@
       <a class="social-link" id="steamLink" target="_blank" rel="noopener noreferrer" aria-label="Steam" hidden><img src="img/steam.png" alt=""></a>
     </nav>
     <button class="discord-profile" id="discordCard" type="button" aria-label="Скопировать Discord" hidden>
-      <span class="discord-avatar-wrap"><img id="discordAvatar" src="img/mainavatar.gif" alt=""><span class="discord-presence" id="discordPresence" hidden></span></span>
+      <span class="discord-avatar-wrap"><img id="discordAvatar" alt=""><span class="discord-presence" id="discordPresence" hidden></span></span>
       <span class="discord-profile-body"><span class="discord-profile-top"><strong id="discordName"></strong><span class="discord-earned-badges" id="discordBadges" aria-label="Значки Discord и украшения"></span></span><span class="discord-note" id="discordStatus" hidden></span><span class="discord-sync-activity" id="discordActivity" hidden></span><span class="discord-note discord-copy-note">Discord <span aria-hidden="true">·</span> нажми, чтобы скопировать</span></span>
       <span class="copy-symbol" aria-hidden="true">⧉</span>
     </button>
   </main>
 
   <section class="music-player" id="musicPlayer" aria-label="Музыкальный плеер" hidden>
-    <img class="music-cover" id="musicCover" src="img/mysoundicon.png" alt="">
+    <img class="music-cover" id="musicCover" alt="">
     <div class="music-main">
       <div class="music-title" id="musicTitle"></div>
       <div class="music-progress-row">

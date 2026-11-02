@@ -11,18 +11,18 @@
   <title>Личный кабинет · iwtxz</title>
   <script src="profile-links.js?v=40c61c4a7df8" defer></script>
   <script src="vendor/supabase-2.102.0.min.js" defer></script>
-  <script src="backend-config.js?v=2b803f141b48" defer></script>
-  <script src="backend-client.js?v=c446e8cb8252" defer></script>
-  <script src="profile-features.js?v=1a26edc2e72a" defer></script>
+  <script src="backend-config.js?v=bde35107dd7e" defer></script>
+  <script src="backend-client.js?v=55520241290b" defer></script>
+  <script src="profile-features.js?v=87e5ff3a13e5" defer></script>
   <script src="music-library.js?v=d0108d00f687" defer></script>
   <script src="music-services.js?v=234bde8af610" defer></script>
   <script src="music-catalog-data.js?v=920cd10922e5" defer></script>
   <script src="music-catalog.js?v=3255ce8d0ec9" defer></script>
-  <script src="profile-scene.js?v=535dfe48c0ee" defer></script>
-  <script src="builder.js?v=1a6dd7e76757" defer></script>
-  <link rel="stylesheet" href="profile-features.css?v=a4936b7ff8b0">
+  <script src="profile-scene.js?v=5736e554973a" defer></script>
+  <script src="builder.js?v=f3705fd69afc" defer></script>
+  <link rel="stylesheet" href="profile-features.css?v=249439027b2b">
   <link rel="stylesheet" href="music-services.css?v=f21e22eef0ad">
-  <link rel="stylesheet" href="profile-scene.css?v=710273cbbc74">
+  <link rel="stylesheet" href="profile-scene.css?v=6bdc3000a41e">
 </head>
 <body class="auth-locked">
   <header class="topbar">
@@ -66,13 +66,15 @@
       <form id="editorForm" novalidate>
         <section class="settings-section" data-settings-section="profile" aria-labelledby="profileHeading">
           <h2 id="profileHeading">Профиль</h2><button class="effects-shortcut" type="button" id="openEffects"><span class="effects-shortcut-icon" aria-hidden="true">✧</span><span><strong>Анимация ника и украшение аватара</strong><small id="effectsSummary">Открыть эффекты</small></span><span aria-hidden="true">↗</span></button>
-          <div class="upload-card"><img id="avatarThumbnail" class="avatar-thumbnail" src="img/mainavatar.gif" alt="Текущая аватарка"><div class="upload-details"><label for="avatarFile">Аватарка</label><input id="avatarFile" data-upload="avatar" type="file" accept="image/png,image/jpeg,image/gif,image/webp"><span class="hint" data-file-note="avatar">PNG, JPG, GIF или WebP · до 4 МБ</span></div><button type="button" class="text-button" data-remove="avatar">Убрать</button></div>
+          <div class="upload-card"><img id="avatarThumbnail" class="avatar-thumbnail" src="img/tree.png" alt="Текущая аватарка"><div class="upload-details"><label for="avatarFile">Аватарка</label><input id="avatarFile" data-upload="avatar" type="file" accept="image/png,image/jpeg,image/gif,image/webp"><span class="hint" data-file-note="avatar">PNG, JPG, GIF или WebP · до 4 МБ</span></div><button type="button" class="text-button" data-remove="avatar">Убрать</button></div>
           <details class="url-details"><summary>Или указать ссылку на аватарку</summary><label class="field">Ссылка<input id="avatarUrl" data-asset-url="avatar" type="url" placeholder="https://…"></label></details>
 
           <div class="form-grid">
             <label class="field">Ник на странице<input id="nickname" maxlength="40" placeholder="Как тебя зовут?" required></label>
             <label class="field">Название вкладки<input id="title" maxlength="80" placeholder="Моя страница" required></label>
             <label class="field">Заполнение аватара<select id="avatarFit"><option value="cover">Заполнить круг</option><option value="contain">Показать целиком</option></select></label>
+            <label class="field">Масштаб карточки, %<input id="profileScale" type="number" min="70" max="120" value="100"></label>
+            <label class="field">Размер ника, px<input id="nicknameSize" type="number" min="18" max="52" value="32"></label>
 
             <label class="field wide">О себе<textarea id="description" maxlength="500" rows="4" placeholder="Пара слов, цитата или просто настроение"></textarea><span class="hint" id="descriptionCount">0 / 500</span></label>
             <label class="field wide">Текст на экране входа<input id="entryText" maxlength="80" placeholder="click to enter..."></label>
@@ -159,7 +161,7 @@
           <div class="upload-card"><div class="upload-details"><label for="musicFile">Твой трек</label><input id="musicFile" data-upload="music" type="file" accept="audio/mpeg,audio/mp3,audio/ogg,audio/wav,audio/x-wav,audio/mp4,audio/webm"><span class="hint" data-file-note="music">MP3, OGG, WAV, M4A или WebM · до 4 МБ</span></div><button type="button" class="text-button" data-remove="music">Убрать</button></div>
           <details class="url-details"><summary>Или указать ссылку на музыку</summary><label class="field">Ссылка на трек или аудиофайл<input id="musicUrl" data-asset-url="music" type="url" placeholder="https://…"></label><span class="hint">Прямая ссылка на аудио или трек Яндекс Музыки, YouTube, Spotify.</span></details>
           <label class="field">Название трека<input id="musicTitle" maxlength="80" placeholder="Исполнитель — название"></label>
-          <div class="upload-card"><img id="coverThumbnail" class="cover-thumbnail" src="img/mysoundicon.png" alt="Обложка трека"><div class="upload-details"><label for="musicCoverFile">Обложка</label><input id="musicCoverFile" data-upload="musicCover" type="file" accept="image/png,image/jpeg,image/gif,image/webp"><span class="hint" data-file-note="musicCover">Картинка · до 4 МБ</span></div><button type="button" class="text-button" data-remove="musicCover">Убрать</button></div>
+          <div class="upload-card"><img id="coverThumbnail" class="cover-thumbnail" src="img/tree.png" alt="Обложка трека"><div class="upload-details"><label for="musicCoverFile">Обложка</label><input id="musicCoverFile" data-upload="musicCover" type="file" accept="image/png,image/jpeg,image/gif,image/webp"><span class="hint" data-file-note="musicCover">Картинка · до 4 МБ</span></div><button type="button" class="text-button" data-remove="musicCover">Убрать</button></div>
           <label class="checkbox-field"><input id="musicLoop" type="checkbox" checked><span>Повторять трек</span></label>
           </details>
         </section>
@@ -187,10 +189,12 @@
           <label class="checkbox-field"><input id="showDiscord" type="checkbox" checked><span>Показывать карточку Discord</span></label>
           <div class="settings-group">
             <h3>Discord в твоей карточке</h3>
-            <div class="discord-join-note"><p>Для обновления аватарки, статуса и значков вступи на наш сервер и укажи свой ID Discord.</p><a id="discordJoinLink" class="button small" href="https://discord.gg/fnmEdMKr" target="_blank" rel="noopener noreferrer">Вступить в Discord ↗</a></div>
-            <label class="field">ID пользователя Discord<input id="discordUserId" inputmode="numeric" pattern="[0-9]{17,20}" minlength="17" maxlength="20" placeholder="Например, 484816707798564894"><span class="hint">Это числовой ID, а не ник. Данные карточки берутся из указанного аккаунта.</span></label>
+            <div class="discord-join-note"><p>Для обновления аватарки, статуса и значков вступи на наш сервер и укажи свой ID Discord.</p><a id="discordJoinLink" class="button small" href="https://discord.gg/cbtEaVcZHC" target="_blank" rel="noopener noreferrer">Вступить в Discord ↗</a></div>
+            <label class="field">ID пользователя Discord<input id="discordUserId" inputmode="numeric" pattern="[0-9]{17,20}" minlength="17" maxlength="20" placeholder="Например, 484816707798564894"><span class="hint">Это числовой ID, а не ник. Для значков включи синхронизацию, вступи на сервер и примени изменения.</span></label>
             <details class="url-details"><summary>Где найти свой ID?</summary><p class="hint">В Discord открой «Настройки → Расширенные» и включи режим разработчика. Затем нажми правой кнопкой по своему профилю → «Копировать ID пользователя».</p></details>
-            <label class="checkbox-field"><input id="discordSync" type="checkbox"><span>Обновлять данные карточки из Discord</span></label>
+            <label class="checkbox-field"><input id="discordSync" type="checkbox"><span>Получать аватар, значки и украшение из Discord</span></label>
+            <p class="hint">Для значков нужны числовой ID и включённая синхронизация. Одного ника недостаточно. ID: Discord → Настройки → Расширенные → Режим разработчика, затем правой кнопкой по себе → Копировать ID.</p>
+            <label class="checkbox-field"><input id="discordShowCopyHint" type="checkbox" checked><span>Показывать подсказку «нажми, чтобы скопировать» и значок копирования</span></label>
             <p class="hint" id="discordSyncHint" aria-live="polite">Добавь ID и вступи на сервер, чтобы включить обновление.</p>
             <div class="form-grid"><label class="field">Стиль карточки<select id="discordCardStyle"><option value="glass">Стекло</option><option value="solid">Сплошной фон</option><option value="minimal">Минимальный</option></select></label><label class="field">Цвет карточки<input id="discordCardColor" type="color" value="#111111"></label></div>
             <label class="field range-field">Плотность фона<output for="discordCardOpacity" id="discordCardOpacityValue">65%</output><input id="discordCardOpacity" type="range" min="0" max="100" value="65"></label>
@@ -214,7 +218,7 @@
     </section>
     <aside class="panel preview-panel requires-auth" aria-labelledby="previewHeading">
       <div class="preview-heading"><h2 id="previewHeading">Превью</h2><span class="preview-badge"><span class="live-dot" aria-hidden="true"></span> в реальном времени</span></div>
-      <iframe id="previewFrame" title="Предпросмотр твоей страницы" src="profile.html?preview=1" sandbox="allow-scripts allow-same-origin" allow="autoplay; clipboard-write"></iframe>
+      <iframe id="previewFrame" title="Предпросмотр твоей страницы" src="profile.html?preview=1" loading="lazy" sandbox="allow-scripts allow-same-origin" allow="autoplay; clipboard-write"></iframe>
       <div class="preview-footer"><span class="hint" id="publishedStatus">Страница ещё не опубликована</span><a class="text-button hidden" id="openProfile" target="_blank" rel="noopener noreferrer">Открыть страницу ↗</a></div>
     </aside>
   </main>

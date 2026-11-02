@@ -19,6 +19,7 @@
   const pageMessage = byId("pageMessage");
   let currentSite = null;
   let entered = isPreview;
+  let previewSuspended = false;
   let toastTimer;
   let mediaKey = "iwtxz-profile-volume";
   let discordCopyName = "";
@@ -168,6 +169,7 @@
     }
     overlay.setAttribute("aria-hidden", "true");
     if (currentSite.music) void playMusic();
+    applyBackground(currentSite);
   }
 
   function applyBackground(site) {
@@ -181,7 +183,7 @@
         backgroundVideo.load();
       }
       backgroundVideo.hidden = reducedMotion.matches;
-      if (!reducedMotion.matches) void backgroundVideo.play().catch(() => {});
+      if (!reducedMotion.matches && entered && !previewSuspended && !document.hidden) void backgroundVideo.play().catch(() => {});
       else backgroundVideo.pause();
     } else {
       backgroundVideo.pause();
@@ -215,7 +217,7 @@
       music: assetUrl(input.music, "music")
     };
     const firstRender = !currentSite;
-    const sourceChanged = audio.getAttribute("src") !== site.music;
+    const sourceChanged = (audio.getAttribute("src")||"") !== (window.IwtxzMusicServices?.source(site.music)?"":site.music);
     const ownerChanged = currentSite?.owner !== site.owner;
     currentSite = site;
     document.title = `${site.title || site.nickname} | iwtxz`;
@@ -231,8 +233,7 @@
     byId("profileAvatar").hidden = !avatar;
     byId("discordAvatar").hidden = !avatar;
     if (avatar) {
-      byId("profileAvatar").src = avatar;
-      byId("discordAvatar").src = avatar;
+      for(const id of ["profileAvatar","discordAvatar"])if(byId(id).getAttribute("src")!==avatar)byId(id).src=avatar;
     } else {
       byId("profileAvatar").removeAttribute("src");
       byId("discordAvatar").removeAttribute("src");
@@ -252,7 +253,7 @@
     const cover = assetUrl(site.musicCover, "musicCover");
     byId("musicCover").hidden = !cover;
     player.classList.toggle("no-cover", !cover);
-    if (cover) byId("musicCover").src = cover;
+    if (cover) { if(byId("musicCover").getAttribute("src")!==cover)byId("musicCover").src = cover; }
     else byId("musicCover").removeAttribute("src");
     const embedded = servicePlayer?.apply(site.music, site.musicTitle);
     player.hidden = !site.music || embedded;
@@ -338,6 +339,14 @@
     pageMessage.textContent = "Настрой свою страницу в редакторе";
     window.addEventListener("message", (event) => {
       if (event.source !== window.parent || event.origin !== window.location.origin) return;
+      if(event.data?.type==='iwtxz-preview-visibility'){
+        previewSuspended=event.data.visible===false;
+        document.body.classList.toggle('is-preview-paused',previewSuspended);
+        window.dispatchEvent(new CustomEvent('iwtxz-preview-visibility',{detail:!previewSuspended}));
+        if(previewSuspended){backgroundVideo.pause();audio.pause();}
+        else if(currentSite)applyBackground(currentSite);
+        return;
+      }
       if (event.data?.type !== "iwtxz-profile-preview") return;
       applySite(event.data.site);
     });
@@ -368,6 +377,11 @@
         if (!data.site) throw new Error("Страница пока не опубликована.");
         applySite(data.site);
       })
-      .catch((error) => { pageMessage.textContent = error.message || "Не удалось загрузить страницу."; });
+      .catch((error) => {
+        pageMessage.textContent = error.message || "Не удалось загрузить страницу.";
+        const retry=document.createElement('button');retry.type='button';retry.className='profile-retry';retry.textContent='Повторить загрузку';
+        retry.addEventListener('click',()=>{const fresh=new URL(location.href);fresh.searchParams.set('_reload',Date.now());location.replace(fresh.href);});
+        pageMessage.append(document.createElement('br'),retry);
+      });
   }
 })();

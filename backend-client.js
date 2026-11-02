@@ -142,7 +142,7 @@
     });
     try {
       return await Promise.race([(async () => {
-        const response = await window.fetch(input, { ...options, signal: controller.signal });
+        const response = await window.fetch(input, { ...options, cache: "no-store", signal: controller.signal });
         const bytes = await response.arrayBuffer();
         if (context.retired || controller.signal.aborted) throw requestTimeout();
         return new Response(bytes.byteLength && ![204, 205, 304].includes(response.status) ? bytes : null, { status: response.status, statusText: response.statusText, headers: response.headers });
@@ -611,6 +611,10 @@
       ownership(site, account);
       const newSocials = ["vk", "youtube", "twitch", "tiktok", "instagram", "github", "spotify", "x", "soundcloud", "reddit", "boosty", "website"];
       const hasFeatures = (site.nicknameAnimation && site.nicknameAnimation !== "none") || (site.avatarDecoration && site.avatarDecoration !== "none") || newSocials.some(key => Boolean(site[key]));
+      if((site.nicknameSize!==undefined&&site.nicknameSize!==32)||(site.profileScale!==undefined&&site.profileScale!==100)||site.discordShowCopyHint===false){
+        const capabilities=await getClient().rpc('builder_capabilities');
+        if(capabilities.error||capabilities.data?.profileSettingsVersion<5||capabilities.data?.profileLayout!==true)throw error(503,'Для масштаба и подсказки копирования нужно обновление базы 20261102_profile_layout_controls.sql.','backend_features_update_required');
+      }
       if((site.backgroundEffect&&site.backgroundEffect!=='none')||site.profileTilt||(site.cursorStyle&&site.cursorStyle!=='default')||site.customCursor||site.favicon||site.avatarFit==='contain'){
         const result=await getClient().rpc('builder_capabilities');
         if(result.error||result.data?.profileSettingsVersion<4||result.data?.interactiveEffects!==true)throw error(503,'Для этих эффектов нужно обновление базы 20261102_interactive_profiles.sql.','backend_features_update_required');

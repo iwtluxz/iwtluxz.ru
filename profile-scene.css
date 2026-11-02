@@ -16,3 +16,5 @@ body[data-background-effect="parallax"] .profile-background-image, body[data-bac
 .decoration-discord-hint { display: block; margin: 10px 0 14px; color: #aaa; font-size: 10px; line-height: 1.7; }
 .scene-fields { border-top: 1px solid #ffffff20; padding-top: 22px; margin-top: 20px; }
 .profile-avatar { object-fit: cover; }
+.is-preview-paused *, .is-preview-paused *::before, .is-preview-paused *::after { animation-play-state: paused !important; }
+[data-copy-hint="false"] .discord-copy-note, [data-copy-hint="false"] .copy-symbol { display: none !important; }

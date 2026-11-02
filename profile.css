@@ -58,7 +58,7 @@ body:not(.is-entered) .profile, body:not(.is-entered) .music-player { opacity: 0
   max-width: 100%;
   margin: 0;
   color: var(--accent);
-  font-size: clamp(28px, 6vw, 40px);
+  font-size: clamp(18px, 6vw, var(--nickname-size, 32px));
   font-weight: 700;
   line-height: 1.25;
   white-space: nowrap;
@@ -121,6 +121,7 @@ body:not(.is-entered) .music-player { transform: translateX(-50%); }
 .entry-button:hover { transform: translateY(-2px); }
 .page-message { max-width: 420px; font: 14px/1.8 var(--profile-font); }
 .page-message a { color: inherit; }
+.profile-retry { margin-top: 14px; padding: 11px 16px; border: 1px solid #ffffff35; border-radius: 8px; background: #080808; color: #fff; font-size: 12px; }
 .copy-toast { position: fixed; bottom: 120px; left: 50%; z-index: 6; max-width: calc(100vw - 32px); padding: 10px 16px; border: 1px solid #ffffff26; border-radius: 10px; background: #121218ed; color: #fff; font-size: 11px; line-height: 1.6; text-align: center; opacity: 0; transform: translate(-50%, 8px); pointer-events: none; transition: opacity 0.2s, transform 0.2s; }
 .copy-toast.is-visible { opacity: 1; transform: translate(-50%, 0); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

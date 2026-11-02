@@ -4,19 +4,21 @@
   const cursors=new Set(['default','dot','ring','crosshair']);
   function safeImage(value){if(typeof value!=='string'||!value.trim()||value.length>2048)return '';try{const url=new URL(value,document.baseURI);return !url.username&&!url.password&&(url.protocol==='https:'||(url.origin===location.origin&&url.protocol==='http:'&&/^\/img\//.test(url.pathname)))?url.href:'';}catch{return '';}}
   function create(){
-    let site={},canvas,ctx,cursor,particles=[],w=0,h=0,last=0,raf=0,pointerRaf=0,sceneKey='',x=0,y=0,tiltNode=null,legacyBackground=null;
+    let site={},canvas,ctx,cursor,particles=[],w=0,h=0,last=0,raf=0,pointerRaf=0,sceneKey='',x=0,y=0,tiltNode=null,legacyBackground=null,previewSuspended=false;
+    const modest=Boolean(navigator.connection?.saveData)||(navigator.hardwareConcurrency||8)<=4||(navigator.deviceMemory||8)<=4;
+    const frameDelay=1000/(modest?18:30);
     const reduced=matchMedia('(prefers-reduced-motion: reduce)'),fine=matchMedia('(hover: hover) and (pointer: fine)');
     const listeners=new AbortController();
     const initialIcon=document.querySelector('link[rel="icon"]')?.getAttribute('href')||'/img/tree.png';
     function resize(){
-      if(!canvas)return;w=innerWidth;h=innerHeight;const scale=Math.min(devicePixelRatio||1,1.5);
+      if(!canvas)return;w=innerWidth;h=innerHeight;const scale=Math.min(devicePixelRatio||1,modest?1:1.25,Math.sqrt(1_600_000/Math.max(1,w*h)));
       canvas.width=Math.round(w*scale);canvas.height=Math.round(h*scale);ctx.setTransform(scale,0,0,scale,0,0);
-      particles=Array.from({length:Math.min(120,Math.round((site.effectIntensity||50)*Math.min(w,1400)/650))},()=>({x:Math.random()*w,y:Math.random()*h,s:Math.random()*2+.5,v:Math.random()*2+.5}));
+      particles=Array.from({length:Math.min(modest?40:80,Math.round((site.effectIntensity||50)*Math.min(w,1100)/750))},()=>({x:Math.random()*w,y:Math.random()*h,s:Math.random()*2+.5,v:Math.random()*2+.5}));
       ctx.clearRect(0,0,w,h);
     }
     function animate(time){
-      raf=0;if(document.hidden||reduced.matches||!canvas)return;
-      if(time-last>33){
+      raf=0;if(document.hidden||previewSuspended||reduced.matches||!canvas)return;
+      if(time-last>=frameDelay){
         const step=Math.min(2,(time-last)/33||1);last=time;
         ctx.clearRect(0,0,w,h);
         const effect=site.backgroundEffect;
@@ -31,7 +33,7 @@
       }
       raf=requestAnimationFrame(animate);
     }
-    function run(){if(raf)cancelAnimationFrame(raf);raf=0;if(canvas&&!document.hidden&&!reduced.matches)raf=requestAnimationFrame(animate);}
+    function run(){if(raf)cancelAnimationFrame(raf);raf=0;if(canvas&&!document.hidden&&!previewSuspended&&!reduced.matches)raf=requestAnimationFrame(animate);}
     function resetPointer(){
       tiltNode?.style.removeProperty('transform');
       document.documentElement.style.setProperty('--scene-x','0px');document.documentElement.style.setProperty('--scene-y','0px');
@@ -39,7 +41,7 @@
     }
     function pointer(event){
       x=event.clientX;y=event.clientY;
-      if(pointerRaf||!fine.matches)return;
+      if(pointerRaf||!fine.matches||previewSuspended||(!cursor&&site.backgroundEffect!=='parallax'&&!site.profileTilt))return;
       pointerRaf=requestAnimationFrame(()=>{
         pointerRaf=0;
         if(cursor){cursor.hidden=false;cursor.style.transform=`translate3d(${x}px,${y}px,0)`;}
@@ -58,6 +60,7 @@
     document.addEventListener('visibilitychange',()=>{run();if(document.hidden)resetPointer();},{signal:listeners.signal});
     reduced.addEventListener('change',()=>{resetPointer();run();},{signal:listeners.signal});
     fine.addEventListener('change',resetPointer,{signal:listeners.signal});
+    addEventListener('iwtxz-preview-visibility',event=>{previewSuspended=event.detail===false;run();if(previewSuspended)resetPointer();},{signal:listeners.signal});
     function dispose(){listeners.abort();cancelAnimationFrame(raf);cancelAnimationFrame(pointerRaf);resetPointer();canvas?.remove();cursor?.remove();legacyBackground?.remove();}
     addEventListener('pagehide',event=>{if(event.persisted){cancelAnimationFrame(raf);raf=0;resetPointer();}else dispose();},{signal:listeners.signal});
     addEventListener('pageshow',run,{signal:listeners.signal});

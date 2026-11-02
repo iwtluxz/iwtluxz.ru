@@ -33,4 +33,11 @@ for (const file of await readdir(root)) {
   html = html.replace(/(<img class="profile-avatar" id="profileAvatar"[^>]*>)(?!<\/span>)/, '<span class="profile-avatar-frame">$1</span>');
   await writeFile(url, html);
 }
+const template=await readFile(new URL('profile.html',root),'utf8');
+for(const file of await readdir(root)){
+  if(!file.endsWith('.html')||file==='profile.html')continue;
+  const url=new URL(file,root),html=await readFile(url,'utf8');
+  const username=html.match(/^<!doctype html>\r?\n<!-- iwtxz-generated-profile-route: ([a-z0-9][a-z0-9_-]{2,31}) -->/i)?.[1];
+  if(username)await writeFile(url,template.replace(/^(\uFEFF?<!doctype html>)/i,`$1\n<!-- iwtxz-generated-profile-route: ${username} -->`).replace(/(<head(?:\s[^>]*)?>)/i,`$1\n  <meta name="iwtxz-profile" content="${username}">`));
+}
 console.log("Feature controls, shared assets and avatar frames refreshed.");

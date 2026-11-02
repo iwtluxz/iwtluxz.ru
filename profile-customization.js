@@ -105,7 +105,7 @@
   async function snapshot(userId) {
     const cached = snapshotCache.get(userId);
     if (cached && Date.now() - cached.at < 55_000) return cached.promise;
-    const promise = fetch(`/data/discord-profiles/${userId}.json`, { cache: "no-store", credentials: "omit", signal: AbortSignal.timeout(8000) })
+    const promise = fetch(`/data/discord-profiles/${userId}.json?t=${Math.floor(Date.now()/60000)}`, { cache: "no-store", credentials: "omit", signal: AbortSignal.timeout(8000) })
       .then(async response => {
         if (response.status === 404) return null;
         if (!response.ok) throw new Error("Discord snapshot unavailable");
@@ -129,6 +129,9 @@
     let pollTimer = 0;
     let disposed = false;
     let scene = window.IwtxzProfileScene?.create();
+    const motion=window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    const updateMotion=()=>drawDiscord(lastSnapshot);
+    motion?.addEventListener?.('change',updateMotion);
     if (!scene && document.head) {
       if (!document.querySelector('link[href*="profile-scene.css"]')) {
         const style=document.createElement('link');style.rel='stylesheet';style.href='/profile-scene.css'+sceneVersion;document.head.append(style);
@@ -261,9 +264,13 @@
     function apply(site) {
       if (disposed) return;
       settings = site;
+      const layout=document.querySelector?.('#profile, main.panel');
+      if(layout)layout.style.zoom=String(clamp(site.profileScale,70,120,100)/100);
       scene?.apply(site);
       font(site);
       if (nodes.name) {
+        nodes.name.style.setProperty('--nickname-size',`${clamp(site.nicknameSize,18,52,32)}px`);
+        if(nodes.name.classList.contains('name-text')&&Number.isFinite(site.nicknameSize))nodes.name.style.fontSize=`${clamp(site.nicknameSize,18,52,32)}px`;
         const gradient = site.nicknameGradient === true;
         nodes.name.classList.toggle("iwtxz-gradient-name", gradient);
         nodes.name.style.setProperty("--nickname-gradient", `linear-gradient(${clamp(site.nicknameGradientAngle, 0, 360, 90)}deg, ${color(site.nicknameGradientStart, "#ffffff")}, ${color(site.nicknameGradientEnd, "#a1a1aa")})`);
@@ -286,6 +293,7 @@
         nodes.nicknameBadges.hidden = !selected.length;
       }
       if (nodes.discordCard) {
+        nodes.discordCard.dataset.copyHint=String(site.discordShowCopyHint!==false);
         const card = nodes.discordCard;
         card.classList.add("iwtxz-discord-card");
         card.dataset.cardStyle = ["solid", "minimal"].includes(site.discordCardStyle) ? site.discordCardStyle : "glass";
@@ -316,6 +324,7 @@
     function dispose() {
       disposed = true;
       scene?.dispose();
+      motion?.removeEventListener?.('change',updateMotion);
       ++fetchSerial;
       ++fontSerial;
       clearInterval(pollTimer);

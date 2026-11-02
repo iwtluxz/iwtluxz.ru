@@ -26,8 +26,9 @@ class Element {
   click() { return this.fire("click"); }
 }
 
-function loadBuilder(request, query = "") {
+function loadBuilder(request, query = "", missingIds = []) {
   const elements = new Map([...markup.matchAll(/id="([^"]+)"/g)].map(([, id]) => [id, new Element()]));
+  for(const id of missingIds)elements.delete(id);
   const loginTab = new Element(), signupTab = new Element();
   loginTab.dataset.authMode = "login"; signupTab.dataset.authMode = "signup";
   const buttons = [elements.get("authSubmit"), elements.get("showPassword"), loginTab, signupTab];
@@ -37,13 +38,14 @@ function loadBuilder(request, query = "") {
     querySelector(selector) { return selector === '[data-auth-mode="login"]' ? loginTab : selector === '[data-auth-mode="signup"]' ? signupTab : elements.get(selector.slice(1)); },
     querySelectorAll(selector) { return selector === "[data-auth-mode]" ? [loginTab, signupTab] : selector === "#authForm button, [data-auth-mode]" ? buttons : []; } };
   const location = new URL("https://example.test/" + query);
+  const navigations=[];location.replace=url=>navigations.push(url);
   const window = { location, addEventListener() {}, IwtxzBackend: { isConfigured: () => true, request } };
   const timers = new Set();
   const context = vm.createContext({ window, document, location, URL, URLSearchParams, Headers, AbortController,
     setTimeout(fn, ms) { const timer = setTimeout(fn, ms >= 5000 ? 20 : ms); timers.add(timer); return timer; }, clearTimeout });
   vm.runInContext(featuresSource, context);
   vm.runInContext(source, context);
-  return { elements, body, buttons, close() { for (const timer of timers) clearTimeout(timer); }, async submit() {
+  return { elements, body, buttons, navigations, close() { for (const timer of timers) clearTimeout(timer); }, async submit() {
     elements.get("username").value = "alice"; elements.get("password").value = "Test-password-123!";
     await elements.get("authForm").fire("submit");
   } };
@@ -53,6 +55,32 @@ const user = { username: "alice" };
 const site = { title: "Saved page", nickname: "Alice" };
 const response = path => path.endsWith("/me") ? { user: null } : path.endsWith("/list") ? { sites: [site] } : { user };
 
+test("login and generic profile templates do not preload the 4 MB default avatar", async()=>{
+  const profile=await readFile(new URL('../profile.html',import.meta.url),'utf8');
+  for(const html of [markup,profile])assert.doesNotMatch(html,/<img[^>]+src="img\/mainavatar\.gif/);
+  assert.match(markup,/<iframe[^>]+id="previewFrame"[^>]+loading="lazy"/);
+});
+
+test("cached markup missing new controls is refreshed before starting authentication",()=>{
+  let calls=0;const ui=loadBuilder(()=>{calls++;return Promise.resolve({});},'', ['profileScale']);
+  try{assert.equal(calls,0);assert.equal(ui.navigations.length,1);assert.equal(new URL(ui.navigations[0]).searchParams.get('_ui'),'20261102-loading-2');}finally{ui.close();}
+});
+
+test("an edit made during a slow save is preserved and is not replaced by the earlier response",async()=>{
+  let release,submitted,publishCalls=0;
+  const ui=loadBuilder((path,options)=>{
+    if(path.endsWith('/save')){submitted=JSON.parse(options.body).site;return new Promise(resolve=>{release=resolve;});}
+    if(path.endsWith('/publish'))publishCalls++;
+    return Promise.resolve(response(path));
+  });
+  try{
+    await ui.submit();const saving=ui.elements.get('publishButton').fire('click');await new Promise(resolve=>setImmediate(resolve));
+    ui.elements.get('nickname').value='A more recent edit';release({site:submitted});await saving;
+    assert.equal(ui.elements.get('nickname').value,'A more recent edit');assert.equal(publishCalls,0);
+    assert.match(ui.elements.get('editorStatus').textContent,/появились новые изменения/);
+  }finally{ui.close();}
+});
+
 test("registration links open signup directly with password confirmation", async () => {
   const ui = loadBuilder(path => Promise.resolve(response(path)), "?auth=signup");
   try {
@@ -60,6 +88,24 @@ test("registration links open signup directly with password confirmation", async
     assert.equal(ui.elements.get("confirmPassword").required, true);
     assert.equal(ui.elements.get("password").autocomplete, "new-password");
   } finally { ui.close(); }
+});
+
+test("a save that drops the selected decoration keeps the choice and never reports success", async () => {
+  let publishCalls=0;
+  const ui=loadBuilder(async path=>{
+    if(path.endsWith('/save'))return {site:{...site,avatarDecoration:'none'}};
+    if(path.endsWith('/publish'))publishCalls++;
+    return response(path);
+  });
+  try{
+    await ui.submit();
+    ui.elements.get('avatarDecoration').value='moon';
+    await ui.elements.get('publishButton').fire('click');
+    assert.equal(ui.elements.get('avatarDecoration').value,'moon');
+    assert.match(ui.elements.get('editorStatus').textContent,/Сервер не подтвердил украшение аватара/);
+    assert.equal(publishCalls,0);
+    assert.equal(ui.elements.get('publishButton').disabled,false);
+  }finally{ui.close();}
 });
 
 for (const stage of ["login"]) {

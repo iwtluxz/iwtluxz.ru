@@ -76,7 +76,7 @@ function load(overrides = {}) {
       if (state.rpcError) return { data: null, error: state.rpcError };
       if (name === "builder_capabilities") return state.oldCustomizationServer
         ? { data: null, error: { code: "PGRST202" } }
-        : { data: { profileSettingsVersion: state.oldEffectsServer ? 2 : state.oldInteractiveServer ? 3 : 4, interactiveEffects: !state.oldInteractiveServer, customFonts: true, profileEffects: !state.oldEffectsServer }, error: null };
+        : { data: { profileSettingsVersion: state.oldEffectsServer ? 2 : state.oldInteractiveServer ? 3 : state.oldLayoutServer ? 4 : 5, profileLayout: !state.oldLayoutServer, interactiveEffects: !state.oldInteractiveServer, customFonts: true, profileEffects: !state.oldEffectsServer }, error: null };
       if (name === "builder_get_profile") return { data: state.draft || { id: state.username, owner: state.username, nickname: state.username }, error: null };
       if (name === "builder_save_profile") { state.draft = structuredClone(input.input); return { data: state.draft, error: null }; }
       if (name === "builder_publish_profile") {
@@ -376,6 +376,8 @@ test("favicons and custom cursors use validated image uploads and interactive se
   const old=load({oldInteractiveServer:true});
   await rejects(old.api.request('/api/builder/sites/save',post({site:{backgroundEffect:'snow',profileTilt:true}})),503,'backend_features_update_required');
   assert.equal(old.state.calls.some(call=>call.method==='rpc'&&call.name==='builder_save_profile'),false);
+  const layout=load({oldLayoutServer:true});
+  await rejects(layout.api.request('/api/builder/sites/save',post({site:{profileScale:80,nicknameSize:24,discordShowCopyHint:false}})),503,'backend_features_update_required');
 });
 
 test("SVG, disguised HTML, oversized uploads and bad kinds never reach storage", async () => {

@@ -44,10 +44,15 @@
   }
   function applyAvatarDecoration(avatar, choice, discordDecoration) {
     if (!avatar) return;
-    const frame = avatar.tagName === "IMG" ? avatar.closest(".profile-avatar-frame") : avatar;
+    let frame = avatar.tagName === "IMG" ? avatar.closest(".profile-avatar-frame") : avatar;
+    if (!frame && avatar.tagName === "IMG") {
+      frame=document.createElement("span");frame.className="profile-avatar-frame";avatar.before(frame);frame.append(avatar);
+    }
     if (!frame) return;
     let image = frame.querySelector(".iwtxz-avatar-decoration");
-    const source = decorationUrl(choice, discordDecoration);
+    const reduced = Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches);
+    let source = decorationUrl(choice, discordDecoration);
+    if(reduced&&choice!=="discord")source=source.replace(/\.png$/,'.webp');
     if (avatar.tagName === "IMG") frame.hidden = avatar.hidden && !source;
     if (!image && !source) return;
     if (!image) {
@@ -57,11 +62,24 @@
       image.draggable = false;
       image.setAttribute("aria-hidden", "true");
       image.addEventListener("error", () => { image.hidden = true; });
+      image.addEventListener("load",()=>{
+        if(image.dataset.freeze!=='true')return;
+        try{
+          const canvas=document.createElement('canvas');const scale=Math.min(1,256/image.naturalWidth,256/image.naturalHeight);canvas.width=Math.round(image.naturalWidth*scale);canvas.height=Math.round(image.naturalHeight*scale);
+          canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height);const frozen=canvas.toDataURL('image/png');image.dataset.freeze='false';image.src=frozen;
+        }catch{image.dataset.freeze='false';}
+      });
       frame.append(image);
     }
+    const key=(reduced?'still:':'animated:')+source;
+    const update=image.dataset.decorationKey!==key||image.hidden;
     image.hidden = !source;
-    if (!source) image.removeAttribute("src");
-    else if (image.getAttribute("src") !== source) image.src = source;
+    if (!source) {image.removeAttribute("src");image.dataset.decorationKey=key;}
+    else if(update){
+      image.dataset.decorationKey=key;image.dataset.freeze=String(reduced&&choice==='discord');
+      if(reduced&&choice==='discord')image.crossOrigin='anonymous';else image.removeAttribute('crossorigin');
+      image.src=source;
+    }
   }
   function socialUrl(value) {
     if (typeof value !== "string" || !value.trim() || value.length > 500) return "";

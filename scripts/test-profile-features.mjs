@@ -4,7 +4,7 @@ import vm from "node:vm";
 import { readFile } from "node:fs/promises";
 
 const source = await readFile(new URL("../profile-features.js", import.meta.url), "utf8");
-function fixture({ storage = new Map(), blockedStorage = false, preview = false, auth = false } = {}) {
+function fixture({ storage = new Map(), blockedStorage = false, preview = false, auth = false, reduced = false } = {}) {
   const timers = new Map();
   const notices = [];
   let entered = false;
@@ -12,6 +12,7 @@ function fixture({ storage = new Map(), blockedStorage = false, preview = false,
   const element = tagName => ({
     tagName: tagName.toUpperCase(), classList: classList(), dataset: {}, children: [], listeners: {},
     setAttribute(name, value) { this[name] = value; },
+    removeAttribute(name) { delete this[name]; },
     append(...children) { this.children.push(...children); },
     addEventListener(type, handler) { this.listeners[type] = handler; },
     remove() { const index = notices.indexOf(this); if (index !== -1) notices.splice(index, 1); }
@@ -21,7 +22,7 @@ function fixture({ storage = new Map(), blockedStorage = false, preview = false,
     setItem: (key, value) => { if (blockedStorage) throw new Error("Storage disabled"); storage.set(key, value); }
   };
   const document = { readyState: "complete", hidden: false, querySelector: () => auth ? {} : null, querySelectorAll: () => [], createElement: element, body: { classList: classList(), append: notice => notices.push(notice) } };
-  const window = { localStorage: storageApi, sessionStorage: storageApi, addEventListener() {} };
+  const window = { localStorage: storageApi, sessionStorage: storageApi, addEventListener() {}, matchMedia:()=>({matches:reduced}) };
   window.parent = preview ? {} : window;
   vm.runInNewContext(source, { window, document, location: { search: preview ? "?preview=1" : "" }, URL, URLSearchParams, setInterval: fn => { const id = timers.size + 1; timers.set(id, fn); return id; }, clearInterval: id => timers.delete(id) });
   return { api: window.IwtxzProfileFeatures, notices, storage, document, enter: () => { entered = true; }, tick: count => { for (let i = 0; i < count; i++) for (const fn of timers.values()) fn(); } };
@@ -67,4 +68,13 @@ test("profile effects only accept known choices and public HTTPS destinations", 
   assert.equal(api.decorationUrl("discord", { asset: "a_" + "a".repeat(32) }), `https://cdn.discordapp.com/avatar-decoration-presets/a_${"a".repeat(32)}.png?size=256&passthrough=true`);
   assert.equal(api.socialUrl("https://github.com/alice"), "https://github.com/alice");
   for (const value of ["javascript:alert(1)", "http://example.com", "https://user:password@example.com", "https://example.com/" + "x".repeat(500), "not a url"]) assert.equal(api.socialUrl(value), "");
+});
+
+test("reduced motion keeps a selected avatar decoration visible as a static image",()=>{
+  const {api}=fixture({auth:true,reduced:true});let art;
+  const frame={querySelector:()=>art,append:image=>{art=image;}};
+  const avatar={tagName:'IMG',hidden:false,closest:()=>frame};
+  api.applyAvatarDecoration(avatar,'sakura');
+  assert.equal(art.hidden,false);assert.equal(art.src,'/img/avatar-decorations/sakura.webp');
+  api.applyAvatarDecoration(avatar,'none');assert.equal(art.hidden,true);
 });

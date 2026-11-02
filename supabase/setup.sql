@@ -173,6 +173,7 @@ begin
     'spotify', '', 'x', '', 'soundcloud', '', 'reddit', '', 'boosty', '', 'website', '');
   result := result || jsonb_build_object('backgroundEffect','none','effectIntensity',50,
     'profileTilt',false,'cursorStyle','default','customCursor','','favicon','', 'avatarFit','cover');
+  result := result || jsonb_build_object('profileScale',100,'nicknameSize',32,'discordShowCopyHint',true);
   if username not in ('iwtlu','shakzy','strelokk') then
     result := result || jsonb_build_object('avatar','','background','','music','','musicTitle','','musicCover','');
   end if;
@@ -317,7 +318,8 @@ begin
   if value not in ('none','discord','phoenix','heartbloom','shy','sakura','moon','embers','aurora','cat') then
     raise exception using errcode = '22023', message = 'Неизвестное украшение аватара.';
   end if;
-  result := result || jsonb_build_object('avatarDecoration', value, 'profileBadges', badges, 'settingsVersion', 4);
+  result := result || jsonb_build_object('avatarDecoration', value, 'profileBadges', badges, 'settingsVersion', 5);
+  result := result || jsonb_build_object('profileScale',private.profile_number(input,'profileScale',100,70,120),'nicknameSize',private.profile_number(input,'nicknameSize',32,18,52),'discordShowCopyHint',private.profile_boolean(input,'discordShowCopyHint',true));
   value := private.profile_text(input,'backgroundEffect','none',16);
   if value not in ('none','snow','rain','matrix','glitch','parallax') then raise exception using errcode='22023',message='Неизвестный эффект фона.'; end if;
   result := result || jsonb_build_object('backgroundEffect',value,'effectIntensity',private.profile_number(input,'effectIntensity',50,10,100),'profileTilt',private.profile_boolean(input,'profileTilt',false));
@@ -343,7 +345,7 @@ $$;
 
 create or replace function public.builder_capabilities()
 returns jsonb language sql stable set search_path = '' as $$
-  select jsonb_build_object('profileSettingsVersion', 4, 'customFonts', true, 'profileEffects', true, 'interactiveEffects', true);
+  select jsonb_build_object('profileSettingsVersion', 5, 'customFonts', true, 'profileEffects', true, 'interactiveEffects', true,'profileLayout',true);
 $$;
 revoke all on function public.builder_capabilities() from public;
 grant execute on function public.builder_capabilities() to anon, authenticated;
