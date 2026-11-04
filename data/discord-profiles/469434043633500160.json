@@ -1,0 +1,23 @@
+{
+  "id": "469434043633500160",
+  "guildId": "1557152366208229486",
+  "member": true,
+  "username": "garsia_dy",
+  "globalName": "Silence",
+  "displayName": "Silence",
+  "avatarHash": "299dbfe2ae515cdf7cf5498d15fac87a",
+  "avatarUrl": "https://cdn.discordapp.com/avatars/469434043633500160/299dbfe2ae515cdf7cf5498d15fac87a.png?size=256",
+  "badges": [
+    {
+      "id": "house-bravery",
+      "label": "HypeSquad Bravery"
+    }
+  ],
+  "primaryGuild": null,
+  "avatarDecoration": null,
+  "statusText": "",
+  "status": "online",
+  "activity": null,
+  "managedBy": "iwtxz-public-discord-sync",
+  "updatedAt": 1793791295169
+}
