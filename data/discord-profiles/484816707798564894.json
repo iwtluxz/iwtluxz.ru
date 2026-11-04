@@ -24,7 +24,12 @@
   },
   "statusText": "love @me",
   "status": "idle",
-  "activity": null,
+  "activity": {
+    "type": 0,
+    "name": "How to Fish",
+    "details": "",
+    "state": ""
+  },
   "managedBy": "iwtxz-public-discord-sync",
-  "updatedAt": 1793791295168
+  "updatedAt": 1793813119342
 }
