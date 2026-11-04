@@ -23,13 +23,8 @@
     "skuId": "1252404760448077864"
   },
   "statusText": "love @me",
-  "status": "idle",
-  "activity": {
-    "type": 0,
-    "name": "How to Fish",
-    "details": "",
-    "state": ""
-  },
+  "status": "offline",
+  "activity": null,
   "managedBy": "iwtxz-public-discord-sync",
-  "updatedAt": 1793813119342
+  "updatedAt": 1793832167266
 }
