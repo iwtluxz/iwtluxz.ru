@@ -93,6 +93,7 @@
     byId("musicDuration").textContent = formatTime(duration);
     seek.disabled = duration <= 0;
     seek.value = duration > 0 ? String(Math.min(current / duration * 100, 100)) : "0";
+    seek.style.setProperty("--range-fill", `${seek.value}%`);
     seek.setAttribute("aria-valuetext", `${formatTime(current)} из ${formatTime(duration)}`);
     player.classList.toggle("is-playing", playing);
     byId("musicToggle").setAttribute("aria-pressed", String(playing));
@@ -102,6 +103,7 @@
   function syncVolume() {
     const percent = Math.round(audio.volume * 100);
     volume.value = String(percent);
+    volume.style.setProperty("--range-fill", `${percent}%`);
     volume.setAttribute("aria-valuetext", `${percent}%`);
   }
 

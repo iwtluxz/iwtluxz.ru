@@ -3,8 +3,8 @@
   const $ = (selector) => document.querySelector(selector);
   const all = (selector) => [...document.querySelectorAll(selector)];
   // A cached HTML page can request a newer script after a deployment.
-  const uiVersion = "20261102-loading-2";
-  if (["effectIntensity", "backgroundEffect", "avatarFit", "ownMusicFiles", "discordDecorationHint", "profileScale", "nicknameSize", "discordShowCopyHint"].some(id => !$("#"+id))) {
+  const uiVersion = "20261105-halloween-1";
+  if (["effectIntensity", "backgroundEffect", "avatarFit", "ownMusicFiles", "discordDecorationHint", "profileScale", "nicknameSize", "discordShowCopyHint", "descriptionSize", "cursorSize", "typewriterText", "seasonalTheme", "layoutEdit"].some(id => !$("#"+id))) {
     const fresh = new URL(location.href);
     if (fresh.searchParams.get("_ui") !== uiVersion) { fresh.searchParams.set("_ui",uiVersion);location.replace(fresh.href); }
     else if ($("#authStatus")) $("#authStatus").textContent="Не удалось обновить интерфейс. Обнови страницу с очисткой кеша.";
@@ -12,10 +12,10 @@
   }
   const features = window.IwtxzProfileFeatures;
   const socialFields = features?.socials.map(item => item.id) || ["discord", "telegram", "steam"];
-  const textFields = ["title", "nickname", "description", "entryText", "musicTitle", ...socialFields, "discordUserId"];
-  const numberFields = ["avatarSize", "backgroundDim", "nicknameGradientAngle", "discordCardOpacity", "discordCardRadius", "effectIntensity", "profileScale", "nicknameSize"];
-  const optionFields = ["font", "accentColor", "backgroundType", "nicknameGradientStart", "nicknameGradientEnd", "musicPlayerStyle", "discordCardStyle", "discordCardColor", "nicknameAnimation", "avatarDecoration", "backgroundEffect", "cursorStyle", "avatarFit"];
-  const boolFields = ["musicLoop", "showDiscord", "nicknameGradient", "discordSync", "discordUseAvatar", "discordShowStatus", "discordShowBadges", "discordShowActivity", "profileTilt", "discordShowCopyHint"];
+  const textFields = ["title", "nickname", "description", "entryText", "musicTitle", ...socialFields, "discordUserId", "typewriterText"];
+  const numberFields = ["avatarSize", "backgroundDim", "nicknameGradientAngle", "discordCardOpacity", "discordCardRadius", "effectIntensity", "profileScale", "nicknameSize", "descriptionSize", "cursorSize", "cursorOpacity", "typewriterSpeed"];
+  const optionFields = ["font", "accentColor", "backgroundType", "nicknameGradientStart", "nicknameGradientEnd", "musicPlayerStyle", "discordCardStyle", "discordCardColor", "nicknameAnimation", "avatarDecoration", "backgroundEffect", "cursorStyle", "avatarFit", "cursorColor", "cursorHotspot", "seasonalTheme"];
+  const boolFields = ["musicLoop", "showDiscord", "nicknameGradient", "discordSync", "discordUseAvatar", "discordShowStatus", "discordShowBadges", "discordShowActivity", "profileTilt", "discordShowCopyHint", "typewriterEnabled"];
   const assetFields = ["avatar", "background", "music", "musicCover", "customFont", "favicon", "customCursor"];
   const decorativeBadges = new Set(["star", "heart", "moon", "sparkle", "code", "music", "flower"]);
   const defaults = {
@@ -28,7 +28,8 @@
     musicPlayerStyle: "classic", showButterfly: false, profileBadges: [], discordUserId: "", discordSync: false,
     discordCardStyle: "glass", discordCardColor: "#111111", discordCardOpacity: 65, discordCardRadius: 18,
     discordUseAvatar: true, discordShowStatus: true, discordShowBadges: true, discordShowActivity: true,
-    nicknameAnimation: "none", avatarDecoration: "none", avatarFit:"cover", backgroundEffect:"none",effectIntensity:50,profileTilt:false,cursorStyle:"default",customCursor:"",favicon:"",profileScale:100,nicknameSize:32,discordShowCopyHint:true
+    nicknameAnimation: "none", avatarDecoration: "none", avatarFit:"cover", backgroundEffect:"none",effectIntensity:50,profileTilt:false,cursorStyle:"default",customCursor:"",favicon:"",profileScale:100,nicknameSize:32,discordShowCopyHint:true,
+    descriptionSize:16,cursorSize:24,cursorOpacity:100,cursorColor:'#ffffff',cursorHotspot:'center',typewriterEnabled:false,typewriterText:'',typewriterSpeed:70,seasonalTheme:'none',objectPositions:{}
   };
   const fileHints = Object.fromEntries(all("[data-file-note]").map((e) => [e.dataset.fileNote, e.textContent]));
   const previewFrame = $("#previewFrame");
@@ -42,16 +43,28 @@
   } catch {}
   let currentUser = null;
   let currentSite = { ...defaults };
+  let savedServiceMusic='';
+  function musicServiceLink(value){
+    const track=window.IwtxzMusicServices?.source(value);if(track)return track.url;
+    try{const url=new URL(value);if(url.protocol==='https:'&&!url.username&&!url.password&&(/^(?:www\.)?(?:soundcloud\.com|vimeo\.com)$/.test(url.hostname)||/^[a-z0-9-]+\.bandcamp\.com$/.test(url.hostname)))return url.href;}catch{}
+    return '';
+  }
   let previousEffects = null;
-  const musicCatalog = window.IwtxzMusicCatalog?.create({ onSelect(track) {
-    if (!accountReady) return;
-    currentSite.music = track.url;
+  const musicCatalog = window.IwtxzMusicCatalog?.create({ async onSelect(track, options) {
+    if (!accountReady) throw new Error('Сначала войди в аккаунт.');
+    const version=sessionVersion;
+    const previousMusic=currentSite.music;
+    const downloaded = await musicLibrary.importTrack(track,options);
+    if (!accountReady || version!==sessionVersion) throw new DOMException('Аккаунт изменился.','AbortError');
+    if(currentSite.music!==previousMusic)throw new Error('Трек скачан в библиотеку. Ты уже выбрал другую музыку; она осталась на странице.');
+    currentSite.music = downloaded.url;
     currentSite.musicCover = track.cover || "";
-    $("#musicUrl").value = track.url;
-    $("#musicTitle").value = `${track.artist} — ${track.title}`;
+    $("#musicUrl").value = downloaded.url;
+    $("#musicTitle").value = track.metadataMissing?downloaded.title:`${track.artist} — ${track.title}`;
     const coverField = document.querySelector('[data-asset-url="musicCover"]');
     if (coverField) coverField.value = currentSite.musicCover;
-    updatePreview(); toast("Трек выбран");
+    updatePreview(); toast("Трек скачан и выбран");
+    return downloaded;
   } });
   const musicLibrary = window.IwtxzMusicLibrary?.create({ onSelect(track) {
     if (!accountReady) return;
@@ -74,6 +87,19 @@
   let previewTimer;
   let toastTimer;
   let discordSnapshotStatus = null;
+  let layoutEditing = false;
+  const positionKeys=['avatar','name','description','socials','discord','player','typewriter'];
+  function normalizePositions(value) {
+    if(!value || typeof value!=='object' || Array.isArray(value))return {};
+    return Object.fromEntries(positionKeys.filter(key=>value[key]&&['x','y'].every(axis=>typeof value[key][axis]==='number'&&Number.isFinite(value[key][axis])&&Math.abs(value[key][axis])<=40)).map(key=>[key,{x:Math.round(value[key].x*100)/100,y:Math.round(value[key].y*100)/100}]));
+  }
+  function setLayoutEditing(enabled) {
+    layoutEditing=Boolean(enabled&&accountReady&&!busy);
+    $('#layoutEdit').setAttribute('aria-pressed',String(layoutEditing));
+    $('#layoutEdit').textContent=layoutEditing?'Завершить перемещение':'Переместить блоки';
+    $('#layoutHint').textContent=layoutEditing?'Перетаскивай блоки мышью или пальцем. Стрелки — точный шаг, Esc — завершить.':'Расположение блоков можно менять прямо в превью.';
+    previewFrame.contentWindow?.postMessage({type:'iwtxz-layout-edit',enabled:layoutEditing},location.origin);
+  }
   let previewVisible = true;
   function sendPreviewVisibility() {
     previewFrame.contentWindow?.postMessage({type:"iwtxz-preview-visibility",visible:previewVisible&&!document.hidden},location.origin);
@@ -191,6 +217,7 @@
 
   function readEditor() {
     const site = { ...currentSite };
+    site.objectPositions=normalizePositions(site.objectPositions);
     textFields.forEach((key) => { site[key] = $("#" + key).value.trim(); });
     numberFields.forEach((key) => { site[key] = Number($("#" + key).value); });
     optionFields.forEach((key) => { site[key] = $("#" + key).value; });
@@ -200,11 +227,12 @@
   }
 
   function snapshot(site) {
-    return JSON.stringify(Object.fromEntries([...textFields, ...numberFields, ...optionFields, ...boolFields, ...assetFields, "profileBadges"].map((key) => [key, site[key]])));
+    return JSON.stringify(Object.fromEntries([...textFields, ...numberFields, ...optionFields, ...boolFields, ...assetFields, "profileBadges", "objectPositions"].map((key) => [key, key==='objectPositions'?normalizePositions(site[key]):site[key]])));
   }
 
   function writeEditor(site) {
     currentSite = { ...defaults, ...site };
+    savedServiceMusic=musicServiceLink(site.music);
     textFields.concat(numberFields, optionFields).forEach((key) => { $("#" + key).value = currentSite[key] ?? ""; });
     boolFields.forEach((key) => { $("#" + key).checked = Boolean(currentSite[key]); });
     const badges = new Set(Array.isArray(currentSite.profileBadges) ? currentSite.profileBadges : []);
@@ -222,6 +250,7 @@
   function sendPreview() {
     if (currentUser && previewFrame.contentWindow) {
       previewFrame.contentWindow.postMessage({ type: "iwtxz-profile-preview", site: readEditor() }, location.origin);
+      previewFrame.contentWindow.postMessage({type:'iwtxz-layout-edit',enabled:layoutEditing},location.origin);
       sendPreviewVisibility();
     }
   }
@@ -314,6 +343,9 @@
     $("#publishButton").disabled = busy || !accountReady || uploadCount > 0;
     $("#deleteButton").disabled = busy || !accountReady || uploadCount > 0;
     $("#logoutButton").disabled = busy;
+    $('#layoutEdit').disabled=busy||!accountReady;
+    $('#layoutReset').disabled=busy||!accountReady;
+    if((busy||!accountReady)&&layoutEditing)setLayoutEditing(false);
   }
 
   function setSection(name) {
@@ -338,6 +370,7 @@
     accountLoadController?.abort();
     accountLoadController = null;
     accountReady = false;
+    setLayoutEditing(false);
     document.body.classList.remove("account-unavailable");
     $("#accountLoadState").classList.add("hidden");
     currentUser = null;
@@ -419,6 +452,8 @@
 
   function validateSite() {
     const site = readEditor();
+    const serviceMusic=musicServiceLink($('#musicUrl').value);
+    if(serviceMusic&&serviceMusic!==savedServiceMusic){setSection('music');$('#ownMusicFiles').open=true;throw new Error('Это ссылка на музыкальный сервис. Вставь её в «Мою библиотеку» для скачивания или в поиск музыки выше.');}
     if (!site.nickname || !site.title) {
       setSection("profile");
       $(site.nickname ? "#title" : "#nickname").focus();
@@ -460,7 +495,10 @@
     const submittedSnapshot = snapshot(site);
     const data = await api("/api/builder/sites/save", { method: "POST", body: JSON.stringify({ site }) });
     const labels={avatarDecoration:"украшение аватара",nicknameAnimation:"анимацию ника",backgroundEffect:"эффект фона",profileTilt:"наклон карточки",cursorStyle:"курсор",customCursor:"свой курсор",favicon:"иконку вкладки",music:"трек",musicCover:"обложку",nicknameSize:"размер ника",profileScale:"масштаб",discordShowCopyHint:"подсказку копирования"};
+    Object.assign(labels,{descriptionSize:'размер описания',cursorSize:'размер курсора',cursorOpacity:'непрозрачность курсора',cursorColor:'цвет курсора',cursorHotspot:'точку нажатия',typewriterEnabled:'печатную строку',typewriterText:'текст печатной строки',typewriterSpeed:'скорость печати',seasonalTheme:'сезонную тему'});
     const lost=Object.keys(labels).filter(key=>Object.hasOwn(data.site||{},key)||site[key]!==defaults[key]).filter(key=>data.site?.[key]!==site[key]);
+    if(JSON.stringify(normalizePositions(data.site?.objectPositions))!==JSON.stringify(normalizePositions(site.objectPositions)))lost.push('objectPositions');
+    labels.objectPositions='расположение блоков';
     if(lost.length)throw new Error(`Сервер не подтвердил ${lost.map(key=>labels[key]).join(", ")}. Выбор остался в редакторе. Попробуй сохранить ещё раз.`);
     if(snapshot(readEditor())!==submittedSnapshot){
       savedSnapshot=snapshot(data.site);updatePreview();
@@ -606,6 +644,8 @@
   });
 
   $("#editorForm").addEventListener("submit", (event) => event.preventDefault());
+  $('#layoutEdit').addEventListener('click',()=>{setLayoutEditing(!layoutEditing);if(layoutEditing)previewFrame.scrollIntoView?.({behavior:'smooth',block:'center'});});
+  $('#layoutReset').addEventListener('click',()=>{if(!accountReady||busy)return;currentSite.objectPositions={};updatePreview();clearTimeout(previewTimer);sendPreview();toast('Позиции блоков сброшены');});
   all("[data-social-remove]").forEach(button => button.addEventListener("click", () => {
     $("#" + button.dataset.socialRemove).value = "";
     button.closest("details").open = false;
@@ -635,7 +675,7 @@
   $("#editorForm").addEventListener("input", (event) => {
     if (event.target.type === "file") return;
     const key = event.target.dataset.assetUrl;
-    if (key) currentSite[key] = event.target.value.trim();
+    if (key && !(key==='music'&&musicServiceLink(event.target.value.trim()))) currentSite[key] = event.target.value.trim();
     if (key === "customFont" && currentSite.customFont) $("#font").value = "custom";
     updatePreview();
   });
@@ -687,6 +727,8 @@
   });
   window.addEventListener("message", (event) => {
     if (event.origin !== location.origin || event.source !== previewFrame.contentWindow) return;
+    if(event.data?.type==='iwtxz-layout-edit-ended')setLayoutEditing(false);
+    if(event.data?.type==='iwtxz-layout-change'&&layoutEditing&&accountReady&&!busy){currentSite.objectPositions=normalizePositions(event.data.positions);updatePreview();}
     if (event.data?.type === "iwtxz-profile-ready") sendPreview();
     if (event.data?.type === "iwtxz-font-status" && event.data.source === currentSite.customFont) {
       const labels = {

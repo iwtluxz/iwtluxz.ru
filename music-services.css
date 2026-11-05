@@ -51,5 +51,14 @@
 .service-player-heading a { margin-left: auto; color: #aaa; text-decoration: none; font-weight: 400; }
 body.has-service-music { padding-bottom: 315px; }
 body.has-service-music .iwtxz-join-prompt { bottom: 320px; }
+.music-volume-popover { display: contents; }
+@media (max-width:640px) {
+  .music-volume, .entry-volume { overflow: visible !important; }
+  .music-volume:hover, .music-volume:focus-within, .entry-volume:hover, .entry-volume:focus-within { width: 36px !important; }
+  .music-volume-popover { display: block; position: absolute; right: 0; bottom: calc(100% + 32px); width: 108px; padding: 10px 16px; border: 1px solid #ffffff25; border-radius: 12px; background: #070809f5; box-shadow: 0 8px 24px #0006; opacity: 0; pointer-events: none; transition: opacity .15s; }
+  .music-volume-popover::after { content: ''; position: absolute; right: 0; top: 100%; width: 38px; height: 34px; }
+  .music-volume:hover .music-volume-popover, .music-volume:focus-within .music-volume-popover, .entry-volume:hover .music-volume-popover, .entry-volume:focus-within .music-volume-popover { opacity: 1; pointer-events: auto; }
+  .music-volume-popover input:focus-visible { outline: none; }
+}
 @media (max-width: 460px) { .catalog-services { padding: 8px; gap: 4px; } .catalog-services button { font-size: 10px; gap: 4px; } .catalog-services img { width: 16px; height: 16px; } .catalog-hero { padding: 20px 13px; gap: 12px; } .catalog-hero h3 { font-size: 22px; } .catalog-tools { padding-inline: 10px; } .catalog-tools input { font-size: 16px; } .catalog-track { gap: 7px; grid-template-columns: 36px minmax(0,1fr) 25px auto; padding: 7px 4px; } .catalog-cover { width: 36px; height: 36px; } .catalog-choose { padding: 7px 8px; font-size: 9px; } .catalog-tracks { padding-inline: 5px; } }
 @media (max-height: 600px) { .service-player { position: relative; left: auto; bottom: auto; transform: none; margin: 24px auto 0; flex-shrink: 0; } body.has-service-music { padding-bottom: 24px; } body.has-service-music .iwtxz-join-prompt { bottom: auto; top: 16px; } }

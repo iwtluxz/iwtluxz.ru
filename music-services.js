@@ -38,6 +38,13 @@
     return iframe;
   }
   function createPlayer() {
+    // Keep the volume popup independent from the audio card on narrow screens.
+    for(const control of document.querySelectorAll('.music-volume, .entry-volume')) {
+      const input=control.querySelector('input[type="range"]');
+      if(input&&!input.parentElement.classList.contains('music-volume-popover')) {
+        const popup=document.createElement('span');popup.className='music-volume-popover';input.before(popup);popup.append(input);
+      }
+    }
     let root=null,current=null;
     const visible=()=>document.body.classList.contains('is-entered');
     function mount() {

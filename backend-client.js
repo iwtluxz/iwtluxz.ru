@@ -509,18 +509,18 @@
     } catch { throw error(400, "Некорректный запрос.", "invalid_json"); }
   }
 
-  async function requireCustomization() {
+  async function requireCustomization(capabilities) {
     if (customizationReady) return;
-    const result = await getClient().rpc("builder_capabilities");
+    const result = capabilities || await getClient().rpc("builder_capabilities");
     if (result?.error || !(result?.data?.profileSettingsVersion >= 2)) {
       throw error(503, "Владелец сайта должен обновить сервер для новых настроек. Файл: supabase/migrations/20261030_profile_customization.sql. Твои сохранённые настройки не потеряны.", "backend_update_required");
     }
     customizationReady = true;
   }
 
-  async function requireProfileFeatures() {
+  async function requireProfileFeatures(capabilities) {
     if (profileFeaturesReady) return;
-    const result = await getClient().rpc("builder_capabilities");
+    const result = capabilities || await getClient().rpc("builder_capabilities");
     if (result?.error || !(result?.data?.profileSettingsVersion >= 3) || result?.data?.profileEffects !== true) {
       throw error(503, "Новые настройки ещё не включены на сервере. Обратись к владельцу сайта.", "backend_features_update_required");
     }
@@ -611,16 +611,23 @@
       ownership(site, account);
       const newSocials = ["vk", "youtube", "twitch", "tiktok", "instagram", "github", "spotify", "x", "soundcloud", "reddit", "boosty", "website"];
       const hasFeatures = (site.nicknameAnimation && site.nicknameAnimation !== "none") || (site.avatarDecoration && site.avatarDecoration !== "none") || newSocials.some(key => Boolean(site[key]));
+      let settingsCapabilities;
+      const loadCapabilities=()=>settingsCapabilities ||= getClient().rpc('builder_capabilities');
+      const advancedDefaults={descriptionSize:16,cursorSize:24,cursorOpacity:100,cursorColor:'#ffffff',cursorHotspot:'center',typewriterEnabled:false,typewriterText:'',typewriterSpeed:70,seasonalTheme:'none'};
+      if(Object.entries(advancedDefaults).some(([key,value])=>site[key]!==undefined&&site[key]!==value)||Object.keys(site.objectPositions||{}).length){
+        const capabilities=await loadCapabilities();
+        if(capabilities.error||capabilities.data?.profileSettingsVersion<6||capabilities.data?.freeLayout!==true)throw error(503,'Для новых настроек нужно обновление базы 20261105_free_layout_and_halloween.sql. Выбор сохранён в редакторе.','backend_features_update_required');
+      }
       if((site.nicknameSize!==undefined&&site.nicknameSize!==32)||(site.profileScale!==undefined&&site.profileScale!==100)||site.discordShowCopyHint===false){
-        const capabilities=await getClient().rpc('builder_capabilities');
+        const capabilities=await loadCapabilities();
         if(capabilities.error||capabilities.data?.profileSettingsVersion<5||capabilities.data?.profileLayout!==true)throw error(503,'Для масштаба и подсказки копирования нужно обновление базы 20261102_profile_layout_controls.sql.','backend_features_update_required');
       }
       if((site.backgroundEffect&&site.backgroundEffect!=='none')||site.profileTilt||(site.cursorStyle&&site.cursorStyle!=='default')||site.customCursor||site.favicon||site.avatarFit==='contain'){
-        const result=await getClient().rpc('builder_capabilities');
+        const result=await loadCapabilities();
         if(result.error||result.data?.profileSettingsVersion<4||result.data?.interactiveEffects!==true)throw error(503,'Для этих эффектов нужно обновление базы 20261102_interactive_profiles.sql.','backend_features_update_required');
       }
-      if (hasFeatures) await requireProfileFeatures();
-      else if (site.font === "custom" || ["customFont", "musicPlayerStyle", "avatarShape", "nicknameGradient", "nicknameGradientStart", "nicknameGradientEnd", "nicknameGradientAngle", "discordUserId", "discordSync", "discordCardStyle", "discordCardColor", "discordCardOpacity", "discordCardRadius", "discordUseAvatar", "discordShowStatus", "discordShowBadges", "discordShowActivity", "profileBadges", "showButterfly"].some((key) => Object.hasOwn(site, key))) await requireCustomization();
+      if (hasFeatures) await requireProfileFeatures(settingsCapabilities?await settingsCapabilities:undefined);
+      else if (site.font === "custom" || ["customFont", "musicPlayerStyle", "avatarShape", "nicknameGradient", "nicknameGradientStart", "nicknameGradientEnd", "nicknameGradientAngle", "discordUserId", "discordSync", "discordCardStyle", "discordCardColor", "discordCardOpacity", "discordCardRadius", "discordUseAvatar", "discordShowStatus", "discordShowBadges", "discordShowActivity", "profileBadges", "showButterfly"].some((key) => Object.hasOwn(site, key))) await requireCustomization(settingsCapabilities?await settingsCapabilities:undefined);
       assertActive();
       return { site: { ...await rpc("builder_save_profile", { input: site }), publicUrl: publicUrl(account.username) } };
     }

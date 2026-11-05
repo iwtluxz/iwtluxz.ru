@@ -9,13 +9,19 @@
     const feedback=root.querySelector('[data-catalog-status]');
     const serviceSearch=document.createElement('a');serviceSearch.className='catalog-open-search';serviceSearch.target='_blank';serviceSearch.rel='noopener noreferrer';serviceSearch.hidden=true;
     root.querySelector('.catalog-tools').append(serviceSearch);
-    let service='yandex',mood='all',selected='',listening='',remote=null,searchTimer,searchController,searchVersion=0;
+    let service='yandex',mood='all',selected='',listening='',remote=null,searchTimer,searchController,searchVersion=0,importing=false;
+    const imported=new Set();
     function cancelSearch(){clearTimeout(searchTimer);searchController?.abort();++searchVersion;remote=null;}
     function scheduleSearch(){
       cancelSearch();const query=search.value.trim();render();
       if(query.length<2)return;
       const direct=api.source(query);
-      if(direct){service=direct.service;remote=[{id:'linked-'+direct.id,service,title:'Трек из '+direct.name,artist:direct.name,url:direct.url,cover:''}];render();feedback.textContent='Ссылка распознана. Можно послушать и выбрать.';return;}
+      if(direct){
+        service=direct.service;
+        const known=tracks.find(track=>api.source(track.url)?.url===direct.url);
+        remote=[known||{id:'linked-'+direct.id,service,title:'Трек из '+direct.name,artist:direct.name,url:direct.url,cover:'',metadataMissing:true}];
+        render();feedback.textContent=direct.service==='youtube'?'Ссылка распознана. Можно послушать и скачать аудиофайл.':'Ссылка распознана. Для скачивания найди этот трек на YouTube по исполнителю и названию.';return;
+      }
       const version=searchVersion;
       searchTimer=setTimeout(async()=>{
         const controller=new AbortController();searchController=controller;const timeout=setTimeout(()=>controller.abort(),35000);feedback.textContent='Ищем треки…';
@@ -63,8 +69,30 @@
           preview.append(close,api.frame(api.source(track.url),track.title));render();
         });
         const choose=document.createElement('button');choose.type='button';choose.className='catalog-choose';
-        choose.textContent=selected===track.url?'Выбран ✓':'Выбрать';choose.setAttribute('aria-label',`Выбрать ${track.artist} — ${track.title}`);
-        choose.addEventListener('click',()=>{selected=track.url;stopPreview();onSelect(track);feedback.textContent=`${track.artist} — ${track.title}. Примени изменения к странице.`;render();});
+        choose.textContent=imported.has(track.url)?'Скачан ✓':track.service==='youtube'?'Скачать и выбрать':'Найти аудио';choose.disabled=importing;choose.setAttribute('aria-label',`Выбрать ${track.artist} — ${track.title}`);
+        choose.addEventListener('click',async()=>{
+          if(importing)return;
+          stopPreview();
+          if(track.service!=='youtube'){
+            if(track.metadataMissing){
+              service='youtube';search.value='';cancelSearch();render();search.focus();
+              feedback.textContent='Введи исполнителя и название в поиск YouTube. По этой ссылке название пока неизвестно; аудиофайл не выбран.';
+              return;
+            }
+            service='youtube';search.value=`${track.artist} ${track.title}`.slice(0,100);scheduleSearch();
+            feedback.textContent='Для своего плеера выбери аудио на YouTube. Проверь исполнителя и версию: Яндекс Музыка и Spotify не отдают полный аудиофайл по публичной ссылке.';
+            return;
+          }
+          const version=searchVersion;importing=true;render();feedback.textContent='Скачиваем аудио на сервер…';
+          try{
+            const downloaded=await onSelect(track,{onProgress:text=>{if(version===searchVersion)feedback.textContent=text;}});
+            if(version!==searchVersion)return;
+            if(!downloaded?.url)throw new Error('Не удалось получить аудиофайл. Попробуй другой трек или загрузи свой файл.');
+            selected=track.url;imported.add(track.url);
+            feedback.textContent=`${track.artist} — ${track.title}. Аудиофайл скачан. Примени изменения к странице.`;
+          }catch(error){if(version===searchVersion&&error.name!=='AbortError')feedback.textContent=error.message;}
+          finally{importing=false;render();}
+        });
         row.append(art,info,listen,choose);list.append(row);
       }
       root.querySelector('[data-catalog-empty]').hidden=items.length>0;
@@ -80,8 +108,8 @@
       for(const item of root.querySelectorAll('[data-catalog-mood]'))item.setAttribute('aria-pressed',String(item===button));render();
     });
     search.addEventListener('input',scheduleSearch);render();
-    return {open(url){selected=api.source(url)?.url||url||'';service=api.source(url)?.service||service;render();},close:stopPreview,
-      reset(){cancelSearch();stopPreview();selected='';service='yandex';mood='all';search.value='';feedback.textContent='';for(const item of root.querySelectorAll('[data-catalog-mood]'))item.setAttribute('aria-pressed',String(item.dataset.catalogMood==='all'));render();}};
+    return {search(query,nextService='youtube'){service=api.services[nextService]?nextService:'youtube';search.value=String(query||'').slice(0,1000);stopPreview();scheduleSearch();search.focus();},open(url){selected=api.source(url)?.url||url||'';service=api.source(url)?.service||service;render();},close:stopPreview,
+      reset(){cancelSearch();stopPreview();selected='';service='yandex';mood='all';search.value='';feedback.textContent='';imported.clear();for(const item of root.querySelectorAll('[data-catalog-mood]'))item.setAttribute('aria-pressed',String(item.dataset.catalogMood==='all'));render();}};
   }
   window.IwtxzMusicCatalog=Object.freeze({create});
 })();

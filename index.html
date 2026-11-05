@@ -7,22 +7,26 @@
   <meta name="description" content="Твоя страница iwtxz: аватар, музыка, фон и ссылки.">
   <link rel="icon" type="image/png" href="img/tree.png">
   <link rel="preload" href="font/minecraft.ttf" as="font" type="font/ttf" crossorigin>
-  <link rel="stylesheet" href="builder.css?v=594d88b5dbe4">
+  <link rel="stylesheet" href="builder.css?v=22669dad1c16">
   <title>Личный кабинет · iwtxz</title>
   <script src="profile-links.js?v=40c61c4a7df8" defer></script>
   <script src="vendor/supabase-2.102.0.min.js" defer></script>
   <script src="backend-config.js?v=bde35107dd7e" defer></script>
-  <script src="backend-client.js?v=55520241290b" defer></script>
+  <script src="backend-client.js?v=8bbf00e17552" defer></script>
   <script src="profile-features.js?v=87e5ff3a13e5" defer></script>
-  <script src="music-library.js?v=d0108d00f687" defer></script>
-  <script src="music-services.js?v=234bde8af610" defer></script>
+  <script src="music-library.js?v=2fab4296d8bb" defer></script>
+  <script src="music-services.js?v=a4a92a4fc51d" defer></script>
   <script src="music-catalog-data.js?v=920cd10922e5" defer></script>
-  <script src="music-catalog.js?v=3255ce8d0ec9" defer></script>
-  <script src="profile-scene.js?v=5736e554973a" defer></script>
-  <script src="builder.js?v=f3705fd69afc" defer></script>
+  <script src="music-catalog.js?v=109976640021" defer></script>
+  <script src="profile-scene.js?v=795f7d6f88de" defer></script>
+  <script src="profile-layout.js?v=7f0cd7041846" defer></script>
+  <script src="halloween.js?v=0e21cbf31da8" defer></script>
+  <script src="builder.js?v=b5c3838e6e52" defer></script>
   <link rel="stylesheet" href="profile-features.css?v=249439027b2b">
-  <link rel="stylesheet" href="music-services.css?v=f21e22eef0ad">
-  <link rel="stylesheet" href="profile-scene.css?v=6bdc3000a41e">
+  <link rel="stylesheet" href="music-services.css?v=b83e04cda2b4">
+  <link rel="stylesheet" href="profile-scene.css?v=43f2d542edb6">
+  <link rel="stylesheet" href="profile-layout.css?v=4d78d4ef38f7">
+  <link rel="stylesheet" href="halloween.css?v=6241bf0d8ee6">
 </head>
 <body class="auth-locked">
   <header class="topbar">
@@ -75,10 +79,12 @@
             <label class="field">Заполнение аватара<select id="avatarFit"><option value="cover">Заполнить круг</option><option value="contain">Показать целиком</option></select></label>
             <label class="field">Масштаб карточки, %<input id="profileScale" type="number" min="70" max="120" value="100"></label>
             <label class="field">Размер ника, px<input id="nicknameSize" type="number" min="18" max="52" value="32"></label>
+            <label class="field">Размер описания, px<input id="descriptionSize" type="number" min="10" max="32" value="16"></label>
 
             <label class="field wide">О себе<textarea id="description" maxlength="500" rows="4" placeholder="Пара слов, цитата или просто настроение"></textarea><span class="hint" id="descriptionCount">0 / 500</span></label>
             <label class="field wide">Текст на экране входа<input id="entryText" maxlength="80" placeholder="click to enter..."></label>
           </div>
+          <div class="settings-group typewriter-settings"><h3>Печатная строка сверху</h3><label class="checkbox-field"><input id="typewriterEnabled" type="checkbox"><span>Включить печатную машинку</span></label><label class="field">Фразы<textarea id="typewriterText" maxlength="300" rows="3" placeholder="Каждая новая строка — отдельная фраза"></textarea></label><label class="field">Задержка между буквами, мс<input id="typewriterSpeed" type="range" min="20" max="200" value="70"><span class="hint">Меньше — быстрее</span></label></div>
           <div class="settings-group">
             <h3>Градиент ника</h3>
             <label class="checkbox-field"><input id="nicknameGradient" type="checkbox"><span>Окрасить ник градиентом</span></label>
@@ -90,6 +96,8 @@
         <section class="settings-section hidden" data-settings-section="effects" aria-labelledby="effectsHeading">
           <div class="effects-heading"><div><h2 id="effectsHeading">Эффекты</h2><p class="section-description">Добавь движения своей странице.</p></div><button class="button small" id="randomizeEffects" type="button">Случайная пара ↗</button></div>
           <div class="scene-fields"><h3>Живой фон</h3><div class="form-grid"><label class="field">Эффект<select id="backgroundEffect"><option value="none">Без эффекта</option><option value="snow">Снег</option><option value="rain">Дождь</option><option value="matrix">Матрица</option><option value="glitch">Глитч</option><option value="parallax">Параллакс</option></select></label><label class="field">Насыщенность<input id="effectIntensity" type="range" min="10" max="100" value="50" aria-label="Насыщенность эффекта"></label></div><label class="checkbox-field"><input id="profileTilt" type="checkbox"><span>3D-наклон карточки за курсором</span></label><label class="field">Курсор<select id="cursorStyle"><option value="default">Системный</option><option value="dot">Светящаяся точка</option><option value="ring">Кольцо</option><option value="crosshair">Прицел</option></select></label><div class="upload-card"><div class="upload-details"><label for="customCursorFile">Своя картинка курсора</label><input id="customCursorFile" data-upload="customCursor" type="file" accept="image/png,image/webp"><span class="hint" data-file-note="customCursor">PNG или WebP, желательно квадратный · до 4 МБ</span></div><button class="text-button" type="button" data-remove="customCursor">Убрать</button></div></div>
+          <div class="settings-group"><h3>Настройки курсора</h3><div class="form-grid"><label class="field">Размер, px<input id="cursorSize" type="number" min="12" max="96" value="24"></label><label class="field">Непрозрачность, %<input id="cursorOpacity" type="number" min="20" max="100" value="100"></label><label class="field">Цвет<input id="cursorColor" type="color" value="#ffffff"></label><label class="field">Точка нажатия<select id="cursorHotspot"><option value="center">Центр картинки</option><option value="top-left">Верхний левый угол</option></select></label></div><p class="hint">Свой курсор виден при управлении мышью. Цвет применяется к точке, кольцу и прицелу.</p></div>
+          <div class="settings-group seasonal-profile-settings"><h3>Хэллоуин на твоей странице</h3><label class="field">Сезонная тема<select id="seasonalTheme"><option value="none">Моё оформление</option><option value="halloween">Хэллоуин · конфеты и привидения</option></select></label><p class="hint">Добавит украшения и кнопку волшебных звуков. Гости сами включают звук.</p></div>
           <div class="effect-demo" aria-hidden="true"><span id="nicknameEffectDemo">nickname</span></div>
             <label class="field wide">Анимация ника<select id="nicknameAnimation">
             <!-- nickname-animations:start -->
@@ -153,13 +161,13 @@
             <div class="catalog-tools"><input type="search" data-catalog-search placeholder="Трек, исполнитель или ссылка" aria-label="Поиск музыки или добавление ссылки" autocomplete="off"><div class="catalog-moods" role="group" aria-label="Настроение"><button type="button" data-catalog-mood="all" aria-pressed="true">Всё</button><button type="button" data-catalog-mood="dark" aria-pressed="false">Тёмная сторона</button><button type="button" data-catalog-mood="dream" aria-pressed="false">Мечтать</button><button type="button" data-catalog-mood="indie" aria-pressed="false">Инди</button></div></div>
             <p class="catalog-count" data-catalog-count></p><ul class="catalog-tracks" data-catalog-tracks></ul><p class="catalog-empty" data-catalog-empty hidden>Ничего не нашлось. Попробуй другое настроение или запрос.</p>
             <p class="catalog-status" data-catalog-status role="status" aria-live="polite"></p><div class="catalog-preview" data-catalog-preview hidden></div>
-            <div class="catalog-footnote">Прослушивание и плеер на странице — через выбранный сервис. Полная версия трека может требовать входа или подписки.</div>
+            <div class="catalog-footnote">«Скачать и выбрать» сохраняет аудио в твою библиотеку. Для Яндекс Музыки и Spotify сначала выбери подходящую версию на YouTube. На странице будет твой классический или компактный плеер.</div>
           </div>
-          <details class="music-own-files" id="ownMusicFiles"><summary>Свой аудиофайл или загрузка по ссылке</summary>
-          <label class="field">Вид плеера для аудиофайлов<select id="musicPlayerStyle"><option value="classic">Классический</option><option value="compact">Компактный</option></select></label>
+          <label class="field">Вид плеера<select id="musicPlayerStyle"><option value="classic">Классический</option><option value="compact">Компактный</option></select></label>
+          <details class="music-own-files" id="ownMusicFiles"><summary>Моя библиотека, аудиофайл или ссылка</summary>
           <div class="music-library" id="musicLibrary"><h3>Моя библиотека</h3><p class="hint">YouTube, Bandcamp или Vimeo. SoundCloud пока недоступен.</p><div class="library-import"><input type="url" data-library-url placeholder="Ссылка на трек" aria-label="Ссылка для библиотеки" maxlength="1000"><button class="button" type="button" data-library-import>Добавить</button></div><p class="status" role="status" aria-live="polite" data-library-status></p><ul class="library-list" data-library-list></ul></div>
           <div class="upload-card"><div class="upload-details"><label for="musicFile">Твой трек</label><input id="musicFile" data-upload="music" type="file" accept="audio/mpeg,audio/mp3,audio/ogg,audio/wav,audio/x-wav,audio/mp4,audio/webm"><span class="hint" data-file-note="music">MP3, OGG, WAV, M4A или WebM · до 4 МБ</span></div><button type="button" class="text-button" data-remove="music">Убрать</button></div>
-          <details class="url-details"><summary>Или указать ссылку на музыку</summary><label class="field">Ссылка на трек или аудиофайл<input id="musicUrl" data-asset-url="music" type="url" placeholder="https://…"></label><span class="hint">Прямая ссылка на аудио или трек Яндекс Музыки, YouTube, Spotify.</span></details>
+          <details class="url-details"><summary>Или указать прямую ссылку на аудио</summary><label class="field">Ссылка на аудиофайл<input id="musicUrl" data-asset-url="music" type="url" placeholder="https://…/track.mp3"></label><p class="hint">MP3 и другие аудиофайлы работают сразу. Для скачивания с YouTube вставь ссылку в «Мою библиотеку». Яндекс Музыку и Spotify ищи в подборке выше.</p></details>
           <label class="field">Название трека<input id="musicTitle" maxlength="80" placeholder="Исполнитель — название"></label>
           <div class="upload-card"><img id="coverThumbnail" class="cover-thumbnail" src="img/tree.png" alt="Обложка трека"><div class="upload-details"><label for="musicCoverFile">Обложка</label><input id="musicCoverFile" data-upload="musicCover" type="file" accept="image/png,image/jpeg,image/gif,image/webp"><span class="hint" data-file-note="musicCover">Картинка · до 4 МБ</span></div><button type="button" class="text-button" data-remove="musicCover">Убрать</button></div>
           <label class="checkbox-field"><input id="musicLoop" type="checkbox" checked><span>Повторять трек</span></label>
@@ -218,6 +226,7 @@
     </section>
     <aside class="panel preview-panel requires-auth" aria-labelledby="previewHeading">
       <div class="preview-heading"><h2 id="previewHeading">Превью</h2><span class="preview-badge"><span class="live-dot" aria-hidden="true"></span> в реальном времени</span></div>
+      <div class="layout-toolbar"><button class="button small" id="layoutEdit" type="button" aria-pressed="false">Переместить блоки</button><button class="text-button" id="layoutReset" type="button">Сбросить позиции</button><p class="hint" id="layoutHint" role="status">Расположение блоков можно менять прямо в превью.</p></div>
       <iframe id="previewFrame" title="Предпросмотр твоей страницы" src="profile.html?preview=1" loading="lazy" sandbox="allow-scripts allow-same-origin" allow="autoplay; clipboard-write"></iframe>
       <div class="preview-footer"><span class="hint" id="publishedStatus">Страница ещё не опубликована</span><a class="text-button hidden" id="openProfile" target="_blank" rel="noopener noreferrer">Открыть страницу ↗</a></div>
     </aside>

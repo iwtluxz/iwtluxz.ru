@@ -174,6 +174,9 @@ begin
   result := result || jsonb_build_object('backgroundEffect','none','effectIntensity',50,
     'profileTilt',false,'cursorStyle','default','customCursor','','favicon','', 'avatarFit','cover');
   result := result || jsonb_build_object('profileScale',100,'nicknameSize',32,'discordShowCopyHint',true);
+  result := result || jsonb_build_object('descriptionSize',16,'cursorSize',24,'cursorOpacity',100,'cursorColor','#ffffff',
+    'cursorHotspot','center','typewriterEnabled',false,'typewriterText','','typewriterSpeed',70,
+    'seasonalTheme','none','objectPositions','{}'::jsonb);
   if username not in ('iwtlu','shakzy','strelokk') then
     result := result || jsonb_build_object('avatar','','background','','music','','musicTitle','','musicCover','');
   end if;
@@ -251,6 +254,8 @@ declare
   value text;
   badge jsonb;
   badges jsonb := '[]'::jsonb;
+  positions jsonb := '{}'::jsonb;
+  point jsonb;
 begin
   if input is null or jsonb_typeof(input) <> 'object' or octet_length(input::text) > 32768 then
     raise exception using errcode = '22023', message = 'Некорректные настройки страницы.';
@@ -318,8 +323,43 @@ begin
   if value not in ('none','discord','phoenix','heartbloom','shy','sakura','moon','embers','aurora','cat') then
     raise exception using errcode = '22023', message = 'Неизвестное украшение аватара.';
   end if;
-  result := result || jsonb_build_object('avatarDecoration', value, 'profileBadges', badges, 'settingsVersion', 5);
+  result := result || jsonb_build_object('avatarDecoration', value, 'profileBadges', badges, 'settingsVersion', 6);
   result := result || jsonb_build_object('profileScale',private.profile_number(input,'profileScale',100,70,120),'nicknameSize',private.profile_number(input,'nicknameSize',32,18,52),'discordShowCopyHint',private.profile_boolean(input,'discordShowCopyHint',true));
+  result := result || jsonb_build_object('descriptionSize',private.profile_number(input,'descriptionSize',16,10,32),
+    'cursorSize',private.profile_number(input,'cursorSize',24,12,96),
+    'cursorOpacity',private.profile_number(input,'cursorOpacity',100,20,100),
+    'typewriterSpeed',private.profile_number(input,'typewriterSpeed',70,20,200),
+    'typewriterEnabled',private.profile_boolean(input,'typewriterEnabled',false),
+    'typewriterText',private.profile_text(input,'typewriterText','',300));
+  value := private.profile_text(input,'cursorColor','#ffffff',7);
+  if value !~ '^#[a-fA-F0-9]{6}$' then raise exception using errcode='22023',message='Некорректный цвет курсора.'; end if;
+  result := result || jsonb_build_object('cursorColor',lower(value));
+  value := private.profile_text(input,'cursorHotspot','center',12);
+  if value not in ('center','top-left') then raise exception using errcode='22023',message='Неизвестная точка курсора.'; end if;
+  result := result || jsonb_build_object('cursorHotspot',value);
+  value := private.profile_text(input,'seasonalTheme','none',12);
+  if value not in ('none','halloween') then raise exception using errcode='22023',message='Неизвестная тема.'; end if;
+  result := result || jsonb_build_object('seasonalTheme',value);
+  if input ? 'objectPositions' then
+    if jsonb_typeof(input->'objectPositions') <> 'object' then raise exception using errcode='22023',message='Некорректное расположение блоков.'; end if;
+    for item in select * from jsonb_each(input->'objectPositions') loop
+      point := item.value;
+      if item.key not in ('avatar','name','description','socials','discord','player','typewriter') or jsonb_typeof(point) <> 'object' then
+        raise exception using errcode='22023',message='Неизвестный блок страницы.';
+      end if;
+      if not (point ? 'x' and point ? 'y') or (point - 'x' - 'y') <> '{}'::jsonb then
+        raise exception using errcode='22023',message='Укажи координаты блока.';
+      end if;
+      if jsonb_typeof(point->'x') <> 'number' or jsonb_typeof(point->'y') <> 'number' then
+        raise exception using errcode='22023',message='Координаты должны быть числами.';
+      end if;
+      if abs((point->>'x')::numeric) > 40 or abs((point->>'y')::numeric) > 40 then
+        raise exception using errcode='22023',message='Блок выходит за допустимые границы.';
+      end if;
+      positions := positions || jsonb_build_object(item.key,jsonb_build_object('x',round((point->>'x')::numeric,2),'y',round((point->>'y')::numeric,2)));
+    end loop;
+  end if;
+  result := result || jsonb_build_object('objectPositions',positions);
   value := private.profile_text(input,'backgroundEffect','none',16);
   if value not in ('none','snow','rain','matrix','glitch','parallax') then raise exception using errcode='22023',message='Неизвестный эффект фона.'; end if;
   result := result || jsonb_build_object('backgroundEffect',value,'effectIntensity',private.profile_number(input,'effectIntensity',50,10,100),'profileTilt',private.profile_boolean(input,'profileTilt',false));
@@ -345,7 +385,7 @@ $$;
 
 create or replace function public.builder_capabilities()
 returns jsonb language sql stable set search_path = '' as $$
-  select jsonb_build_object('profileSettingsVersion', 5, 'customFonts', true, 'profileEffects', true, 'interactiveEffects', true,'profileLayout',true);
+  select jsonb_build_object('profileSettingsVersion', 6, 'customFonts', true, 'profileEffects', true, 'interactiveEffects', true,'profileLayout',true,'freeLayout',true);
 $$;
 revoke all on function public.builder_capabilities() from public;
 grant execute on function public.builder_capabilities() to anon, authenticated;

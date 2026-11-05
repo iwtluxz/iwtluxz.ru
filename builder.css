@@ -197,3 +197,8 @@ h3 { font-size: 13px; font-weight: 600; }
 .library-track strong, .library-track small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10px; line-height: 1.7; }
 .library-track small { color: #888; font-size: 9px; }
 .library-remove { flex: 0 0 25px; padding: 0; background: transparent; border: 0; color: #888; font: 20px/1 sans-serif; }
+.layout-toolbar { display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:12px 14px;border-bottom:1px solid #ffffff18;background:#ffffff03; }
+.layout-toolbar .hint { flex-basis:100%;margin:0;font-size:10px;line-height:1.6; }
+.layout-toolbar [aria-pressed="true"] { color:#ffcf9c;border-color:#ef8c49;background:#ef8c491a; }
+.typewriter-settings textarea { font-family:inherit; }
+.seasonal-profile-settings { border-color:#ef8c4940; }

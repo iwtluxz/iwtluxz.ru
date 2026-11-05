@@ -78,6 +78,23 @@ test("profile effects migration preserves old data, round-trips features, valida
       for(const key of ['profileScale','nicknameSize','discordShowCopyHint'])assert.equal(result.rows[0].value[key],update[key]);
       for(const bad of [{profileScale:30},{nicknameSize:200},{discordShowCopyHint:'false'}])await assert.rejects(db.query('select public.builder_save_profile($1::jsonb)',[JSON.stringify({...update,...bad})]),e=>e.code==='22023');
     });
+    await t.test("free layout migration retains publications, validates positions and saves cursor, typewriter and theme", async () => {
+      await db.exec('reset role;');
+      const oldDraft=await db.query('select settings from public.profile_drafts where user_id=$1',[alice]);
+      const oldPublication=await db.query('select settings from public.profile_published where username=$1',['alice']);
+      const freeLayout=await readFile(new URL('../supabase/migrations/20261105_free_layout_and_halloween.sql',import.meta.url),'utf8');
+      await db.exec(freeLayout);await db.exec(freeLayout);
+      assert.deepEqual((await db.query('select settings from public.profile_drafts where user_id=$1',[alice])).rows,oldDraft.rows);
+      assert.deepEqual((await db.query('select settings from public.profile_published where username=$1',['alice'])).rows,oldPublication.rows);
+      assert.equal((await db.query('select public.builder_capabilities() as value')).rows[0].value.freeLayout,true);
+      await db.exec(`set role authenticated; select set_config('request.jwt.claim.sub','${alice}',false);`);
+      const update={...settings,descriptionSize:20,cursorSize:48,cursorOpacity:70,cursorColor:'#ff8800',cursorHotspot:'top-left',typewriterEnabled:true,typewriterText:'First line\nВторая строка',typewriterSpeed:55,seasonalTheme:'halloween',objectPositions:{avatar:{x:12.25,y:-4.5},player:{x:-8,y:-20}}};
+      const result=await db.query('select public.builder_save_profile($1::jsonb) as value',[JSON.stringify(update)]);
+      for(const key of Object.keys(update).filter(key=>!['id','owner'].includes(key)))assert.deepEqual(result.rows[0].value[key],update[key],key);
+      await db.exec('select public.builder_publish_profile();');
+      assert.deepEqual((await db.query("select settings from public.profile_published where username='alice'")).rows[0].settings.objectPositions,update.objectPositions);
+      for(const bad of [{descriptionSize:60},{cursorSize:1000},{cursorOpacity:0},{cursorColor:'red'},{cursorHotspot:'url(x)'},{typewriterText:'x'.repeat(301)},{typewriterEnabled:'true'},{typewriterSpeed:0},{seasonalTheme:'bad'},{objectPositions:[]},{objectPositions:{evil:{x:1,y:2}}},{objectPositions:{name:{x:41,y:0}}},{objectPositions:{name:{x:'1',y:0}}},{objectPositions:{name:{x:1}}},{objectPositions:{name:{x:0,y:0,css:'bad'}}},{objectPositions:{name:null}}])await assert.rejects(db.query('select public.builder_save_profile($1::jsonb)',[JSON.stringify({...update,...bad})]),e=>e.code==='22023',JSON.stringify(bad));
+    });
     await t.test("another account cannot read the draft or save as its owner", async () => {
       await db.exec(`select set_config('request.jwt.claim.sub','${bob}',false);`);
       const draft = await db.query("select * from public.profile_drafts where user_id=$1", [alice]);

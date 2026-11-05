@@ -111,9 +111,7 @@ body:has(script[data-profile="iwtlu"]) .iwtxz-name-row .name-text:not(.iwtxz-gra
                0 0 12px rgba(255, 255, 255, 0.13) !important;
 }
 
-.music-player.iwtxz-player-classic .music-controls {
-    transform: translateY(14px) !important;
-}
+.music-player.iwtxz-player-classic .music-controls { transform: none !important; }
 
 .music-player.iwtxz-player-classic .music-controls button {
     color: #ffffff !important;
@@ -123,4 +121,29 @@ body:has(script[data-profile="iwtlu"]) .iwtxz-name-row .name-text:not(.iwtxz-gra
 .music-player.iwtxz-player-classic .music-controls svg {
     color: #ffffff !important;
     fill: currentColor !important;
+}
+
+/* Compact audio keeps a usable timeline and one centered play button. */
+.iwtxz-player-compact.track-card { width: min(380px, calc(100vw - 96px)); padding: 13px 15px; gap: 12px; grid-template-columns: 48px minmax(0,1fr); border-radius: 18px; background: #060708df; box-shadow: 0 10px 35px #0004; }
+.iwtxz-player-compact.track-card .track-card-cover-wrap, .iwtxz-player-compact.track-card .track-card-cover { width: 48px; height: 48px; }
+.iwtxz-player-compact .track-card-main { position: relative; min-width: 0; padding-right: 46px; }
+.iwtxz-player-compact.track-card .track-card-title { margin-bottom: 10px; font-size: 12px; line-height: 1.5; }
+.iwtxz-player-compact.track-card .track-card-progress-row { grid-template-columns: auto minmax(0,1fr) auto; gap: 8px; }
+.iwtxz-player-compact .track-card-actions { position: absolute; right: -4px; top: 50%; transform: translateY(-50%); }
+.iwtxz-player-compact.track-card .track-card-action-toggle { width: 40px; height: 40px; }
+.iwtxz-player-compact.track-card .track-card-action-toggle svg { width: 24px; height: 24px; }
+.entry-volume { box-sizing: border-box; flex-wrap: nowrap; }
+.entry-volume input { appearance: none; -webkit-appearance: none; width: 75px !important; min-width: 75px; flex: 0 0 75px; height: 24px; padding: 0; margin: 0; border: 0; background: transparent; }
+.entry-volume input::-webkit-slider-runnable-track { height: 4px; background: #ffffff70; border-radius: 9px; }
+.entry-volume input::-webkit-slider-thumb { appearance: none; -webkit-appearance: none; margin-top: -3.5px; width: 11px; height: 11px; border-radius: 50%; border: 0; background: #fff; }
+.entry-volume input::-moz-range-track { height: 4px; border-radius: 9px; background: #ffffff70; }
+.entry-volume input::-moz-range-thumb { width: 11px; height: 11px; border: 0; border-radius: 50%; background: #fff; }
+@media(max-width:640px) {
+  .iwtxz-player-compact.track-card { left:16px; right:auto; margin:0; width:calc(100vw - 80px); grid-template-columns:40px minmax(0,1fr); gap:9px; padding:11px; }
+  .iwtxz-player-compact.track-card .track-card-cover-wrap, .iwtxz-player-compact.track-card .track-card-cover { width:40px; height:40px; }
+  .iwtxz-player-compact .track-card-main { padding-right:36px; }
+  .iwtxz-player-compact.track-card .track-card-title { font-size:11px; }
+  .iwtxz-player-compact.track-card .track-card-time { font-size:8px; }
+  .iwtxz-player-compact.track-card .track-card-progress-row { gap:5px; }
+  .iwtxz-player-compact.track-card .track-card-action-toggle { width:34px; }
 }
