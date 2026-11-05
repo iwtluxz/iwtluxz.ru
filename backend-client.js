@@ -613,6 +613,12 @@
       const hasFeatures = (site.nicknameAnimation && site.nicknameAnimation !== "none") || (site.avatarDecoration && site.avatarDecoration !== "none") || newSocials.some(key => Boolean(site[key]));
       let settingsCapabilities;
       const loadCapabilities=()=>settingsCapabilities ||= Promise.resolve(getClient().rpc('builder_capabilities'));
+      const oldAnimations=new Set(['none','glow','pulse','float','shimmer','glitch','typewriter','blur','flicker','bounce','wave']);
+      const oldDecorations=new Set(['none','discord','phoenix','heartbloom','shy','sakura','moon','embers','aurora','cat']);
+      if((site.descriptionAnimation&&site.descriptionAnimation!=='none')||(site.layoutVersion===2&&Object.keys(site.objectPositions||{}).length)||(site.nicknameAnimation&&!oldAnimations.has(site.nicknameAnimation))||(site.avatarDecoration&&!oldDecorations.has(site.avatarDecoration))){
+        const capabilities=await loadCapabilities();
+        if(capabilities.error||capabilities.data?.profileSettingsVersion<7||capabilities.data?.editorV2!==true)throw error(503,'Для новых эффектов и координат нужно обновление базы 20261105_profile_editor_v2.sql. Выбор остался в редакторе.','backend_features_update_required');
+      }
       const advancedDefaults={descriptionSize:16,cursorSize:24,cursorOpacity:100,cursorColor:'#ffffff',cursorHotspot:'center',typewriterEnabled:false,typewriterText:'',typewriterSpeed:70,seasonalTheme:'none'};
       if(Object.entries(advancedDefaults).some(([key,value])=>site[key]!==undefined&&site[key]!==value)||Object.keys(site.objectPositions||{}).length){
         const capabilities=await loadCapabilities();

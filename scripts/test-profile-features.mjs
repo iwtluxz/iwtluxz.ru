@@ -78,3 +78,17 @@ test("reduced motion keeps a selected avatar decoration visible as a static imag
   assert.equal(art.hidden,false);assert.equal(art.src,'/img/avatar-decorations/sakura.webp');
   api.applyAvatarDecoration(avatar,'none');assert.equal(art.hidden,true);
 });
+
+test("nickname and description effect choices reject injected styles and preserve multiline content",()=>{
+  const {api}=fixture({auth:true});
+  const description={classList:{add(){}},dataset:{},textContent:'Первая строка\nSecond line 🎵'};
+  const nickname={classList:{add(){}},dataset:{},textContent:'My nickname'};
+  for(const {id} of api.animations){api.applyNameAnimation(nickname,id);assert.equal(nickname.dataset.nameAnimation,id);}
+  for(const {id} of api.descriptionAnimations){api.applyDescriptionAnimation(description,id);assert.equal(description.dataset.descriptionAnimation,id);assert.equal(description.textContent,'Первая строка\nSecond line 🎵');}
+  for(const invalid of ['injected','url(javascript:alert(1))','glow;display:none',null,{}]){
+    api.applyNameAnimation(nickname,invalid);assert.equal(nickname.dataset.nameAnimation,'none');
+    api.applyDescriptionAnimation(description,invalid);assert.equal(description.dataset.descriptionAnimation,'none');
+  }
+  assert.doesNotThrow(()=>api.applyDescriptionAnimation(null,'glow'));
+  assert.equal(nickname.textContent,'My nickname');
+});

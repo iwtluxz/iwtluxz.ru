@@ -12,7 +12,7 @@
   frame.src = url.href;
   frame.addEventListener("load", () => { document.getElementById("notFound").hidden = true; }, { once: true });
   window.addEventListener("message", (event) => {
-    if (event.origin !== location.origin || event.source !== frame.contentWindow || event.data?.type !== "iwtxz-public-profile-ready") return;
+    if (event.origin !== location.origin || event.source !== frame.contentWindow || !["iwtxz-public-profile-ready","iwtxz-public-profile-title"].includes(event.data?.type)) return;
     if (typeof event.data.title === "string") document.title = event.data.title.slice(0, 130);
   });
   document.body.append(frame);

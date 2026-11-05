@@ -177,6 +177,7 @@ begin
   result := result || jsonb_build_object('descriptionSize',16,'cursorSize',24,'cursorOpacity',100,'cursorColor','#ffffff',
     'cursorHotspot','center','typewriterEnabled',false,'typewriterText','','typewriterSpeed',70,
     'seasonalTheme','none','objectPositions','{}'::jsonb);
+  result := result || jsonb_build_object('descriptionAnimation','none','layoutVersion',2);
   if username not in ('iwtlu','shakzy','strelokk') then
     result := result || jsonb_build_object('avatar','','background','','music','','musicTitle','','musicCover','');
   end if;
@@ -315,15 +316,20 @@ begin
     end loop;
   end if;
   value := private.profile_text(input, 'nicknameAnimation', 'none', 20);
-  if value not in ('none','glow','pulse','float','shimmer','glitch','typewriter','blur','flicker','bounce','wave') then
+  if value not in ('none','glow','pulse','float','shimmer','glitch','typewriter','blur','flicker','bounce','wave','neon','rainbow','outline','scanline','spotlight','echo','orbit','heartbeat') then
     raise exception using errcode = '22023', message = 'Неизвестная анимация ника.';
   end if;
   result := result || jsonb_build_object('nicknameAnimation', value);
+  value := private.profile_text(input,'descriptionAnimation','none',20);
+  if value not in ('none','glow','pulse','float','shimmer','reveal','flicker','wave','gradient') then
+    raise exception using errcode='22023',message='Неизвестная анимация описания.';
+  end if;
+  result := result || jsonb_build_object('descriptionAnimation',value,'layoutVersion',private.profile_number(input,'layoutVersion',1,1,2));
   value := private.profile_text(input, 'avatarDecoration', 'none', 24);
-  if value not in ('none','discord','phoenix','heartbloom','shy','sakura','moon','embers','aurora','cat') then
+  if value not in ('none','discord','phoenix','heartbloom','shy','sakura','moon','embers','aurora','cat','rainbow','firecrackers','flame-sword','steampunk-cat','potion','lotus','snowglobe','bubble-tea','black-hole','ufo','fox-hat','lovestruck','crystal-ball','hex-lights','solar-orbit','honeyblossom','heartstrings','chromawave','koi','portal-blue','cozy-cat','lightning','constellations','head-clouds','strawberry','neon-cat','runes','rainy-mood','glitch-frame') then
     raise exception using errcode = '22023', message = 'Неизвестное украшение аватара.';
   end if;
-  result := result || jsonb_build_object('avatarDecoration', value, 'profileBadges', badges, 'settingsVersion', 6);
+  result := result || jsonb_build_object('avatarDecoration', value, 'profileBadges', badges, 'settingsVersion', 7);
   result := result || jsonb_build_object('profileScale',private.profile_number(input,'profileScale',100,70,120),'nicknameSize',private.profile_number(input,'nicknameSize',32,18,52),'discordShowCopyHint',private.profile_boolean(input,'discordShowCopyHint',true));
   result := result || jsonb_build_object('descriptionSize',private.profile_number(input,'descriptionSize',16,10,32),
     'cursorSize',private.profile_number(input,'cursorSize',24,12,96),
@@ -385,7 +391,7 @@ $$;
 
 create or replace function public.builder_capabilities()
 returns jsonb language sql stable set search_path = '' as $$
-  select jsonb_build_object('profileSettingsVersion', 6, 'customFonts', true, 'profileEffects', true, 'interactiveEffects', true,'profileLayout',true,'freeLayout',true);
+  select jsonb_build_object('profileSettingsVersion', 7, 'customFonts', true, 'profileEffects', true, 'interactiveEffects', true,'profileLayout',true,'freeLayout',true,'editorV2',true);
 $$;
 revoke all on function public.builder_capabilities() from public;
 grant execute on function public.builder_capabilities() to anon, authenticated;

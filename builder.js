@@ -3,8 +3,8 @@
   const $ = (selector) => document.querySelector(selector);
   const all = (selector) => [...document.querySelectorAll(selector)];
   // A cached HTML page can request a newer script after a deployment.
-  const uiVersion = "20261105-layout-2";
-  if (["effectIntensity", "backgroundEffect", "avatarFit", "ownMusicFiles", "discordDecorationHint", "profileScale", "nicknameSize", "discordShowCopyHint", "descriptionSize", "cursorSize", "typewriterText", "layoutEdit"].some(id => !$("#"+id)) || document.querySelector('script[src*="halloween.js"]')) {
+  const uiVersion = "20261105-editor-v2";
+  if (["effectIntensity", "backgroundEffect", "avatarFit", "ownMusicFiles", "discordDecorationHint", "profileScale", "nicknameSize", "discordShowCopyHint", "descriptionSize", "cursorSize", "typewriterText", "layoutEdit", "descriptionAnimation", "previewViewport", "previewStage"].some(id => !$("#"+id)) || document.querySelector('script[src*="halloween.js"]')) {
     const fresh = new URL(location.href);
     if (fresh.searchParams.get("_ui") !== uiVersion) { fresh.searchParams.set("_ui",uiVersion);location.replace(fresh.href); }
     else if ($("#authStatus")) $("#authStatus").textContent="Не удалось обновить интерфейс. Обнови страницу с очисткой кеша.";
@@ -14,7 +14,7 @@
   const socialFields = features?.socials.map(item => item.id) || ["discord", "telegram", "steam"];
   const textFields = ["title", "nickname", "description", "entryText", "musicTitle", ...socialFields, "discordUserId", "typewriterText"];
   const numberFields = ["avatarSize", "backgroundDim", "nicknameGradientAngle", "discordCardOpacity", "discordCardRadius", "effectIntensity", "profileScale", "nicknameSize", "descriptionSize", "cursorSize", "cursorOpacity", "typewriterSpeed"];
-  const optionFields = ["font", "accentColor", "backgroundType", "nicknameGradientStart", "nicknameGradientEnd", "musicPlayerStyle", "discordCardStyle", "discordCardColor", "nicknameAnimation", "avatarDecoration", "backgroundEffect", "cursorStyle", "avatarFit", "cursorColor", "cursorHotspot"];
+  const optionFields = ["font", "accentColor", "backgroundType", "nicknameGradientStart", "nicknameGradientEnd", "musicPlayerStyle", "discordCardStyle", "discordCardColor", "nicknameAnimation", "avatarDecoration", "backgroundEffect", "cursorStyle", "avatarFit", "cursorColor", "cursorHotspot", "descriptionAnimation"];
   const boolFields = ["musicLoop", "showDiscord", "nicknameGradient", "discordSync", "discordUseAvatar", "discordShowStatus", "discordShowBadges", "discordShowActivity", "profileTilt", "discordShowCopyHint", "typewriterEnabled"];
   const assetFields = ["avatar", "background", "music", "musicCover", "customFont", "favicon", "customCursor"];
   const decorativeBadges = new Set(["star", "heart", "moon", "sparkle", "code", "music", "flower"]);
@@ -29,7 +29,7 @@
     discordCardStyle: "glass", discordCardColor: "#111111", discordCardOpacity: 65, discordCardRadius: 18,
     discordUseAvatar: true, discordShowStatus: true, discordShowBadges: true, discordShowActivity: true,
     nicknameAnimation: "none", avatarDecoration: "none", avatarFit:"cover", backgroundEffect:"none",effectIntensity:50,profileTilt:false,cursorStyle:"default",customCursor:"",favicon:"",profileScale:100,nicknameSize:32,discordShowCopyHint:true,
-    descriptionSize:16,cursorSize:24,cursorOpacity:100,cursorColor:'#ffffff',cursorHotspot:'center',typewriterEnabled:false,typewriterText:'',typewriterSpeed:70,seasonalTheme:'none',objectPositions:{}
+    descriptionSize:16,cursorSize:24,cursorOpacity:100,cursorColor:'#ffffff',cursorHotspot:'center',typewriterEnabled:false,typewriterText:'',typewriterSpeed:70,seasonalTheme:'none',objectPositions:{},layoutVersion:1,descriptionAnimation:'none'
   };
   const fileHints = Object.fromEntries(all("[data-file-note]").map((e) => [e.dataset.fileNote, e.textContent]));
   const previewFrame = $("#previewFrame");
@@ -88,7 +88,29 @@
   let toastTimer;
   let discordSnapshotStatus = null;
   let layoutEditing = false;
-  const positionKeys=['avatar','name','description','socials','discord','player','typewriter'];
+  const positionKeys=['avatar','name','description','socials','discord','player'];
+  let selectedLayoutBlock='',previewExpanded=false;
+  const gridDefaults={visible:false,step:24,snap:true,centerLines:true,color:'#ffffff',opacity:15};
+  let gridSettings={...gridDefaults};
+  try{const stored=JSON.parse(window.localStorage?.getItem('iwtxz:layout-grid')||'{}');gridSettings={...gridSettings,...stored};}catch{}
+  function sendGrid(){previewFrame.contentWindow?.postMessage({type:'iwtxz-layout-grid',grid:gridSettings},location.origin);}
+  function updateGrid(){
+    gridSettings={visible:$('#layoutGridVisible').checked,snap:$('#layoutGridSnap').checked,centerLines:$('#layoutCenterLines').checked,step:Math.min(80,Math.max(8,Number($('#layoutGridStep').value)||24)),color:/^#[a-f0-9]{6}$/i.test($('#layoutGridColor').value)?$('#layoutGridColor').value:'#ffffff',opacity:Math.min(60,Math.max(5,Number($('#layoutGridOpacity').value)||15))};
+    try{window.localStorage?.setItem('iwtxz:layout-grid',JSON.stringify(gridSettings));}catch{}sendGrid();
+  }
+  function resizePreview(){
+    const stage=$('#previewStage'),mode=$('#previewViewport').value||'1280x800';
+    const [width,height]=mode==='window'?[window.innerWidth||1280,window.innerHeight||800]:mode.split('x').map(Number);
+    const available=stage.clientWidth||420;
+    const vertical=previewExpanded?Math.max(160,(window.innerHeight||800)-(($('.preview-panel')?.querySelector?.('.preview-stage')?.getBoundingClientRect?.().top)||180)-80):Infinity;
+    const scale=Math.min(available/width,vertical/height,1);
+    Object.assign(previewFrame.style,{width:`${width}px`,height:`${height}px`,transform:`scale(${scale})`,left:`${Math.max(0,(available-width*scale)/2)}px`});
+    stage.style.height=`${Math.ceil(height*scale)}px`;$('#previewResolution').textContent=`${width} × ${height}`;
+  }
+  function expandPreview(enabled){
+    previewExpanded=Boolean(enabled);$('.preview-panel')?.classList.toggle('is-expanded',previewExpanded);document.body.classList.toggle('preview-expanded',previewExpanded);
+    $('#previewExpand').setAttribute('aria-pressed',String(previewExpanded));$('#previewExpand').textContent=previewExpanded?'Свернуть ↙':'Развернуть ↗';resizePreview();
+  }
   function normalizePositions(value) {
     if(!value || typeof value!=='object' || Array.isArray(value))return {};
     return Object.fromEntries(positionKeys.filter(key=>value[key]&&['x','y'].every(axis=>typeof value[key][axis]==='number'&&Number.isFinite(value[key][axis])&&Math.abs(value[key][axis])<=40)).map(key=>[key,{x:Math.round(value[key].x*100)/100,y:Math.round(value[key].y*100)/100}]));
@@ -99,6 +121,7 @@
     $('#layoutEdit').textContent=layoutEditing?'Завершить перемещение':'Переместить блоки';
     $('#layoutHint').textContent=layoutEditing?'Перетаскивай блоки мышью или пальцем. Стрелки — точный шаг, Esc — завершить.':'Расположение блоков можно менять прямо в превью.';
     previewFrame.contentWindow?.postMessage({type:'iwtxz-layout-edit',enabled:layoutEditing},location.origin);
+    sendGrid();
   }
   let previewVisible = true;
   function sendPreviewVisibility() {
@@ -109,14 +132,16 @@
     observer.observe(previewFrame);
     document.addEventListener("visibilitychange",sendPreviewVisibility);
   }
-  let decorationAvatarSource = "", decorationAvatarVersion = 0, discordDecoration = null;
+  let decorationAvatarSource = "", decorationAvatarThumbnail = "", decorationAvatarVersion = 0, discordDecoration = null;
   function updateDecorationAvatars() {
     const images=all('[data-decoration-avatar]');if(!images.length)return;
     const source=currentSite.avatar||'img/tree.png';
-    if(source===decorationAvatarSource)return;decorationAvatarSource=source;const version=++decorationAvatarVersion;
-    images.forEach(image=>{image.src=source;});
+    const show=value=>all('[data-decoration-avatar]').forEach(image=>{if(image.getAttribute('src')!==value)image.src=value;});
+    if(source===decorationAvatarSource){show(decorationAvatarThumbnail||source);return;}
+    decorationAvatarSource=source;decorationAvatarThumbnail='';const version=++decorationAvatarVersion;
+    show(source);
     const picture=new Image();picture.crossOrigin='anonymous';
-    picture.onload=()=>{if(version!==decorationAvatarVersion)return;try{const canvas=document.createElement('canvas');canvas.width=canvas.height=96;const context=canvas.getContext('2d');const ratio=Math.max(96/picture.naturalWidth,96/picture.naturalHeight);context.drawImage(picture,(96-picture.naturalWidth*ratio)/2,(96-picture.naturalHeight*ratio)/2,picture.naturalWidth*ratio,picture.naturalHeight*ratio);const thumbnail=canvas.toDataURL('image/png');images.forEach(image=>{image.src=thumbnail;});}catch{}};
+    picture.onload=()=>{if(version!==decorationAvatarVersion)return;try{const canvas=document.createElement('canvas');canvas.width=canvas.height=96;const context=canvas.getContext('2d');const ratio=Math.max(96/picture.naturalWidth,96/picture.naturalHeight);context.drawImage(picture,(96-picture.naturalWidth*ratio)/2,(96-picture.naturalHeight*ratio)/2,picture.naturalWidth*ratio,picture.naturalHeight*ratio);decorationAvatarThumbnail=canvas.toDataURL('image/png');show(decorationAvatarThumbnail);}catch{}};
     picture.src=source;
   }
   function updateDiscordDecoration() {
@@ -134,6 +159,22 @@
     element.classList.toggle("error", type === "error");
     element.classList.toggle("ok", type === "ok");
   }
+
+  const decorationPicker=window.IwtxzAvatarDecorations?.createPicker({root:$('#decorationPicker'),input:$('#avatarDecoration'),getAvatarSource:()=>currentSite.avatar||'img/tree.png',onSelect:()=>{updatePreview();clearTimeout(previewTimer);sendPreview();},onRender:()=>{updateDecorationAvatars();updateDiscordDecoration();}});
+
+  for(const [id,key] of [['layoutGridVisible','visible'],['layoutGridSnap','snap'],['layoutCenterLines','centerLines']])$('#'+id).checked=gridSettings[key]===true;
+  for(const [id,key] of [['layoutGridStep','step'],['layoutGridColor','color'],['layoutGridOpacity','opacity']])$('#'+id).value=gridSettings[key];
+  ['layoutGridVisible','layoutGridSnap','layoutCenterLines','layoutGridStep','layoutGridColor','layoutGridOpacity'].forEach(id=>$('#'+id).addEventListener('input',updateGrid));
+  $('#previewViewport').addEventListener('change',resizePreview);
+  $('.layout-grid-settings')?.addEventListener('toggle',resizePreview);
+  $('#previewExpand').addEventListener('click',()=>expandPreview(!previewExpanded));
+  for(const [id,axis] of [['layoutAlignHorizontal','horizontal'],['layoutAlignVertical','vertical'],['layoutAlignBoth','both']]){
+    $('#'+id).disabled=true;$('#'+id).addEventListener('click',()=>{if(layoutEditing&&selectedLayoutBlock)previewFrame.contentWindow?.postMessage({type:'iwtxz-layout-align',axis},location.origin);});
+  }
+  if(typeof ResizeObserver==='function')new ResizeObserver(resizePreview).observe($('#previewStage'));
+  window.addEventListener('resize',resizePreview);
+  window.addEventListener('keydown',event=>{if(event.key==='Escape'&&previewExpanded)expandPreview(false);});
+  resizePreview();
 
   function toast(message) {
     $("#toast").textContent = message;
@@ -218,6 +259,7 @@
   function readEditor() {
     const site = { ...currentSite };
     site.seasonalTheme='none';
+    site.layoutVersion=site.layoutVersion===2?2:1;
     site.objectPositions=normalizePositions(site.objectPositions);
     textFields.forEach((key) => { site[key] = $("#" + key).value.trim(); });
     numberFields.forEach((key) => { site[key] = Number($("#" + key).value); });
@@ -228,7 +270,7 @@
   }
 
   function snapshot(site) {
-    return JSON.stringify(Object.fromEntries([...textFields, ...numberFields, ...optionFields, ...boolFields, ...assetFields, "profileBadges", "objectPositions"].map((key) => [key, key==='objectPositions'?normalizePositions(site[key]):site[key]])));
+    return JSON.stringify(Object.fromEntries([...textFields, ...numberFields, ...optionFields, ...boolFields, ...assetFields, "profileBadges", "objectPositions", "layoutVersion"].map((key) => [key, key==='objectPositions'?normalizePositions(site[key]):site[key]])));
   }
 
   function writeEditor(site) {
@@ -252,6 +294,7 @@
     if (currentUser && previewFrame.contentWindow) {
       previewFrame.contentWindow.postMessage({ type: "iwtxz-profile-preview", site: readEditor() }, location.origin);
       previewFrame.contentWindow.postMessage({type:'iwtxz-layout-edit',enabled:layoutEditing},location.origin);
+      sendGrid();
       sendPreviewVisibility();
     }
   }
@@ -288,6 +331,9 @@
     $("#effectsSummary").textContent = `${animationLabel} · ${$("#decorationLabel").textContent}`;
     $("#nicknameEffectDemo").textContent = currentSite.nickname || "nickname";
     features?.applyNameAnimation($("#nicknameEffectDemo"), currentSite.nicknameAnimation);
+    $('#descriptionEffectDemo').textContent=currentSite.description||'Твоё описание';features?.applyDescriptionAnimation($('#descriptionEffectDemo'),currentSite.descriptionAnimation);
+    decorationPicker?.update(currentSite.avatarDecoration,currentSite.avatar||'img/tree.png');
+    const tabIcon=$('#previewTabIcon');if(tabIcon.getAttribute?.('src')!==(currentSite.favicon||'img/tree.png'))tabIcon.src=currentSite.favicon||'img/tree.png';
     updateDecorationAvatars();updateDiscordDecoration();
     clearTimeout(previewTimer);
     previewTimer = setTimeout(sendPreview, 70);
@@ -353,7 +399,7 @@
     musicCatalog?.close();
     if (name === "music" && accountReady) {
       musicCatalog?.open(currentSite.music);
-      if ($("#ownMusicFiles")?.open) musicLibrary?.open(currentSite.music);
+      musicLibrary?.open(currentSite.music);
     }
     all("[data-settings-section]").forEach((section) => section.classList.toggle("hidden", section.dataset.settingsSection !== name));
     all("[data-section]").forEach((button) => {
@@ -376,7 +422,7 @@
     $("#accountLoadState").classList.add("hidden");
     currentUser = null;
     discordSnapshotStatus = null;
-    discordDecoration = null;decorationAvatarSource="";++decorationAvatarVersion;
+    discordDecoration = null;decorationAvatarSource="";decorationAvatarThumbnail='';++decorationAvatarVersion;
     dirty = false;
     savedSnapshot = "";
     document.body.classList.add("auth-locked");
@@ -497,6 +543,7 @@
     const data = await api("/api/builder/sites/save", { method: "POST", body: JSON.stringify({ site }) });
     const labels={avatarDecoration:"украшение аватара",nicknameAnimation:"анимацию ника",backgroundEffect:"эффект фона",profileTilt:"наклон карточки",cursorStyle:"курсор",customCursor:"свой курсор",favicon:"иконку вкладки",music:"трек",musicCover:"обложку",nicknameSize:"размер ника",profileScale:"масштаб",discordShowCopyHint:"подсказку копирования"};
     Object.assign(labels,{descriptionSize:'размер описания',cursorSize:'размер курсора',cursorOpacity:'непрозрачность курсора',cursorColor:'цвет курсора',cursorHotspot:'точку нажатия',typewriterEnabled:'печатную строку',typewriterText:'текст печатной строки',typewriterSpeed:'скорость печати'});
+    Object.assign(labels,{descriptionAnimation:'анимацию описания'});if(Object.keys(site.objectPositions).length)labels.layoutVersion='координаты блоков';
     const lost=Object.keys(labels).filter(key=>Object.hasOwn(data.site||{},key)||site[key]!==defaults[key]).filter(key=>data.site?.[key]!==site[key]);
     if(JSON.stringify(normalizePositions(data.site?.objectPositions))!==JSON.stringify(normalizePositions(site.objectPositions)))lost.push('objectPositions');
     labels.objectPositions='расположение блоков';
@@ -652,7 +699,7 @@
     button.closest("details").open = false;
     updatePreview();
   }));
-  all("[data-decoration]").forEach(button => button.addEventListener("click", () => {
+  if(!decorationPicker)all("[data-decoration]").forEach(button => button.addEventListener("click", () => {
     $("#avatarDecoration").value = button.dataset.decoration;
     updatePreview();
     clearTimeout(previewTimer); sendPreview();
@@ -672,7 +719,7 @@
     $("#avatarDecoration").value = previousEffects.avatarDecoration;
     previousEffects = null; $("#undoEffects").classList.add("hidden"); updatePreview();
   });
-  $("#ownMusicFiles").addEventListener("toggle", () => { if ($("#ownMusicFiles").open && accountReady) musicLibrary?.open(currentSite.music); });
+  $('.service-catalog-section')?.addEventListener('toggle',()=>{if(!$('.service-catalog-section').open)musicCatalog?.close();});
   $("#editorForm").addEventListener("input", (event) => {
     if (event.target.type === "file") return;
     const key = event.target.dataset.assetUrl;
@@ -729,7 +776,13 @@
   window.addEventListener("message", (event) => {
     if (event.origin !== location.origin || event.source !== previewFrame.contentWindow) return;
     if(event.data?.type==='iwtxz-layout-edit-ended')setLayoutEditing(false);
-    if(event.data?.type==='iwtxz-layout-change'&&layoutEditing&&accountReady&&!busy){currentSite.objectPositions=normalizePositions(event.data.positions);updatePreview();}
+    if(event.data?.type==='iwtxz-layout-change'&&layoutEditing&&accountReady&&!busy){currentSite.objectPositions=normalizePositions(event.data.positions);currentSite.layoutVersion=event.data.layoutVersion===2?2:1;updatePreview();}
+    if(event.data?.type==='iwtxz-title-preview'&&typeof event.data.title==='string')$('#previewTabTitle').textContent=event.data.title.slice(0,140);
+    if(event.data?.type==='iwtxz-layout-selected'){
+      selectedLayoutBlock=positionKeys.includes(event.data.key)?event.data.key:'';
+      $('#layoutSelection').textContent=selectedLayoutBlock?`Выбран блок: ${String(event.data.label||selectedLayoutBlock).slice(0,40)}`:'Выбери блок в режиме перемещения';
+      ['layoutAlignHorizontal','layoutAlignVertical','layoutAlignBoth'].forEach(id=>$('#'+id).disabled=!selectedLayoutBlock||!layoutEditing);
+    }
     if (event.data?.type === "iwtxz-profile-ready") sendPreview();
     if (event.data?.type === "iwtxz-font-status" && event.data.source === currentSite.customFont) {
       const labels = {

@@ -95,6 +95,22 @@ test("profile effects migration preserves old data, round-trips features, valida
       assert.deepEqual((await db.query("select settings from public.profile_published where username='alice'")).rows[0].settings.objectPositions,update.objectPositions);
       for(const bad of [{descriptionSize:60},{cursorSize:1000},{cursorOpacity:0},{cursorColor:'red'},{cursorHotspot:'url(x)'},{typewriterText:'x'.repeat(301)},{typewriterEnabled:'true'},{typewriterSpeed:0},{seasonalTheme:'bad'},{objectPositions:[]},{objectPositions:{evil:{x:1,y:2}}},{objectPositions:{name:{x:41,y:0}}},{objectPositions:{name:{x:'1',y:0}}},{objectPositions:{name:{x:1}}},{objectPositions:{name:{x:0,y:0,css:'bad'}}},{objectPositions:{name:null}}])await assert.rejects(db.query('select public.builder_save_profile($1::jsonb)',[JSON.stringify({...update,...bad})]),e=>e.code==='22023',JSON.stringify(bad));
     });
+    await t.test("editor v2 preserves old publications, validates expanded effects and round-trips absolute positions",async()=>{
+      await db.exec('reset role;');
+      const before=await db.query('select settings from public.profile_published where username=$1',['alice']);
+      const sql=await readFile(new URL('../supabase/migrations/20261105_profile_editor_v2.sql',import.meta.url),'utf8');
+      await db.exec(sql);await db.exec(sql);
+      assert.deepEqual((await db.query('select settings from public.profile_published where username=$1',['alice'])).rows,before.rows);
+      assert.equal((await db.query('select public.builder_capabilities() as value')).rows[0].value.editorV2,true);
+      await db.exec(`set role authenticated; select set_config('request.jwt.claim.sub','${alice}',false);`);
+      const update={...settings,nicknameAnimation:'neon',descriptionAnimation:'shimmer',avatarDecoration:'constellations',layoutVersion:2,objectPositions:{name:{x:0,y:0},avatar:{x:-8.25,y:-12.5}}};
+      const result=await db.query('select public.builder_save_profile($1::jsonb) as value',[JSON.stringify(update)]);
+      for(const key of ['nicknameAnimation','descriptionAnimation','avatarDecoration','layoutVersion','objectPositions'])assert.deepEqual(result.rows[0].value[key],update[key]);
+      await db.exec('select public.builder_publish_profile();');
+      assert.equal((await db.query("select settings from public.profile_published where username='alice'")).rows[0].settings.layoutVersion,2);
+      for(const bad of [{nicknameAnimation:'bad'},{descriptionAnimation:'bad'},{avatarDecoration:'javascript:bad'},{layoutVersion:3}])await assert.rejects(db.query('select public.builder_save_profile($1::jsonb)',[JSON.stringify({...update,...bad})]),e=>e.code==='22023');
+      const old=await db.query('select public.builder_save_profile($1::jsonb) as value',[JSON.stringify(settings)]);assert.equal(old.rows[0].value.layoutVersion,1);
+    });
     await t.test("another account cannot read the draft or save as its owner", async () => {
       await db.exec(`select set_config('request.jwt.claim.sub','${bob}',false);`);
       const draft = await db.query("select * from public.profile_drafts where user_id=$1", [alice]);

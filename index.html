@@ -7,24 +7,26 @@
   <meta name="description" content="Твоя страница iwtxz: аватар, музыка, фон и ссылки.">
   <link rel="icon" type="image/png" href="img/tree.png">
   <link rel="preload" href="font/minecraft.ttf" as="font" type="font/ttf" crossorigin>
-  <link rel="stylesheet" href="builder.css?v=42ddc8627d20">
+  <link rel="stylesheet" href="builder.css?v=5bd568201c6b">
   <title>Личный кабинет · iwtxz</title>
   <script src="profile-links.js?v=40c61c4a7df8" defer></script>
   <script src="vendor/supabase-2.102.0.min.js" defer></script>
   <script src="backend-config.js?v=bde35107dd7e" defer></script>
-  <script src="backend-client.js?v=c6e834f13a34" defer></script>
-  <script src="profile-features.js?v=87e5ff3a13e5" defer></script>
+  <script src="backend-client.js?v=f422ddeb2796" defer></script>
+  <script src="profile-decorations.js?v=4a4bc7aa65a9" defer></script>
+  <script src="profile-features.js?v=e79afe5e6b21" defer></script>
   <script src="music-library.js?v=2fab4296d8bb" defer></script>
   <script src="music-services.js?v=a4a92a4fc51d" defer></script>
   <script src="music-catalog-data.js?v=920cd10922e5" defer></script>
   <script src="music-catalog.js?v=109976640021" defer></script>
   <script src="profile-scene.js?v=795f7d6f88de" defer></script>
-  <script src="profile-layout.js?v=479fd712aa6e" defer></script>
-  <script src="builder.js?v=b1c0eb0b2202" defer></script>
-  <link rel="stylesheet" href="profile-features.css?v=249439027b2b">
+  <script src="profile-layout.js?v=79074bd28891" defer></script>
+  <script src="builder.js?v=ae3b173d7abd" defer></script>
+  <link rel="stylesheet" href="profile-features.css?v=c129e6b6c4b4">
   <link rel="stylesheet" href="music-services.css?v=b83e04cda2b4">
   <link rel="stylesheet" href="profile-scene.css?v=43f2d542edb6">
-  <link rel="stylesheet" href="profile-layout.css?v=4d78d4ef38f7">
+  <link rel="stylesheet" href="profile-layout.css?v=183623eec637">
+  <link rel="stylesheet" href="profile-decorations.css?v=905e884c7dad">
 </head>
 <body class="auth-locked">
   <header class="topbar">
@@ -82,7 +84,7 @@
             <label class="field wide">О себе<textarea id="description" maxlength="500" rows="4" placeholder="Пара слов, цитата или просто настроение"></textarea><span class="hint" id="descriptionCount">0 / 500</span></label>
             <label class="field wide">Текст на экране входа<input id="entryText" maxlength="80" placeholder="click to enter..."></label>
           </div>
-          <div class="settings-group typewriter-settings"><h3>Печатная строка сверху</h3><label class="checkbox-field"><input id="typewriterEnabled" type="checkbox"><span>Включить печатную машинку</span></label><label class="field">Фразы<textarea id="typewriterText" maxlength="300" rows="3" placeholder="Каждая новая строка — отдельная фраза"></textarea></label><label class="field">Задержка между буквами, мс<input id="typewriterSpeed" type="range" min="20" max="200" value="70"><span class="hint">Меньше — быстрее</span></label></div>
+          <div class="settings-group typewriter-settings"><h3>Название вкладки</h3><label class="checkbox-field"><input id="typewriterEnabled" type="checkbox"><span>Печатная машинка рядом с иконкой сайта</span></label><label class="field">Фразы для вкладки<textarea id="typewriterText" maxlength="300" rows="3" placeholder="Каждая новая строка — отдельная фраза"></textarea></label><label class="field">Задержка между буквами, мс<input id="typewriterSpeed" type="range" min="20" max="200" value="70"><span class="hint">Меньше — быстрее. Пустое поле использует название вкладки.</span></label></div>
           <div class="settings-group">
             <h3>Градиент ника</h3>
             <label class="checkbox-field"><input id="nicknameGradient" type="checkbox"><span>Окрасить ник градиентом</span></label>
@@ -109,8 +111,27 @@
 <option value="flicker">Мерцание</option>
 <option value="bounce">Пружина</option>
 <option value="wave">Волна</option>
+<option value="neon">Неон</option>
+<option value="rainbow">Радужный поток</option>
+<option value="outline">Живой контур</option>
+<option value="scanline">Сканирование</option>
+<option value="spotlight">Вспышка света</option>
+<option value="echo">Эхо</option>
+<option value="orbit">Орбита</option>
+<option value="heartbeat">Сердцебиение</option>
           <!-- nickname-animations:end -->
             </select></label>
+          <div class="effect-demo description-effect-demo"><span id="descriptionEffectDemo">Твоё описание</span></div><label class="field">Анимация описания<select id="descriptionAnimation"><!-- description-animations:start -->
+<option value="none">Без анимации</option>
+<option value="glow">Мягкое свечение</option>
+<option value="pulse">Дыхание</option>
+<option value="float">Парение</option>
+<option value="shimmer">Перелив света</option>
+<option value="reveal">Проявление</option>
+<option value="flicker">Мерцание</option>
+<option value="wave">Покачивание</option>
+<option value="gradient">Цветной перелив</option>
+          <!-- description-animations:end --></select></label>
           <div class="decoration-settings"><div class="decoration-heading"><h3>Украшение аватара</h3><span id="decorationLabel">Без украшения</span></div><input id="avatarDecoration" type="hidden" value="none"><div class="decoration-picker" id="decorationPicker" aria-label="Украшения аватара">
           <!-- decoration-picker:start -->
 <button type="button" class="decoration-option selected" data-decoration="none" aria-pressed="true"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><span class="decoration-mode">—</span></span><span>Без украшения</span></button>
@@ -123,6 +144,35 @@
 <button type="button" class="decoration-option" data-decoration="embers" aria-pressed="false"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><img class="decoration-art" src="img/avatar-decorations/embers.webp" alt="" loading="lazy" decoding="async"></span><span>Огоньки</span></button>
 <button type="button" class="decoration-option" data-decoration="aurora" aria-pressed="false"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><img class="decoration-art" src="img/avatar-decorations/aurora.webp" alt="" loading="lazy" decoding="async"></span><span>Аврора</span></button>
 <button type="button" class="decoration-option" data-decoration="cat" aria-pressed="false"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><img class="decoration-art" src="img/avatar-decorations/cat.webp" alt="" loading="lazy" decoding="async"></span><span>Кошачьи ушки</span></button>
+<button type="button" class="decoration-option" data-decoration="rainbow" aria-pressed="false"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><img class="decoration-art" src="img/avatar-decorations/rainbow.webp" alt="" loading="lazy" decoding="async"></span><span>Радужный Хью</span></button>
+<button type="button" class="decoration-option" data-decoration="firecrackers" aria-pressed="false"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><img class="decoration-art" src="img/avatar-decorations/firecrackers.webp" alt="" loading="lazy" decoding="async"></span><span>Фейерверк</span></button>
+<button type="button" class="decoration-option" data-decoration="flame-sword" aria-pressed="false"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><img class="decoration-art" src="img/avatar-decorations/flame-sword.webp" alt="" loading="lazy" decoding="async"></span><span>Огненный меч</span></button>
+<button type="button" class="decoration-option" data-decoration="steampunk-cat" aria-pressed="false"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><img class="decoration-art" src="img/avatar-decorations/steampunk-cat.webp" alt="" loading="lazy" decoding="async"></span><span>Стимпанк-ушки</span></button>
+<button type="button" class="decoration-option" data-decoration="potion" aria-pressed="false"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><img class="decoration-art" src="img/avatar-decorations/potion.webp" alt="" loading="lazy" decoding="async"></span><span>Волшебное зелье</span></button>
+<button type="button" class="decoration-option" data-decoration="lotus" aria-pressed="false"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><img class="decoration-art" src="img/avatar-decorations/lotus.webp" alt="" loading="lazy" decoding="async"></span><span>Цветок лотоса</span></button>
+<button type="button" class="decoration-option" data-decoration="snowglobe" aria-pressed="false"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><img class="decoration-art" src="img/avatar-decorations/snowglobe.webp" alt="" loading="lazy" decoding="async"></span><span>Снежный шар</span></button>
+<button type="button" class="decoration-option" data-decoration="bubble-tea" aria-pressed="false"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><img class="decoration-art" src="img/avatar-decorations/bubble-tea.webp" alt="" loading="lazy" decoding="async"></span><span>Бабл-ти</span></button>
+<button type="button" class="decoration-option" data-decoration="black-hole" aria-pressed="false"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><img class="decoration-art" src="img/avatar-decorations/black-hole.webp" alt="" loading="lazy" decoding="async"></span><span>Чёрная дыра</span></button>
+<button type="button" class="decoration-option" data-decoration="ufo" aria-pressed="false"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><img class="decoration-art" src="img/avatar-decorations/ufo.webp" alt="" loading="lazy" decoding="async"></span><span>НЛО</span></button>
+<button type="button" class="decoration-option" data-decoration="fox-hat" aria-pressed="false"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><img class="decoration-art" src="img/avatar-decorations/fox-hat.webp" alt="" loading="lazy" decoding="async"></span><span>Лисья шапка</span></button>
+<button type="button" class="decoration-option" data-decoration="lovestruck" aria-pressed="false"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><img class="decoration-art" src="img/avatar-decorations/lovestruck.webp" alt="" loading="lazy" decoding="async"></span><span>Влюблённость</span></button>
+<button type="button" class="decoration-option" data-decoration="crystal-ball" aria-pressed="false"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><img class="decoration-art" src="img/avatar-decorations/crystal-ball.webp" alt="" loading="lazy" decoding="async"></span><span>Хрустальный шар</span></button>
+<button type="button" class="decoration-option" data-decoration="hex-lights" aria-pressed="false"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><img class="decoration-art" src="img/avatar-decorations/hex-lights.webp" alt="" loading="lazy" decoding="async"></span><span>Светящиеся грани</span></button>
+<button type="button" class="decoration-option" data-decoration="solar-orbit" aria-pressed="false"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><img class="decoration-art" src="img/avatar-decorations/solar-orbit.webp" alt="" loading="lazy" decoding="async"></span><span>Солнечная орбита</span></button>
+<button type="button" class="decoration-option" data-decoration="honeyblossom" aria-pressed="false"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><img class="decoration-art" src="img/avatar-decorations/honeyblossom.webp" alt="" loading="lazy" decoding="async"></span><span>Медовое цветение</span></button>
+<button type="button" class="decoration-option" data-decoration="heartstrings" aria-pressed="false"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><img class="decoration-art" src="img/avatar-decorations/heartstrings.webp" alt="" loading="lazy" decoding="async"></span><span>Сердечные нити</span></button>
+<button type="button" class="decoration-option" data-decoration="chromawave" aria-pressed="false"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><img class="decoration-art" src="img/avatar-decorations/chromawave.webp" alt="" loading="lazy" decoding="async"></span><span>Хроматическая волна</span></button>
+<button type="button" class="decoration-option" data-decoration="koi" aria-pressed="false"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><img class="decoration-art" src="img/avatar-decorations/koi.webp" alt="" loading="lazy" decoding="async"></span><span>Пруд с кои</span></button>
+<button type="button" class="decoration-option" data-decoration="portal-blue" aria-pressed="false"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><img class="decoration-art" src="img/avatar-decorations/portal-blue.webp" alt="" loading="lazy" decoding="async"></span><span>Синий портал</span></button>
+<button type="button" class="decoration-option" data-decoration="cozy-cat" aria-pressed="false"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><img class="decoration-art" src="img/avatar-decorations/cozy-cat.webp" alt="" loading="lazy" decoding="async"></span><span>Уютный кот</span></button>
+<button type="button" class="decoration-option" data-decoration="lightning" aria-pressed="false"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><img class="decoration-art" src="img/avatar-decorations/lightning.webp" alt="" loading="lazy" decoding="async"></span><span>Молния</span></button>
+<button type="button" class="decoration-option" data-decoration="constellations" aria-pressed="false"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><img class="decoration-art" src="img/avatar-decorations/constellations.webp" alt="" loading="lazy" decoding="async"></span><span>Созвездия</span></button>
+<button type="button" class="decoration-option" data-decoration="head-clouds" aria-pressed="false"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><img class="decoration-art" src="img/avatar-decorations/head-clouds.webp" alt="" loading="lazy" decoding="async"></span><span>В облаках</span></button>
+<button type="button" class="decoration-option" data-decoration="strawberry" aria-pressed="false"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><img class="decoration-art" src="img/avatar-decorations/strawberry.webp" alt="" loading="lazy" decoding="async"></span><span>Клубничная лоза</span></button>
+<button type="button" class="decoration-option" data-decoration="neon-cat" aria-pressed="false"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><img class="decoration-art" src="img/avatar-decorations/neon-cat.webp" alt="" loading="lazy" decoding="async"></span><span>Неоновый кот</span></button>
+<button type="button" class="decoration-option" data-decoration="runes" aria-pressed="false"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><img class="decoration-art" src="img/avatar-decorations/runes.webp" alt="" loading="lazy" decoding="async"></span><span>Светящиеся руны</span></button>
+<button type="button" class="decoration-option" data-decoration="rainy-mood" aria-pressed="false"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><img class="decoration-art" src="img/avatar-decorations/rainy-mood.webp" alt="" loading="lazy" decoding="async"></span><span>Дождливое настроение</span></button>
+<button type="button" class="decoration-option" data-decoration="glitch-frame" aria-pressed="false"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><img class="decoration-art" src="img/avatar-decorations/glitch-frame.webp" alt="" loading="lazy" decoding="async"></span><span>Глитч</span></button>
           <!-- decoration-picker:end -->
           </div><p class="hint">Оригинальные украшения Discord. «Из Discord» использует синхронизацию аккаунта.</p></div>
           <p class="decoration-discord-hint" id="discordDecorationHint"></p><button type="button" class="text-button hidden" id="undoEffects">Отменить случайный выбор</button>
@@ -151,8 +201,19 @@
           </div>
         </section>
         <section class="settings-section hidden" data-settings-section="music" aria-labelledby="musicHeading">
-          <h2 id="musicHeading">Музыка</h2><p class="section-description">Подборки iwtxz для твоей страницы. Выбери сервис и найди своё настроение.</p>
-          <div class="music-catalog" id="musicCatalog" data-music-service="yandex">
+          <h2 id="musicHeading">Музыка</h2><p class="section-description">Твоя библиотека, аудиофайлы и ссылки — всё для музыки на странице.</p>
+          <div class="music-own-files" id="ownMusicFiles">
+          <div class="music-library" id="musicLibrary"><h3>Моя библиотека</h3><p class="hint">YouTube, Bandcamp или Vimeo. SoundCloud пока недоступен.</p><div class="library-import"><input type="url" data-library-url placeholder="Ссылка на трек" aria-label="Ссылка для библиотеки" maxlength="1000"><button class="button" type="button" data-library-import>Добавить</button></div><p class="status" role="status" aria-live="polite" data-library-status></p><ul class="library-list" data-library-list></ul></div>
+          <div class="upload-card"><div class="upload-details"><label for="musicFile">Твой трек</label><input id="musicFile" data-upload="music" type="file" accept="audio/mpeg,audio/mp3,audio/ogg,audio/wav,audio/x-wav,audio/mp4,audio/webm"><span class="hint" data-file-note="music">MP3, OGG, WAV, M4A или WebM · до 4 МБ</span></div><button type="button" class="text-button" data-remove="music">Убрать</button></div>
+          <div class="url-details music-direct-url"><h3>Прямая ссылка на аудио</h3><label class="field">Ссылка на аудиофайл<input id="musicUrl" data-asset-url="music" type="url" placeholder="https://…/track.mp3"></label><p class="hint">MP3 и другие аудиофайлы работают сразу. Для скачивания с YouTube вставь ссылку в «Мою библиотеку». Яндекс Музыку и Spotify ищи в подборке ниже.</p></div>
+          <label class="field">Название трека<input id="musicTitle" maxlength="80" placeholder="Исполнитель — название"></label>
+          <div class="upload-card"><img id="coverThumbnail" class="cover-thumbnail" src="img/tree.png" alt="Обложка трека"><div class="upload-details"><label for="musicCoverFile">Обложка</label><input id="musicCoverFile" data-upload="musicCover" type="file" accept="image/png,image/jpeg,image/gif,image/webp"><span class="hint" data-file-note="musicCover">Картинка · до 4 МБ</span></div><button type="button" class="text-button" data-remove="musicCover">Убрать</button></div>
+          <label class="checkbox-field"><input id="musicLoop" type="checkbox" checked><span>Повторять трек</span></label>
+          </div>
+
+          <div class="settings-group music-player-settings"><h3>Плеер</h3>          <label class="field">Вид плеера<select id="musicPlayerStyle"><option value="classic">Классический</option><option value="compact">Компактный</option></select></label>
+</div>
+          <details class="service-catalog-section"><summary>Подборки и поиск по сервисам</summary>          <div class="music-catalog" id="musicCatalog" data-music-service="yandex">
             <div class="catalog-services" data-catalog-services role="group" aria-label="Музыкальный сервис"></div>
             <div class="catalog-hero"><img data-catalog-logo src="img/music/yandex.png" alt=""><div><small>выбрано iwtxz</small><h3 data-catalog-name>Яндекс Музыка</h3><p data-catalog-tagline>Твоя волна на тёмной стороне</p></div></div>
             <div class="catalog-tools"><input type="search" data-catalog-search placeholder="Трек, исполнитель или ссылка" aria-label="Поиск музыки или добавление ссылки" autocomplete="off"><div class="catalog-moods" role="group" aria-label="Настроение"><button type="button" data-catalog-mood="all" aria-pressed="true">Всё</button><button type="button" data-catalog-mood="dark" aria-pressed="false">Тёмная сторона</button><button type="button" data-catalog-mood="dream" aria-pressed="false">Мечтать</button><button type="button" data-catalog-mood="indie" aria-pressed="false">Инди</button></div></div>
@@ -160,15 +221,7 @@
             <p class="catalog-status" data-catalog-status role="status" aria-live="polite"></p><div class="catalog-preview" data-catalog-preview hidden></div>
             <div class="catalog-footnote">«Скачать и выбрать» сохраняет аудио в твою библиотеку. Для Яндекс Музыки и Spotify сначала выбери подходящую версию на YouTube. На странице будет твой классический или компактный плеер.</div>
           </div>
-          <label class="field">Вид плеера<select id="musicPlayerStyle"><option value="classic">Классический</option><option value="compact">Компактный</option></select></label>
-          <details class="music-own-files" id="ownMusicFiles"><summary>Моя библиотека, аудиофайл или ссылка</summary>
-          <div class="music-library" id="musicLibrary"><h3>Моя библиотека</h3><p class="hint">YouTube, Bandcamp или Vimeo. SoundCloud пока недоступен.</p><div class="library-import"><input type="url" data-library-url placeholder="Ссылка на трек" aria-label="Ссылка для библиотеки" maxlength="1000"><button class="button" type="button" data-library-import>Добавить</button></div><p class="status" role="status" aria-live="polite" data-library-status></p><ul class="library-list" data-library-list></ul></div>
-          <div class="upload-card"><div class="upload-details"><label for="musicFile">Твой трек</label><input id="musicFile" data-upload="music" type="file" accept="audio/mpeg,audio/mp3,audio/ogg,audio/wav,audio/x-wav,audio/mp4,audio/webm"><span class="hint" data-file-note="music">MP3, OGG, WAV, M4A или WebM · до 4 МБ</span></div><button type="button" class="text-button" data-remove="music">Убрать</button></div>
-          <details class="url-details"><summary>Или указать прямую ссылку на аудио</summary><label class="field">Ссылка на аудиофайл<input id="musicUrl" data-asset-url="music" type="url" placeholder="https://…/track.mp3"></label><p class="hint">MP3 и другие аудиофайлы работают сразу. Для скачивания с YouTube вставь ссылку в «Мою библиотеку». Яндекс Музыку и Spotify ищи в подборке выше.</p></details>
-          <label class="field">Название трека<input id="musicTitle" maxlength="80" placeholder="Исполнитель — название"></label>
-          <div class="upload-card"><img id="coverThumbnail" class="cover-thumbnail" src="img/tree.png" alt="Обложка трека"><div class="upload-details"><label for="musicCoverFile">Обложка</label><input id="musicCoverFile" data-upload="musicCover" type="file" accept="image/png,image/jpeg,image/gif,image/webp"><span class="hint" data-file-note="musicCover">Картинка · до 4 МБ</span></div><button type="button" class="text-button" data-remove="musicCover">Убрать</button></div>
-          <label class="checkbox-field"><input id="musicLoop" type="checkbox" checked><span>Повторять трек</span></label>
-          </details>
+</details>
         </section>
         <section class="settings-section hidden" data-settings-section="links" aria-labelledby="linksHeading">
           <h2 id="linksHeading">Соцсети</h2><p class="section-description">Выбери сеть и добавь ссылку.</p>
@@ -223,8 +276,10 @@
     </section>
     <aside class="panel preview-panel requires-auth" aria-labelledby="previewHeading">
       <div class="preview-heading"><h2 id="previewHeading">Превью</h2><span class="preview-badge"><span class="live-dot" aria-hidden="true"></span> в реальном времени</span></div>
-      <div class="layout-toolbar"><button class="button small" id="layoutEdit" type="button" aria-pressed="false">Переместить блоки</button><button class="text-button" id="layoutReset" type="button">Сбросить позиции</button><p class="hint" id="layoutHint" role="status">Расположение блоков можно менять прямо в превью.</p></div>
-      <iframe id="previewFrame" title="Предпросмотр твоей страницы" src="profile.html?preview=1" loading="lazy" sandbox="allow-scripts allow-same-origin" allow="autoplay; clipboard-write"></iframe>
+      <div class="layout-toolbar"><button class="button small" id="layoutEdit" type="button" aria-pressed="false">Переместить блоки</button><button class="text-button" id="layoutReset" type="button">Сбросить позиции</button><button class="text-button" id="previewExpand" type="button" aria-pressed="false">Развернуть ↗</button><label class="preview-device">Экран<select id="previewViewport"><option value="1280x800">Компьютер · 1280 × 800</option><option value="1920x1080">Большой экран · 1920 × 1080</option><option value="390x844">Телефон · 390 × 844</option><option value="window">Моё окно</option></select></label><p class="hint" id="layoutHint" role="status">Перемещай блоки в выбранном размере экрана.</p></div>
+      <details class="layout-grid-settings"><summary>Сетка и выравнивание</summary><div class="grid-controls"><label class="checkbox-field"><input id="layoutGridVisible" type="checkbox"><span>Показать сетку</span></label><label class="checkbox-field"><input id="layoutGridSnap" type="checkbox" checked><span>Привязка</span></label><label class="checkbox-field"><input id="layoutCenterLines" type="checkbox" checked><span>Линии центра</span></label><label class="field">Шаг, px<input id="layoutGridStep" type="number" min="8" max="80" value="24"></label><label class="field">Цвет<input id="layoutGridColor" type="color" value="#ffffff"></label><label class="field">Яркость, %<input id="layoutGridOpacity" type="number" min="5" max="60" value="15"></label></div><span class="hint" id="layoutSelection">Выбери блок в режиме перемещения</span><div class="layout-align-controls"><button class="button small" id="layoutAlignHorizontal" type="button">По центру ↔</button><button class="button small" id="layoutAlignVertical" type="button">По центру ↕</button><button class="button small" id="layoutAlignBoth" type="button">В центр экрана</button></div></details>
+      <div class="preview-tab"><img id="previewTabIcon" src="img/tree.png" alt=""><span id="previewTabTitle">Твоя страница | iwtxz</span><span class="hint" id="previewResolution">1280 × 800</span></div>
+      <div class="preview-stage" id="previewStage"><iframe id="previewFrame" title="Предпросмотр твоей страницы" src="profile.html?preview=1" loading="lazy" sandbox="allow-scripts allow-same-origin" allow="autoplay; clipboard-write"></iframe></div>
       <div class="preview-footer"><span class="hint" id="publishedStatus">Страница ещё не опубликована</span><a class="text-button hidden" id="openProfile" target="_blank" rel="noopener noreferrer">Открыть страницу ↗</a></div>
     </aside>
   </main>

@@ -76,7 +76,7 @@ function load(overrides = {}) {
       if (state.rpcError) return { data: null, error: state.rpcError };
       if (name === "builder_capabilities") return state.oldCustomizationServer
         ? { data: null, error: { code: "PGRST202" } }
-        : { data: { profileSettingsVersion: state.oldEffectsServer ? 2 : state.oldInteractiveServer ? 3 : state.oldLayoutServer ? 4 : state.oldFreeLayoutServer ? 5 : 6, freeLayout:!state.oldFreeLayoutServer, profileLayout: !state.oldLayoutServer, interactiveEffects: !state.oldInteractiveServer, customFonts: true, profileEffects: !state.oldEffectsServer }, error: null };
+        : { data: { profileSettingsVersion: state.oldEffectsServer ? 2 : state.oldInteractiveServer ? 3 : state.oldLayoutServer ? 4 : state.oldFreeLayoutServer ? 5 : state.oldEditorV2Server ? 6 : 7,editorV2:!state.oldEditorV2Server, freeLayout:!state.oldFreeLayoutServer, profileLayout: !state.oldLayoutServer, interactiveEffects: !state.oldInteractiveServer, customFonts: true, profileEffects: !state.oldEffectsServer }, error: null };
       if (name === "builder_get_profile") return { data: state.draft || { id: state.username, owner: state.username, nickname: state.username }, error: null };
       if (name === "builder_save_profile") { state.draft = structuredClone(input.input); return { data: state.draft, error: null }; }
       if (name === "builder_publish_profile") {
@@ -324,6 +324,13 @@ test("new effects cannot be silently discarded by a server without the migration
   }
   assert.equal(state.calls.some(call => call.name === "builder_save_profile"), false);
   await api.request("/api/builder/sites/save", post({ site: { nickname: "Old features", nicknameAnimation: "none", avatarDecoration: "none", github: "" } }));
+});
+
+test('editor v2 cannot silently lose new effects or absolute coordinates on a v6 server',async()=>{
+  const {api,state}=load({oldEditorV2Server:true});
+  for(const site of [{descriptionAnimation:'float'},{nicknameAnimation:'neon'},{avatarDecoration:'constellations'},{layoutVersion:2,objectPositions:{name:{x:0,y:0}}}])await rejects(api.request('/api/builder/sites/save',post({site})),503,'backend_features_update_required');
+  assert.equal(state.calls.some(call=>call.name==='builder_save_profile'),false);
+  await api.request('/api/builder/sites/save',post({site:{layoutVersion:1,objectPositions:{name:{x:2,y:3}},descriptionAnimation:'none',nicknameAnimation:'glow',avatarDecoration:'sakura'}}));
 });
 
 test("new layout controls require v6, while defaults remain saveable on a v5 server",async()=>{

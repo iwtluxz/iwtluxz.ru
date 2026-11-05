@@ -1,13 +1,15 @@
 import { readFile, writeFile, readdir } from "node:fs/promises";
 import vm from "node:vm";
 const context = { window: {} };
+vm.runInNewContext(await readFile(new URL('../profile-decorations.js',import.meta.url),'utf8'),context);
 vm.runInNewContext(await readFile(new URL("../profile-features.js", import.meta.url), "utf8"), context);
-const { socials, animations, decorations } = context.window.IwtxzProfileFeatures;
+const { socials, animations, decorations, descriptionAnimations } = context.window.IwtxzProfileFeatures;
 const root = new URL("../", import.meta.url);
 const escape = value => String(value).replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
 let index = await readFile(new URL("index.html", root), "utf8");
 const replace = (name, content) => { index = index.replace(new RegExp(`(<!-- ${name}:start -->)[\\s\\S]*?(<!-- ${name}:end -->)`), `$1\n${content}\n          $2`); };
 replace("nickname-animations", animations.map(item => `<option value="${item.id}">${escape(item.label)}</option>`).join("\n"));
+replace("description-animations", descriptionAnimations.map(item=>`<option value="${item.id}">${escape(item.label)}</option>`).join('\n'));
 const choices = [{ id: "none", label: "Без украшения" }, { id: "discord", label: "Из Discord" }, ...decorations];
 replace("decoration-picker", choices.map(item => `<button type="button" class="decoration-option${item.id === "none" ? " selected" : ""}" data-decoration="${item.id}" aria-pressed="${item.id === "none"}"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt="">${item.image ? `<img class="decoration-art" src="${item.image.slice(1).replace(/\.png$/, '.webp')}" alt="" loading="lazy" decoding="async">` : `<span class="decoration-mode">${item.id === "discord" ? "DS" : "—"}</span>`}</span><span>${escape(item.label)}</span></button>`).join("\n"));
 replace("social-editor", socials.map(item => `<details class="social-field" data-social-field="${item.id}"><summary><img src="${item.icon.slice(1)}" alt="" loading="lazy"><span>${escape(item.label)}</span><small data-social-state>Добавить</small></summary><div class="social-field-body"><label class="field">${item.id === "discord" ? "Имя в Discord" : "Ссылка"}<input id="${item.id}" type="${item.id === "discord" ? "text" : "url"}" maxlength="${item.id === "discord" ? "60" : "500"}" placeholder="${escape(item.placeholder)}" autocomplete="off"></label><button type="button" class="text-button" data-social-remove="${item.id}">Убрать</button></div></details>`).join("\n"));
@@ -21,6 +23,8 @@ for (const file of await readdir(root)) {
     if (!html.includes("data-profile-pending")) html = html.replace("</head>", '  <style data-profile-pending>html.iwtxz-profile-pending{background:#000}html.iwtxz-profile-pending body{visibility:hidden!important}</style>\n  <noscript><style>html.iwtxz-profile-pending body{visibility:visible!important}</style></noscript>\n</head>');
   }
   if (!html.includes('href="profile-features.css')) html = html.replace("</head>", '  <link rel="stylesheet" href="profile-features.css">\n</head>');
+  if(!html.includes('src="profile-decorations.js'))html=html.replace(/(<script src="profile-features\.js[^\"]*"[^>]*>)/,'<script src="profile-decorations.js" defer></script>\n  $1');
+  if(file==='index.html'&&!html.includes('href="profile-decorations.css'))html=html.replace('</head>','  <link rel="stylesheet" href="profile-decorations.css">\n</head>');
   if (!html.includes('href="music-services.css')) html = html.replace("</head>", '  <link rel="stylesheet" href="music-services.css">\n</head>');
   if (!html.includes('href="profile-scene.css')) html = html.replace("</head>", '  <link rel="stylesheet" href="profile-scene.css">\n</head>');
   if (!html.includes('src="profile-scene.js')) html = html.replace(/(<script src="(?:builder|profile|profile-settings|profile-customization)\.js[^\"]*"[^>]*>)/, '<script src="profile-scene.js" defer></script>\n  $1');

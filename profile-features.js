@@ -4,7 +4,14 @@
     ["none", "Без анимации"], ["glow", "Мягкое свечение"], ["pulse", "Пульс"],
     ["float", "Парение"], ["shimmer", "Перелив"], ["glitch", "Глитч"],
     ["typewriter", "Печатная машинка"], ["blur", "Фокус"], ["flicker", "Мерцание"],
-    ["bounce", "Пружина"], ["wave", "Волна"]
+    ["bounce", "Пружина"], ["wave", "Волна"], ["neon", "Неон"],
+    ["rainbow", "Радужный поток"], ["outline", "Живой контур"], ["scanline", "Сканирование"],
+    ["spotlight", "Вспышка света"], ["echo", "Эхо"], ["orbit", "Орбита"], ["heartbeat", "Сердцебиение"]
+  ].map(([id, label]) => Object.freeze({ id, label }));
+  const descriptionAnimations = [
+    ["none", "Без анимации"], ["glow", "Мягкое свечение"], ["pulse", "Дыхание"],
+    ["float", "Парение"], ["shimmer", "Перелив света"], ["reveal", "Проявление"],
+    ["flicker", "Мерцание"], ["wave", "Покачивание"], ["gradient", "Цветной перелив"]
   ].map(([id, label]) => Object.freeze({ id, label }));
   const socials = [
     ["discord", "Discord", "username", "discord"], ["telegram", "Telegram", "https://t.me/username", "telegram"],
@@ -16,7 +23,7 @@
     ["reddit", "Reddit", "https://reddit.com/user/username", "reddit"], ["boosty", "Boosty", "https://boosty.to/username", "boosty"],
     ["website", "Сайт", "https://example.com", null]
   ].map(([id, label, placeholder, slug]) => Object.freeze({ id, label, placeholder, slug, icon: `/img/socials/${id}.svg` }));
-  const decorations = [
+  const bundledDecorations = [
     ["phoenix", "Феникс", "a_0e839cd79500e7b68e2bbbed54790c28"],
     ["heartbloom", "Цветение", "a_3e1fc3c7ee2e34e8176f4737427e8f4f"],
     ["shy", "Смущение", "a_6b793a5f7e4e15eea6b10a4fde448511"],
@@ -26,7 +33,9 @@
     ["aurora", "Аврора", "a_386445551be850bb16b73a225d0d0602"],
     ["cat", "Кошачьи ушки", "a_c3cffc19e9784f7d0b005eecdf1b566e"]
   ].map(([id, label, asset]) => Object.freeze({ id, label, asset, image: `/img/avatar-decorations/${id}.png` }));
+  const decorations=window.IwtxzAvatarDecorations?.items||bundledDecorations;
   const animationIds = new Set(animations.map(item => item.id));
+  const descriptionAnimationIds = new Set(descriptionAnimations.map(item => item.id));
   const decorationMap = new Map(decorations.map(item => [item.id, item]));
 
   function applyNameAnimation(element, value) {
@@ -34,13 +43,18 @@
     element.classList.add("iwtxz-animated-name");
     element.dataset.nameAnimation = animationIds.has(value) ? value : "none";
   }
+  function applyDescriptionAnimation(element, value) {
+    if (!element) return;
+    element.classList.add("iwtxz-animated-description");
+    element.dataset.descriptionAnimation = descriptionAnimationIds.has(value) ? value : "none";
+  }
   function decorationUrl(choice, discordDecoration) {
     if (choice === "discord") {
       const asset = discordDecoration?.asset;
       return typeof asset === "string" && /^(?:a_)?[a-f0-9]{32}$/i.test(asset)
         ? `https://cdn.discordapp.com/avatar-decoration-presets/${asset}.png?size=256&passthrough=true` : "";
     }
-    return decorationMap.get(choice)?.image || "";
+    return window.IwtxzAvatarDecorations?.items.find(item=>item.id===choice)?.image || decorationMap.get(choice)?.image || "";
   }
   function applyAvatarDecoration(avatar, choice, discordDecoration) {
     if (!avatar) return;
@@ -155,7 +169,7 @@
     window.addEventListener("pagehide", () => clearInterval(timer), { once: true });
   }
 
-  window.IwtxzProfileFeatures = Object.freeze({ animations, socials, decorations, applyNameAnimation, applyAvatarDecoration, decorationUrl, renderSocials, socialUrl });
+  window.IwtxzProfileFeatures = Object.freeze({ animations, descriptionAnimations, socials, decorations, applyNameAnimation, applyDescriptionAnimation, applyAvatarDecoration, decorationUrl, renderSocials, socialUrl });
   if (typeof document !== "undefined") {
     const ready = () => {
       for (const container of document.querySelectorAll?.(".socials, .profile-socials") || []) {
