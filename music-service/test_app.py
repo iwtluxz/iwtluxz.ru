@@ -1,9 +1,11 @@
 import json
+import os
 from pathlib import Path
 import tempfile
 import threading
 import time
 import unittest
+from unittest.mock import patch, MagicMock
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 from app import Library, ApiError, music_source, server
@@ -13,6 +15,28 @@ BOB='967385a2-8f95-4499-97b1-8ff92d973caa'
 SUPABASE='https://fixture.supabase.co'
 
 class MusicTests(unittest.TestCase):
+    def test_downloader_allows_mixed_ipv6_metadata_ipv4_audio_and_keeps_runtime_and_limits(self):
+        with tempfile.TemporaryDirectory(prefix='iwtxz-download-test-') as directory:
+            target=Path(directory)
+            process=MagicMock();process.wait.return_value=0
+            def launch(command,**options):
+                # The VPS needs IPv6 for metadata but its audio CDN has A-only
+                # hosts. Either forced family would break this import.
+                self.assertFalse(set(command)&{'-4','-6','--force-ipv4','--force-ipv6'})
+                self.assertEqual(command[command.index('--js-runtimes')+1],'node:/fixture/node')
+                self.assertIn('duration <= 900 & !is_live',command)
+                self.assertEqual(command[command.index('--max-filesize')+1],'32M')
+                self.assertEqual(command[command.index('--audio-format')+1],'mp3')
+                self.assertEqual(command[-2:],['--','https://www.youtube.com/watch?v=jNQXAC9IVRw'])
+                (target/'track.mp3').write_bytes(b'ID3-downloaded-audio')
+                (target/'track.info.json').write_text(json.dumps({'title':'A downloaded track','duration':19}),encoding='utf8')
+                return process
+            with patch.dict(os.environ,{'YTDLP_BIN':'/fixture/yt-dlp','YTDLP_JS_RUNTIME':'node:/fixture/node'}), patch('app.subprocess.Popen',side_effect=launch):
+                metadata,audio=Library.download(None,'https://www.youtube.com/watch?v=jNQXAC9IVRw',target)
+            self.assertEqual(metadata['title'],'A downloaded track')
+            self.assertEqual(audio.read_bytes(),b'ID3-downloaded-audio')
+            process.wait.assert_called_once_with(timeout=240)
+
     def test_source_allowlist(self):
         for url in ('https://youtu.be/example','https://www.youtube.com/watch?v=example','https://soundcloud.com/artist/song','https://artist.bandcamp.com/track/name'):
             self.assertEqual(music_source(url),url)

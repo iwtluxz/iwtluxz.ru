@@ -3,8 +3,8 @@
   const $ = (selector) => document.querySelector(selector);
   const all = (selector) => [...document.querySelectorAll(selector)];
   // A cached HTML page can request a newer script after a deployment.
-  const uiVersion = "20261105-halloween-1";
-  if (["effectIntensity", "backgroundEffect", "avatarFit", "ownMusicFiles", "discordDecorationHint", "profileScale", "nicknameSize", "discordShowCopyHint", "descriptionSize", "cursorSize", "typewriterText", "seasonalTheme", "layoutEdit"].some(id => !$("#"+id))) {
+  const uiVersion = "20261105-layout-2";
+  if (["effectIntensity", "backgroundEffect", "avatarFit", "ownMusicFiles", "discordDecorationHint", "profileScale", "nicknameSize", "discordShowCopyHint", "descriptionSize", "cursorSize", "typewriterText", "layoutEdit"].some(id => !$("#"+id)) || document.querySelector('script[src*="halloween.js"]')) {
     const fresh = new URL(location.href);
     if (fresh.searchParams.get("_ui") !== uiVersion) { fresh.searchParams.set("_ui",uiVersion);location.replace(fresh.href); }
     else if ($("#authStatus")) $("#authStatus").textContent="Не удалось обновить интерфейс. Обнови страницу с очисткой кеша.";
@@ -14,7 +14,7 @@
   const socialFields = features?.socials.map(item => item.id) || ["discord", "telegram", "steam"];
   const textFields = ["title", "nickname", "description", "entryText", "musicTitle", ...socialFields, "discordUserId", "typewriterText"];
   const numberFields = ["avatarSize", "backgroundDim", "nicknameGradientAngle", "discordCardOpacity", "discordCardRadius", "effectIntensity", "profileScale", "nicknameSize", "descriptionSize", "cursorSize", "cursorOpacity", "typewriterSpeed"];
-  const optionFields = ["font", "accentColor", "backgroundType", "nicknameGradientStart", "nicknameGradientEnd", "musicPlayerStyle", "discordCardStyle", "discordCardColor", "nicknameAnimation", "avatarDecoration", "backgroundEffect", "cursorStyle", "avatarFit", "cursorColor", "cursorHotspot", "seasonalTheme"];
+  const optionFields = ["font", "accentColor", "backgroundType", "nicknameGradientStart", "nicknameGradientEnd", "musicPlayerStyle", "discordCardStyle", "discordCardColor", "nicknameAnimation", "avatarDecoration", "backgroundEffect", "cursorStyle", "avatarFit", "cursorColor", "cursorHotspot"];
   const boolFields = ["musicLoop", "showDiscord", "nicknameGradient", "discordSync", "discordUseAvatar", "discordShowStatus", "discordShowBadges", "discordShowActivity", "profileTilt", "discordShowCopyHint", "typewriterEnabled"];
   const assetFields = ["avatar", "background", "music", "musicCover", "customFont", "favicon", "customCursor"];
   const decorativeBadges = new Set(["star", "heart", "moon", "sparkle", "code", "music", "flower"]);
@@ -217,6 +217,7 @@
 
   function readEditor() {
     const site = { ...currentSite };
+    site.seasonalTheme='none';
     site.objectPositions=normalizePositions(site.objectPositions);
     textFields.forEach((key) => { site[key] = $("#" + key).value.trim(); });
     numberFields.forEach((key) => { site[key] = Number($("#" + key).value); });
@@ -495,7 +496,7 @@
     const submittedSnapshot = snapshot(site);
     const data = await api("/api/builder/sites/save", { method: "POST", body: JSON.stringify({ site }) });
     const labels={avatarDecoration:"украшение аватара",nicknameAnimation:"анимацию ника",backgroundEffect:"эффект фона",profileTilt:"наклон карточки",cursorStyle:"курсор",customCursor:"свой курсор",favicon:"иконку вкладки",music:"трек",musicCover:"обложку",nicknameSize:"размер ника",profileScale:"масштаб",discordShowCopyHint:"подсказку копирования"};
-    Object.assign(labels,{descriptionSize:'размер описания',cursorSize:'размер курсора',cursorOpacity:'непрозрачность курсора',cursorColor:'цвет курсора',cursorHotspot:'точку нажатия',typewriterEnabled:'печатную строку',typewriterText:'текст печатной строки',typewriterSpeed:'скорость печати',seasonalTheme:'сезонную тему'});
+    Object.assign(labels,{descriptionSize:'размер описания',cursorSize:'размер курсора',cursorOpacity:'непрозрачность курсора',cursorColor:'цвет курсора',cursorHotspot:'точку нажатия',typewriterEnabled:'печатную строку',typewriterText:'текст печатной строки',typewriterSpeed:'скорость печати'});
     const lost=Object.keys(labels).filter(key=>Object.hasOwn(data.site||{},key)||site[key]!==defaults[key]).filter(key=>data.site?.[key]!==site[key]);
     if(JSON.stringify(normalizePositions(data.site?.objectPositions))!==JSON.stringify(normalizePositions(site.objectPositions)))lost.push('objectPositions');
     labels.objectPositions='расположение блоков';

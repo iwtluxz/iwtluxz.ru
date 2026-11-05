@@ -1,22 +1,53 @@
 """Public music metadata search. No audio or credentials in catalog responses."""
 import base64
+import http.client
 import json
 import os
 import re
+import socket
 import subprocess
 import threading
 import time
 from urllib.parse import urlencode
-from urllib.request import Request, urlopen
+from urllib.request import Request, urlopen, HTTPSHandler, build_opener
 
 class CatalogError(Exception): pass
+
+def connect_ipv4(address, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, source_address=None):
+    """Resolve IPv4 for this connection; retain the hostname at the HTTP/TLS layer."""
+    host, port = address
+    deadline = time.monotonic() + timeout if isinstance(timeout, (int, float)) else None
+    last_error = None
+    for family, _, _, _, endpoint in socket.getaddrinfo(host, port, socket.AF_INET, socket.SOCK_STREAM):
+        if family != socket.AF_INET:
+            continue
+        remaining = max(.001, deadline-time.monotonic()) if deadline is not None else timeout
+        try:
+            return socket.create_connection(endpoint, remaining, source_address)
+        except OSError as error:
+            last_error = error
+            if deadline is not None and time.monotonic() >= deadline:
+                break
+    raise last_error or OSError('No IPv4 address available')
+
+class IPv4HTTPSConnection(http.client.HTTPSConnection):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # HTTPConnection.__init__ sets this per instance. Do not patch socket globally:
+        # other requests and worker threads must retain normal address selection.
+        self._create_connection = connect_ipv4
+
+class IPv4HTTPSHandler(HTTPSHandler):
+    def https_open(self, request):
+        return self.do_open(IPv4HTTPSConnection, request, context=self._context)
 
 class Catalog:
     def __init__(self):
         self.cache={};self.lock=threading.Lock();self.token=None
         self.slots=threading.BoundedSemaphore(2)
-    def json(self,url,headers=None,data=None):
-        with urlopen(Request(url,headers={'User-Agent':'iwtxz-music-catalog/1.0',**(headers or {})},data=data),timeout=12) as response:
+    def json(self,url,headers=None,data=None,*,ipv4=False):
+        open_request = build_opener(IPv4HTTPSHandler()).open if ipv4 else urlopen
+        with open_request(Request(url,headers={'User-Agent':'iwtxz-music-catalog/1.0',**(headers or {})},data=data),timeout=12) as response:
             payload=response.read(2_000_001)
             if len(payload)>2_000_000:raise CatalogError('Ответ музыкального сервиса слишком большой.')
             return json.loads(payload)
@@ -58,11 +89,13 @@ class Catalog:
     def search_youtube(self,query):
         key=os.environ.get('YOUTUBE_API_KEY','')
         if key:
-            payload=self.json('https://www.googleapis.com/youtube/v3/search?'+urlencode({'part':'snippet','type':'video','videoEmbeddable':'true','maxResults':12,'q':query,'key':key}))
+            payload=self.json('https://www.googleapis.com/youtube/v3/search?'+urlencode({'part':'snippet','type':'video','videoEmbeddable':'true','maxResults':12,'q':query,'key':key}),ipv4=True)
             return [{'id':'youtube-'+item['id']['videoId'],'service':'youtube','title':item['snippet']['title'][:120],
                 'artist':item['snippet']['channelTitle'][:160],'url':'https://www.youtube.com/watch?v='+item['id']['videoId'],
                 'cover':item['snippet'].get('thumbnails',{}).get('medium',{}).get('url','')} for item in payload.get('items',[])]
-        command=[os.environ.get('YTDLP_BIN','yt-dlp'),'--ignore-config','--force-ipv4','--flat-playlist','--dump-single-json','--skip-download','--no-warnings','--socket-timeout','5','--retries','0','--extractor-retries','0','--playlist-end','12','--','ytsearch12:'+query]
+        # Unlike the IP-restricted Google API above, yt-dlp can use either family
+        # according to the destination host and the server's normal routing.
+        command=[os.environ.get('YTDLP_BIN','yt-dlp'),'--ignore-config','--flat-playlist','--dump-single-json','--skip-download','--no-warnings','--socket-timeout','5','--retries','0','--extractor-retries','0','--playlist-end','12','--','ytsearch12:'+query]
         result=subprocess.run(command,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,timeout=25,check=True)
         payload=json.loads(result.stdout)
         tracks=[]

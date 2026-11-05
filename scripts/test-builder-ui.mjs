@@ -63,7 +63,7 @@ test("login and generic profile templates do not preload the 4 MB default avatar
 
 test("cached markup missing new controls is refreshed before starting authentication",()=>{
   let calls=0;const ui=loadBuilder(()=>{calls++;return Promise.resolve({});},'', ['profileScale']);
-  try{assert.equal(calls,0);assert.equal(ui.navigations.length,1);assert.equal(new URL(ui.navigations[0]).searchParams.get('_ui'),'20261105-halloween-1');}finally{ui.close();}
+  try{assert.equal(calls,0);assert.equal(ui.navigations.length,1);assert.equal(new URL(ui.navigations[0]).searchParams.get('_ui'),'20261105-layout-2');}finally{ui.close();}
 });
 
 test("an edit made during a slow save is preserved and is not replaced by the earlier response",async()=>{

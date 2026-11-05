@@ -1,5 +1,13 @@
 (() => {
   'use strict';
+  // Retire the removed theme even when an older HTML page is still cached.
+  try { window.IwtxzHalloween?.create?.({cabinet:false})?.dispose?.(); } catch {}
+  const retiredTheme=Object.freeze({apply(){},dispose(){}});
+  window.IwtxzHalloween=Object.freeze({create:()=>retiredTheme});
+  document.querySelectorAll?.('.halloween-scene,.halloween-controls,link[href*="halloween.css"]').forEach(node=>node.remove());
+  document.body.classList.remove('iwtxz-halloween','halloween-paused','halloween-reduced-motion');
+  if(document.body.dataset)delete document.body.dataset.halloweenSurface;
+  try { window.localStorage?.setItem('iwtxz:halloween:enabled','0'); } catch {}
   const keys=Object.freeze(['avatar','name','description','socials','discord','player','typewriter']);
   const labels={avatar:'Аватар',name:'Ник',description:'Описание',socials:'Соцсети',discord:'Discord',player:'Плеер',typewriter:'Печатная строка'};
   const selectors={avatar:'.profile-avatar-frame, main.panel .avatar',name:'.iwtxz-name-row, #profileName, main.panel .name',description:'.profile-description, main.panel .tagline',socials:'.profile-socials, main.panel .socials',discord:'.discord-profile, main.panel .discord-card',player:'.music-player, .track-card'};
@@ -20,14 +28,14 @@
     const signal=new AbortController();
     const reduced=matchMedia('(prefers-reduced-motion: reduce)');
     const preview=window.parent!==window&&new URLSearchParams(location.search).get('preview')==='1';
-    const nodes=new Map(),originals=new Map();
+    const nodes=new Map(),originals=new Map(),renderedPositions=new Map();
     let site={},positions={},editing=false,drag=null,raf=0,timer=0,line=null,text=null,phrases=[],phrase=0,character=0,deleting=false,paused=false,typeKey='',disposed=false;
     function styleSnapshot(node){return {translate:node.style.getPropertyValue('translate'),tabindex:node.getAttribute('tabindex')};}
     function effectiveZoom(node){let zoom=1;for(let element=node;element;element=element.parentElement){const value=getComputedStyle(element).zoom;const factor=value?.endsWith('%')?parseFloat(value)/100:parseFloat(value);if(Number.isFinite(factor)&&factor>0)zoom*=factor;}return zoom;}
     function renderPoint(key){
       const node=nodes.get(key);if(!node)return;
       const initial=originals.get(node);node.style.setProperty('translate',initial?.translate||'none');
-      const point=positions[key];if(!point)return;
+      const point=positions[key];if(!point){renderedPositions.set(key,{x:0,y:0});return;}
       const rect=node.getBoundingClientRect();if(!rect.width&&!rect.height)return;
       const margin=8,zoom=effectiveZoom(node);
       // Forty stored units span one viewport, so every block can reach the entire page.
@@ -38,15 +46,19 @@
       const minY=margin-rect.top,maxY=innerHeight-margin-rect.top-visibleY;
       x=Math.min(Math.max(x,minX),Math.max(minX,maxX));y=Math.min(Math.max(y,minY),Math.max(minY,maxY));
       node.style.setProperty('translate',`${x/zoom}px ${y/zoom}px`);
+      renderedPositions.set(key,{x:x/innerWidth*40,y:y/innerHeight*40});
     }
     function renderPositions(){raf=0;for(const key of nodes.keys())renderPoint(key);}
-    function scheduleRender(){if(!raf)raf=requestAnimationFrame(renderPositions);}
+    function scheduleRender(){if(!disposed&&!raf)raf=requestAnimationFrame(renderPositions);}
+    // Saved positions can arrive before public entry or before a web font has loaded.
+    // Transforming a block does not resize its content box, so this observer avoids a render loop.
+    const resizeObserver=typeof ResizeObserver==='function'?new ResizeObserver(scheduleRender):null;
     function refreshNodes(){
       for(const [key,selector] of Object.entries(selectors)){
         const node=document.querySelector(selector);if(!node)continue;
-        nodes.set(key,node);if(!originals.has(node))originals.set(node,styleSnapshot(node));
+        nodes.set(key,node);if(!originals.has(node)){originals.set(node,styleSnapshot(node));resizeObserver?.observe(node);}
       }
-      if(line){nodes.set('typewriter',line);if(!originals.has(line))originals.set(line,styleSnapshot(line));}
+      if(line){nodes.set('typewriter',line);if(!originals.has(line)){originals.set(line,styleSnapshot(line));resizeObserver?.observe(line);}}
       for(const [key,node] of nodes){node.dataset.layoutBlock=key;node.classList.add('iwtxz-layout-block');}
       decorateEditing();scheduleRender();
     }
@@ -65,7 +77,7 @@
     document.addEventListener('pointerdown',event=>{
       if(!editing||event.button!==0)return;const node=blockFrom(event);if(!node)return;
       event.preventDefault();event.stopPropagation();
-      const key=node.dataset.layoutBlock,point=positions[key]||{x:0,y:0};
+      const key=node.dataset.layoutBlock,point=renderedPositions.get(key)||positions[key]||{x:0,y:0};
       drag={key,node,pointerId:event.pointerId,startX:event.clientX,startY:event.clientY,x:point.x,y:point.y};
       node.classList.add('is-layout-dragging');node.focus({preventScroll:true});
       try{node.setPointerCapture(event.pointerId);}catch{}
@@ -105,13 +117,18 @@
       line.hidden=false;text.textContent='';runTyping();
     }
     addEventListener('resize',scheduleRender,{passive:true,signal:signal.signal});
+    document.addEventListener('transitionend',scheduleRender,{capture:true,signal:signal.signal});
+    document.addEventListener('animationend',scheduleRender,{capture:true,signal:signal.signal});
+    document.addEventListener('load',scheduleRender,{capture:true,signal:signal.signal});
+    document.fonts?.addEventListener?.('loadingdone',scheduleRender,{signal:signal.signal});
+    document.fonts?.ready.then(scheduleRender);
     document.addEventListener('visibilitychange',runTyping,{signal:signal.signal});
     addEventListener('iwtxz-preview-visibility',event=>{paused=event.detail===false;runTyping();},{signal:signal.signal});
     reduced.addEventListener('change',runTyping,{signal:signal.signal});
-    const observer=new MutationObserver(runTyping);observer.observe(document.body,{attributes:true,attributeFilter:['class']});
-    function dispose(){if(disposed)return;disposed=true;stopTyping();signal.abort();observer.disconnect();cancelAnimationFrame(raf);stopDrag(false);document.body.classList.remove('iwtxz-layout-editing');for(const node of nodes.values()){const initial=originals.get(node);node.style.setProperty('translate',initial?.translate||'');node.classList.remove('iwtxz-layout-block','iwtxz-layout-draggable','is-layout-dragging');delete node.dataset.layoutBlock;delete node.dataset.layoutLabel;if(initial?.tabindex===null)node.removeAttribute('tabindex');else if(initial?.tabindex!==undefined)node.setAttribute('tabindex',initial.tabindex);}line?.remove();}
+    const observer=new MutationObserver(()=>{runTyping();scheduleRender();});observer.observe(document.body,{attributes:true,attributeFilter:['class']});
+    function dispose(){if(disposed)return;disposed=true;stopTyping();signal.abort();observer.disconnect();resizeObserver?.disconnect();cancelAnimationFrame(raf);stopDrag(false);document.body.classList.remove('iwtxz-layout-editing');for(const node of nodes.values()){const initial=originals.get(node);node.style.setProperty('translate',initial?.translate||'');node.classList.remove('iwtxz-layout-block','iwtxz-layout-draggable','is-layout-dragging');delete node.dataset.layoutBlock;delete node.dataset.layoutLabel;if(initial?.tabindex===null)node.removeAttribute('tabindex');else if(initial?.tabindex!==undefined)node.setAttribute('tabindex',initial.tabindex);}line?.remove();}
     addEventListener('pagehide',event=>{if(event.persisted)stopTyping();else dispose();},{signal:signal.signal});
-    addEventListener('pageshow',runTyping,{signal:signal.signal});
+    addEventListener('pageshow',()=>{runTyping();scheduleRender();},{signal:signal.signal});
     return {apply(settings){if(disposed)return;site=settings||{};positions=normalizePositions(site.objectPositions);for(const element of document.querySelectorAll('.profile-description, main.panel .tagline, main.panel .tagline-text'))element.style.setProperty('font-size',`${clamp(site.descriptionSize,10,32,16)}px`);applyTypewriter();refreshNodes();},setEditing,reset(){positions={};renderPositions();publish();},dispose};
   }
   window.IwtxzProfileLayout=Object.freeze({create,normalizePositions,typewriterPhrases,keys});

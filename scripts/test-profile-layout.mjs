@@ -4,14 +4,14 @@ import vm from 'node:vm';
 import {readFile} from 'node:fs/promises';
 
 const source=await readFile(new URL('../profile-layout.js',import.meta.url),'utf8');
-function fixture(preview=true){
-  const listeners=new Map(),messages=[],classes=new Set();
+function fixture(preview=true,nameNode=null){
+  const listeners=new Map(),messages=[],classes=new Set(),frames=new Map();let frameId=0,resizeCallback;
   const body={classList:{toggle(name,on){on?classes.add(name):classes.delete(name);},contains:name=>classes.has(name),remove:name=>classes.delete(name)}};
   const window={parent:preview?{postMessage:(data,origin)=>messages.push({data,origin})}:null};if(!preview)window.parent=window;
   const addEventListener=(name,fn)=>{listeners.set(name,[...(listeners.get(name)||[]),fn]);};
-  const document={body,hidden:false,addEventListener,querySelector:()=>null,querySelectorAll:()=>[]};
-  vm.runInNewContext(source,{window,document,location:{search:preview?'?preview=1':'',origin:'https://iwtxz.su'},URLSearchParams,AbortController,MutationObserver:class{observe(){}disconnect(){}},matchMedia:()=>({matches:false,addEventListener(){}}),addEventListener,requestAnimationFrame:()=>1,cancelAnimationFrame(){},setTimeout,clearTimeout});
-  return {api:window.IwtxzProfileLayout,window,classes,messages,emit:(name,event)=>(listeners.get(name)||[]).forEach(fn=>fn(event))};
+  const document={body,hidden:false,addEventListener,querySelector:selector=>selector.includes('#profileName')?nameNode:null,querySelectorAll:()=>[]};
+  vm.runInNewContext(source,{window,document,location:{search:preview?'?preview=1':'',origin:'https://iwtxz.su'},innerWidth:800,innerHeight:600,getComputedStyle:()=>({zoom:'1'}),URLSearchParams,AbortController,MutationObserver:class{observe(){}disconnect(){}},ResizeObserver:class{constructor(callback){resizeCallback=callback;}observe(){}disconnect(){}},matchMedia:()=>({matches:false,addEventListener(){}}),addEventListener,requestAnimationFrame:callback=>{frames.set(++frameId,callback);return frameId;},cancelAnimationFrame:id=>frames.delete(id),setTimeout,clearTimeout});
+  return {api:window.IwtxzProfileLayout,window,classes,messages,resize:()=>resizeCallback?.(),flush(){const pending=[...frames.values()];frames.clear();pending.forEach(fn=>fn());},emit:(name,event)=>(listeners.get(name)||[]).forEach(fn=>fn(event))};
 }
 test('layout positions allow only seven known blocks and bounded finite offsets',()=>{
   const {api}=fixture();
@@ -37,4 +37,14 @@ test('drag editor accepts commands only from the same-origin preview parent',()=
 test('public profile cannot enable block dragging or publish layout messages',()=>{
   const page=fixture(false);const layout=page.api.create();layout.setEditing(true);layout.reset();
   assert.equal(page.classes.has('iwtxz-layout-editing'),false);assert.equal(page.messages.length,0);layout.dispose();
+});
+test('saved positions recalculate after hidden content appears and an entry transition finishes',()=>{
+  let visible=false,top=100;const values=new Map();
+  const node={style:{getPropertyValue:key=>values.get(key)||'',setProperty:(key,value)=>values.set(key,value)},getAttribute:()=>null,setAttribute(){},removeAttribute(){},dataset:{},classList:{add(){},toggle(){},remove(){}},parentElement:null,getBoundingClientRect:()=>visible?{left:100,top,width:200,height:50}:{left:0,top:0,width:0,height:0}};
+  const page=fixture(false,node),layout=page.api.create();
+  layout.apply({objectPositions:{name:{x:4,y:4}}});page.flush();assert.equal(values.get('translate'),'none');
+  visible=true;page.resize();page.flush();assert.equal(values.get('translate'),'80px 60px');
+  // Entry movement or a font shift can change a block's baseline without changing its size.
+  top=590;page.emit('transitionend',{});page.flush();assert.equal(values.get('translate'),'80px -48px');
+  layout.dispose();
 });

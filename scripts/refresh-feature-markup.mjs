@@ -24,7 +24,8 @@ for (const file of await readdir(root)) {
   if (!html.includes('href="music-services.css')) html = html.replace("</head>", '  <link rel="stylesheet" href="music-services.css">\n</head>');
   if (!html.includes('href="profile-scene.css')) html = html.replace("</head>", '  <link rel="stylesheet" href="profile-scene.css">\n</head>');
   if (!html.includes('src="profile-scene.js')) html = html.replace(/(<script src="(?:builder|profile|profile-settings|profile-customization)\.js[^\"]*"[^>]*>)/, '<script src="profile-scene.js" defer></script>\n  $1');
-  for(const extra of ['profile-layout','halloween']){
+  html=html.replace(/\s*<(?:link\b[^>]*href="halloween\.css[^\"]*"[^>]*|script\b[^>]*src="halloween\.js[^\"]*"[^>]*><\/script)>/g,'');
+  for(const extra of ['profile-layout']){
     if(!html.includes(`href="${extra}.css`))html=html.replace('</head>',`  <link rel="stylesheet" href="${extra}.css">\n</head>`);
     if(!html.includes(`src="${extra}.js`))html=html.replace(/(<script src="(?:builder|profile|profile-settings|profile-customization)\.js[^\"]*"[^>]*>)/,`<script src="${extra}.js" defer></script>\n  $1`);
   }

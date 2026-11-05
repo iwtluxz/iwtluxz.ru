@@ -130,7 +130,6 @@
     let disposed = false;
     let scene = window.IwtxzProfileScene?.create();
     let profileLayout = window.IwtxzProfileLayout?.create();
-    let halloween = window.IwtxzHalloween?.create();
     // Authored profile pages can remain cached across deployments.
     function loadAddon(base, globalName, assign) {
       if(!document.head)return;
@@ -142,7 +141,6 @@
       document.head.append(script);
     }
     if(!profileLayout)loadAddon('profile-layout','IwtxzProfileLayout',addon=>{profileLayout=addon;});
-    if(!halloween)loadAddon('halloween','IwtxzHalloween',addon=>{halloween=addon;});
     const motion=window.matchMedia?.('(prefers-reduced-motion: reduce)');
     const updateMotion=()=>drawDiscord(lastSnapshot);
     motion?.addEventListener?.('change',updateMotion);
@@ -282,7 +280,6 @@
       if(layout)layout.style.zoom=String(clamp(site.profileScale,70,120,100)/100);
       scene?.apply(site);
       profileLayout?.apply(site);
-      halloween?.apply(site);
       font(site);
       if (nodes.name) {
         nodes.name.style.setProperty('--nickname-size',`${clamp(site.nicknameSize,18,52,32)}px`);
@@ -341,7 +338,6 @@
       disposed = true;
       scene?.dispose();
       profileLayout?.dispose();
-      halloween?.dispose();
       motion?.removeEventListener?.('change',updateMotion);
       ++fetchSerial;
       ++fontSerial;

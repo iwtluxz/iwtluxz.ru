@@ -137,7 +137,9 @@ class Library:
             logging.warning('Music import failed: %s', type(error).__name__)
 
     def download(self, source, directory):
-        command = [os.environ.get('YTDLP_BIN', 'yt-dlp'), '--ignore-config', '--force-ipv4', '--no-playlist', '--no-warnings', '--no-progress', '--socket-timeout', '20', '--retries', '2', '--fragment-retries', '2', '--restrict-filenames', '--no-cache-dir', '--use-extractors', 'youtube:tab,youtube,soundcloud,soundcloud:set,bandcamp,vimeo', '--match-filter', 'duration <= 900 & !is_live', '--max-filesize', '32M', '-f', 'bestaudio/best', '-x', '--audio-format', 'mp3', '--audio-quality', '128K', '--write-info-json', '--no-write-playlist-metafiles', '-o', str(directory / 'track.%(ext)s'), '--', source]
+        # Let each host use its available address family: YouTube metadata may use
+        # IPv6 while its audio CDN can expose only IPv4. A global -4/-6 breaks one side.
+        command = [os.environ.get('YTDLP_BIN', 'yt-dlp'), '--ignore-config', '--no-playlist', '--no-warnings', '--no-progress', '--socket-timeout', '20', '--retries', '2', '--fragment-retries', '2', '--restrict-filenames', '--no-cache-dir', '--use-extractors', 'youtube:tab,youtube,soundcloud,soundcloud:set,bandcamp,vimeo', '--match-filter', 'duration <= 900 & !is_live', '--max-filesize', '32M', '-f', 'bestaudio/best', '-x', '--audio-format', 'mp3', '--audio-quality', '128K', '--write-info-json', '--no-write-playlist-metafiles', '-o', str(directory / 'track.%(ext)s'), '--', source]
         # Node/Deno is needed by current yt-dlp for YouTube's JavaScript challenges.
         js_runtime = os.environ.get('YTDLP_JS_RUNTIME', '')
         if js_runtime: command[1:1] = ['--js-runtimes', js_runtime]

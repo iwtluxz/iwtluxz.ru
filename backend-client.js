@@ -612,7 +612,7 @@
       const newSocials = ["vk", "youtube", "twitch", "tiktok", "instagram", "github", "spotify", "x", "soundcloud", "reddit", "boosty", "website"];
       const hasFeatures = (site.nicknameAnimation && site.nicknameAnimation !== "none") || (site.avatarDecoration && site.avatarDecoration !== "none") || newSocials.some(key => Boolean(site[key]));
       let settingsCapabilities;
-      const loadCapabilities=()=>settingsCapabilities ||= getClient().rpc('builder_capabilities');
+      const loadCapabilities=()=>settingsCapabilities ||= Promise.resolve(getClient().rpc('builder_capabilities'));
       const advancedDefaults={descriptionSize:16,cursorSize:24,cursorOpacity:100,cursorColor:'#ffffff',cursorHotspot:'center',typewriterEnabled:false,typewriterText:'',typewriterSpeed:70,seasonalTheme:'none'};
       if(Object.entries(advancedDefaults).some(([key,value])=>site[key]!==undefined&&site[key]!==value)||Object.keys(site.objectPositions||{}).length){
         const capabilities=await loadCapabilities();
