@@ -25,11 +25,11 @@
   "statusText": "love @me",
   "status": "idle",
   "activity": {
-    "type": 0,
-    "name": "How to Fish",
-    "details": "",
-    "state": ""
+    "type": 2,
+    "name": "Dotify",
+    "details": "Лучший друг",
+    "state": "rizza"
   },
   "managedBy": "iwtxz-public-discord-sync",
-  "updatedAt": 1793984760393
+  "updatedAt": 1794002460091
 }
