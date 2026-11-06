@@ -13,7 +13,11 @@
       "label": "HypeSquad Bravery"
     }
   ],
-  "primaryGuild": null,
+  "primaryGuild": {
+    "guildId": "1218022995025592330",
+    "tag": "GG",
+    "badge": "5af9574535fa32059c05acfd639fb9e8"
+  },
   "avatarDecoration": {
     "asset": "a_13913a00bd9990ab4102a3bf069f0f3f",
     "skuId": "1271174640026255380"
@@ -22,5 +26,5 @@
   "status": "dnd",
   "activity": null,
   "managedBy": "iwtxz-public-discord-sync",
-  "updatedAt": 1793959046383
+  "updatedAt": 1793984760392
 }
