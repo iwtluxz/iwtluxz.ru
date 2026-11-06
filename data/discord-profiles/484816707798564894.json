@@ -23,13 +23,8 @@
     "skuId": "1252404760448077864"
   },
   "statusText": "love @me",
-  "status": "idle",
-  "activity": {
-    "type": 2,
-    "name": "Dotify",
-    "details": "go with me",
-    "state": "FORTUNA 812"
-  },
+  "status": "offline",
+  "activity": null,
   "managedBy": "iwtxz-public-discord-sync",
-  "updatedAt": 1793933550835
+  "updatedAt": 1793959046384
 }
