@@ -23,6 +23,11 @@ for (const file of await readdir(root)) {
     if (!html.includes("data-profile-pending")) html = html.replace("</head>", '  <style data-profile-pending>html.iwtxz-profile-pending{background:#000}html.iwtxz-profile-pending body{visibility:hidden!important}</style>\n  <noscript><style>html.iwtxz-profile-pending body{visibility:visible!important}</style></noscript>\n</head>');
   }
   if (!html.includes('href="profile-features.css')) html = html.replace("</head>", '  <link rel="stylesheet" href="profile-features.css">\n</head>');
+  if(file==='index.html'&&!html.includes('src="site-audio-config.js'))html=html.replace(/(<script src="builder\.js[^\"]*"[^>]*>)/,'<script src="site-audio-config.js" defer></script>\n  $1');
+  html=html.replace(/\s*<script src="site-chrome\.js[^\"]*"[^>]*><\/script>/g,'');
+  const chromeAnchor=html.match(/<script src="(?:builder|profile|profile-customization)\.js[^\"]*"[^>]*>/);
+  html=chromeAnchor?html.replace(chromeAnchor[0],'<script src="site-chrome.js" defer></script>\n  '+chromeAnchor[0]):html.replace('</head>','  <script src="site-chrome.js" defer></script>\n</head>');
+  if(!html.includes('href="site-chrome.css'))html=html.replace('</head>','  <link rel="stylesheet" href="site-chrome.css">\n</head>');
   if(!html.includes('src="profile-decorations.js'))html=html.replace(/(<script src="profile-features\.js[^\"]*"[^>]*>)/,'<script src="profile-decorations.js" defer></script>\n  $1');
   if(file==='index.html'&&!html.includes('href="profile-decorations.css'))html=html.replace('</head>','  <link rel="stylesheet" href="profile-decorations.css">\n</head>');
   if (!html.includes('href="music-services.css')) html = html.replace("</head>", '  <link rel="stylesheet" href="music-services.css">\n</head>');

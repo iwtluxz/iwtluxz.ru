@@ -30,6 +30,28 @@
     player: document.querySelector(".track-card"),
     onFontReady() { if (typeof lockNameSize === "function") lockNameSize(); }
   });
+  const backgroundMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  let backgroundSettings = null, staticBackgroundSource = "";
+  function updateBackgroundPlayback() {
+    const video = document.querySelector(".page-bg-video");
+    if (!video || backgroundSettings?.backgroundType !== "video" || !safeAsset(backgroundSettings.background)) return;
+    video.hidden = false;
+    video.style.removeProperty("display");
+    if (backgroundMotion.matches || document.hidden) {
+      video.pause();
+      if (backgroundMotion.matches && video.readyState >= 1) {
+        const source = video.currentSrc || video.getAttribute("src");
+        if (source && staticBackgroundSource !== source) {
+          if (video.currentTime < .04 && Number.isFinite(video.duration) && video.duration > 0) {
+            try { video.currentTime = Math.min(.12, video.duration / 2); } catch {}
+          }
+          staticBackgroundSource = source;
+        }
+      }
+    } else void video.play().catch(() => {});
+  }
+  backgroundMotion.addEventListener("change", updateBackgroundPlayback);
+  document.addEventListener("visibilitychange", updateBackgroundPlayback);
 
   function safeAsset(value) {
     if (typeof value !== "string" || !value.trim()) return "";
@@ -85,6 +107,7 @@
       if (heading) heading.style.color = site.accentColor;
     }
     const background = safeAsset(site.background);
+    backgroundSettings = site;
     const dim = Number(site.backgroundDim);
     const opacity = Number.isFinite(dim) ? Math.max(0, Math.min(85, dim)) / 100 : 0.58;
     const shade = `linear-gradient(rgba(0,0,0,${opacity}),rgba(0,0,0,${opacity}))`;
@@ -98,13 +121,19 @@
         Object.assign(video.style, { position: "fixed", inset: "0", zIndex: "-3", width: "100%", height: "100%", objectFit: "cover", pointerEvents: "none" });
         document.body.prepend(video);
       }
-      video.src = background;
+      if (video.getAttribute("src") !== background) { staticBackgroundSource = ""; video.src = background; video.load(); }
       video.muted = true;
       video.loop = true;
       video.playsInline = true;
       video.hidden = false;
-      if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) void video.play().catch(() => {});
-      else video.pause();
+      video.style.removeProperty("display");
+      if (!video.dataset.staticBackgroundReady) {
+        video.dataset.staticBackgroundReady = "true";
+        video.addEventListener("loadedmetadata", updateBackgroundPlayback);
+        video.addEventListener("loadeddata", updateBackgroundPlayback);
+        video.addEventListener("seeked", () => { if (backgroundMotion.matches) video.pause(); });
+      }
+      updateBackgroundPlayback();
       if (!videoShade) {
         videoShade = document.createElement("div");
         videoShade.dataset.builderVideoShade = "true";

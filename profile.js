@@ -23,6 +23,7 @@
   let toastTimer;
   let mediaKey = "iwtxz-profile-volume";
   let discordCopyName = "";
+  let staticBackgroundSource = "";
   const customization = window.IwtxzProfileCustomization?.createCustomizer({
     name: byId("profileName"), avatar: byId("profileAvatar"), nicknameBadges: byId("profileBadges"),
     discordCard: byId("discordCard"), discordAvatar: byId("discordAvatar"), discordName: byId("discordName"),
@@ -181,12 +182,17 @@
       backgroundImage.style.backgroundImage = "none";
       if (backgroundVideo.getAttribute("src") !== url) {
         backgroundVideo.pause();
+        staticBackgroundSource = "";
         backgroundVideo.src = url;
         backgroundVideo.load();
       }
-      backgroundVideo.hidden = reducedMotion.matches;
+      // Reduced motion pauses the background; it must not remove the chosen image.
+      backgroundVideo.hidden = false;
       if (!reducedMotion.matches && entered && !previewSuspended && !document.hidden) void backgroundVideo.play().catch(() => {});
-      else backgroundVideo.pause();
+      else {
+        backgroundVideo.pause();
+        if (reducedMotion.matches) prepareStaticBackground();
+      }
     } else {
       backgroundVideo.pause();
       backgroundVideo.hidden = true;
@@ -197,6 +203,24 @@
       backgroundImage.style.backgroundImage = url ? `url(${JSON.stringify(url)})` : "none";
     }
   }
+
+  function prepareStaticBackground() {
+    if (!reducedMotion.matches || currentSite?.backgroundType !== "video" || backgroundVideo.hidden) return;
+    backgroundVideo.pause();
+    if (backgroundVideo.readyState < 1) return;
+    const source = backgroundVideo.currentSrc || backgroundVideo.getAttribute("src");
+    if (!source || staticBackgroundSource === source) return;
+    // A seek asks the browser to decode a real frame even when autoplay is disabled.
+    // Keep an already displayed frame when the preference changes during playback.
+    if (backgroundVideo.currentTime < .04 && Number.isFinite(backgroundVideo.duration) && backgroundVideo.duration > 0) {
+      try { backgroundVideo.currentTime = Math.min(.12, backgroundVideo.duration / 2); } catch {}
+    }
+    staticBackgroundSource = source;
+  }
+
+  backgroundVideo.addEventListener("loadedmetadata", prepareStaticBackground);
+  backgroundVideo.addEventListener("loadeddata", prepareStaticBackground);
+  backgroundVideo.addEventListener("seeked", () => { if (reducedMotion.matches) backgroundVideo.pause(); });
 
   function setLink(id, value) {
     const link = byId(id);

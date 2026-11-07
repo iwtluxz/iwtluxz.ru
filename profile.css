@@ -157,7 +157,7 @@ body:not(.is-entered) .music-player { transform: translateX(-50%); }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
-  .profile-background-video { display: none; }
+  .profile-background-video:not([hidden]) { display: block; }
 }
 
 /* Keep the glow away from a clipping rectangle around the nickname. */

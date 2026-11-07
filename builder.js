@@ -3,8 +3,8 @@
   const $ = (selector) => document.querySelector(selector);
   const all = (selector) => [...document.querySelectorAll(selector)];
   // A cached HTML page can request a newer script after a deployment.
-  const uiVersion = "20261105-editor-v2";
-  if (["effectIntensity", "backgroundEffect", "avatarFit", "ownMusicFiles", "discordDecorationHint", "profileScale", "nicknameSize", "discordShowCopyHint", "descriptionSize", "cursorSize", "typewriterText", "layoutEdit", "descriptionAnimation", "previewViewport", "previewStage"].some(id => !$("#"+id)) || document.querySelector('script[src*="halloween.js"]')) {
+  const uiVersion = "20261107-winter-1";
+  if (["effectIntensity", "backgroundEffect", "avatarFit", "ownMusicFiles", "discordDecorationHint", "profileScale", "nicknameSize", "discordShowCopyHint", "descriptionSize", "cursorSize", "typewriterText", "layoutEdit", "descriptionAnimation", "previewViewport", "previewStage", "previewCanvas", "previewZoom"].some(id => !$("#"+id)) || document.querySelector('script[src*="halloween.js"]')) {
     const fresh = new URL(location.href);
     if (fresh.searchParams.get("_ui") !== uiVersion) { fresh.searchParams.set("_ui",uiVersion);location.replace(fresh.href); }
     else if ($("#authStatus")) $("#authStatus").textContent="Не удалось обновить интерфейс. Обнови страницу с очисткой кеша.";
@@ -89,7 +89,7 @@
   let discordSnapshotStatus = null;
   let layoutEditing = false;
   const positionKeys=['avatar','name','description','socials','discord','player'];
-  let selectedLayoutBlock='',previewExpanded=false;
+  let selectedLayoutBlock='',previewExpanded=false,previewMetrics=null;
   const gridDefaults={visible:false,step:24,snap:true,centerLines:true,color:'#ffffff',opacity:15};
   let gridSettings={...gridDefaults};
   try{const stored=JSON.parse(window.localStorage?.getItem('iwtxz:layout-grid')||'{}');gridSettings={...gridSettings,...stored};}catch{}
@@ -98,14 +98,31 @@
     gridSettings={visible:$('#layoutGridVisible').checked,snap:$('#layoutGridSnap').checked,centerLines:$('#layoutCenterLines').checked,step:Math.min(80,Math.max(8,Number($('#layoutGridStep').value)||24)),color:/^#[a-f0-9]{6}$/i.test($('#layoutGridColor').value)?$('#layoutGridColor').value:'#ffffff',opacity:Math.min(60,Math.max(5,Number($('#layoutGridOpacity').value)||15))};
     try{window.localStorage?.setItem('iwtxz:layout-grid',JSON.stringify(gridSettings));}catch{}sendGrid();
   }
-  function resizePreview(){
-    const stage=$('#previewStage'),mode=$('#previewViewport').value||'1280x800';
+  function resizePreview(options={}){
+    const stage=$('#previewStage'),canvas=$('#previewCanvas'),mode=$('#previewViewport').value||'1280x800';
     const [width,height]=mode==='window'?[window.innerWidth||1280,window.innerHeight||800]:mode.split('x').map(Number);
     const available=stage.clientWidth||420;
-    const vertical=previewExpanded?Math.max(160,(window.innerHeight||800)-(($('.preview-panel')?.querySelector?.('.preview-stage')?.getBoundingClientRect?.().top)||180)-80):Infinity;
-    const scale=Math.min(available/width,vertical/height,1);
-    Object.assign(previewFrame.style,{width:`${width}px`,height:`${height}px`,transform:`scale(${scale})`,left:`${Math.max(0,(available-width*scale)/2)}px`});
-    stage.style.height=`${Math.ceil(height*scale)}px`;$('#previewResolution').textContent=`${width} × ${height}`;
+    const vertical=previewExpanded?Math.max(180,(window.innerHeight||840)-((stage.getBoundingClientRect?.().top)||180)-62):Math.min(680,Math.max(500,(window.innerHeight||840)*.72));
+    const zoom=$('#previewZoom').value||'0.75';
+    const scale=zoom==='fit'?Math.min(available/width,vertical/height,1):Math.min(1.5,Math.max(.5,Number(zoom)||.75));
+    const old=previewMetrics;
+    const recenter=options?.center===true||!old||old.width!==width||old.height!==height;
+    const anchorX=recenter?width/2:((stage.scrollLeft||0)+old.available/2-Math.max(0,(old.available-old.width*old.scale)/2))/old.scale;
+    const anchorY=recenter?height/2:((stage.scrollTop||0)+old.stageHeight/2)/old.scale;
+    const stageHeight=zoom==='fit'?Math.min(vertical,Math.max(320,height*scale)):vertical;
+    Object.assign(previewFrame.style,{width:`${width}px`,height:`${height}px`,transform:`scale(${scale})`,left:'0px'});
+    Object.assign(canvas.style,{width:`${Math.ceil(width*scale)}px`,height:`${Math.ceil(height*scale)}px`});
+    stage.style.height=`${Math.ceil(stageHeight)}px`;
+    const viewWidth=stage.clientWidth||available,viewHeight=stage.clientHeight||stageHeight;
+    stage.scrollLeft=Math.max(0,anchorX*scale+Math.max(0,(viewWidth-width*scale)/2)-viewWidth/2);
+    stage.scrollTop=Math.max(0,anchorY*scale-viewHeight/2);
+    // The cabinet starts hidden before login; its scroll offsets cannot be set yet.
+    // Recenter on the first real measurement instead of preserving that hidden origin.
+    previewMetrics=stage.clientWidth>0?{width,height,scale,available:viewWidth,stageHeight:viewHeight}:null;
+    $('#previewResolution').textContent=`${width} × ${height} · ${Math.round(scale*100)}%`;
+  }
+  function rememberPreview(){
+    try{window.localStorage?.setItem('iwtxz:preview-view',JSON.stringify({viewport:$('#previewViewport').value,zoom:$('#previewZoom').value}));}catch{}
   }
   function expandPreview(enabled){
     previewExpanded=Boolean(enabled);$('.preview-panel')?.classList.toggle('is-expanded',previewExpanded);document.body.classList.toggle('preview-expanded',previewExpanded);
@@ -120,6 +137,7 @@
     $('#layoutEdit').setAttribute('aria-pressed',String(layoutEditing));
     $('#layoutEdit').textContent=layoutEditing?'Завершить перемещение':'Переместить блоки';
     $('#layoutHint').textContent=layoutEditing?'Перетаскивай блоки мышью или пальцем. Стрелки — точный шаг, Esc — завершить.':'Расположение блоков можно менять прямо в превью.';
+    if(layoutEditing&&!previewExpanded)expandPreview(true);
     previewFrame.contentWindow?.postMessage({type:'iwtxz-layout-edit',enabled:layoutEditing},location.origin);
     sendGrid();
   }
@@ -165,7 +183,14 @@
   for(const [id,key] of [['layoutGridVisible','visible'],['layoutGridSnap','snap'],['layoutCenterLines','centerLines']])$('#'+id).checked=gridSettings[key]===true;
   for(const [id,key] of [['layoutGridStep','step'],['layoutGridColor','color'],['layoutGridOpacity','opacity']])$('#'+id).value=gridSettings[key];
   ['layoutGridVisible','layoutGridSnap','layoutCenterLines','layoutGridStep','layoutGridColor','layoutGridOpacity'].forEach(id=>$('#'+id).addEventListener('input',updateGrid));
-  $('#previewViewport').addEventListener('change',resizePreview);
+  try{
+    const saved=JSON.parse(window.localStorage?.getItem('iwtxz:preview-view')||'null');
+    if(saved&&['1280x800','1920x1080','390x844','window'].includes(saved.viewport)&&['fit','0.5','0.75','1','1.25','1.5'].includes(saved.zoom)){$('#previewViewport').value=saved.viewport;$('#previewZoom').value=saved.zoom;}
+    else if((window.innerWidth||1280)<=660){$('#previewViewport').value='390x844';$('#previewZoom').value='1';}
+  }catch{}
+  $('#previewViewport').addEventListener('change',()=>{rememberPreview();resizePreview({center:true});});
+  $('#previewZoom').addEventListener('change',()=>{rememberPreview();resizePreview();});
+  $('#previewCenter').addEventListener('click',()=>resizePreview({center:true}));
   $('.layout-grid-settings')?.addEventListener('toggle',resizePreview);
   $('#previewExpand').addEventListener('click',()=>expandPreview(!previewExpanded));
   for(const [id,axis] of [['layoutAlignHorizontal','horizontal'],['layoutAlignVertical','vertical'],['layoutAlignBoth','both']]){
@@ -411,6 +436,7 @@
   }
 
   function resetSession() {
+    if(previewExpanded)expandPreview(false);
     musicLibrary?.reset(); musicCatalog?.reset(); previousEffects = null;
     authAttemptVersion += 1;
     sessionVersion += 1;
@@ -692,7 +718,7 @@
   });
 
   $("#editorForm").addEventListener("submit", (event) => event.preventDefault());
-  $('#layoutEdit').addEventListener('click',()=>{setLayoutEditing(!layoutEditing);if(layoutEditing)previewFrame.scrollIntoView?.({behavior:'smooth',block:'center'});});
+  $('#layoutEdit').addEventListener('click',()=>{setLayoutEditing(!layoutEditing);if(layoutEditing)resizePreview({center:true});});
   $('#layoutReset').addEventListener('click',()=>{if(!accountReady||busy)return;currentSite.objectPositions={};updatePreview();clearTimeout(previewTimer);sendPreview();toast('Позиции блоков сброшены');});
   all("[data-social-remove]").forEach(button => button.addEventListener("click", () => {
     $("#" + button.dataset.socialRemove).value = "";
