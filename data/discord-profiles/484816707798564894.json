@@ -23,8 +23,13 @@
     "skuId": "1252404760448077864"
   },
   "statusText": "love @me",
-  "status": "offline",
-  "activity": null,
+  "status": "idle",
+  "activity": {
+    "type": 2,
+    "name": "Dotify",
+    "details": "БЕГИИИИ АХАХАХ +madk1d",
+    "state": "ivycraft"
+  },
   "managedBy": "iwtxz-public-discord-sync",
-  "updatedAt": 1794037630539
+  "updatedAt": 1794060094219
 }
