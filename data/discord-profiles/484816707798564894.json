@@ -24,12 +24,7 @@
   },
   "statusText": "love @me",
   "status": "idle",
-  "activity": {
-    "type": 2,
-    "name": "Dotify",
-    "details": "Юпи - Облака",
-    "state": "ГЛАВНАЯ МРАЗЬ САУНДКЛАУДА"
-  },
+  "activity": null,
   "managedBy": "iwtxz-public-discord-sync",
-  "updatedAt": 1794061339680
+  "updatedAt": 1794077596680
 }
