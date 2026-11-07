@@ -1,7 +1,7 @@
 {
   "id": "958595335037542450",
   "guildId": "1557152366208229486",
-  "member": false,
+  "member": true,
   "username": "phantom576",
   "globalName": "artemka",
   "displayName": "artemka",
@@ -16,7 +16,7 @@
   "primaryGuild": null,
   "avatarDecoration": null,
   "statusText": null,
-  "status": null,
+  "status": "offline",
   "activity": null,
-  "updatedAt": 1794060090794
+  "updatedAt": 1794090139257
 }
