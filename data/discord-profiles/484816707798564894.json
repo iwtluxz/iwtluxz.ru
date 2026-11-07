@@ -23,13 +23,8 @@
     "skuId": "1252404760448077864"
   },
   "statusText": "love @me",
-  "status": "idle",
-  "activity": {
-    "type": 2,
-    "name": "Dotify",
-    "details": "Лучший друг",
-    "state": "rizza"
-  },
+  "status": "offline",
+  "activity": null,
   "managedBy": "iwtxz-public-discord-sync",
-  "updatedAt": 1794002460091
+  "updatedAt": 1794015807123
 }
