@@ -3,7 +3,7 @@
   const $ = (selector) => document.querySelector(selector);
   const all = (selector) => [...document.querySelectorAll(selector)];
   // A cached HTML page can request a newer script after a deployment.
-  const uiVersion = "20261107-winter-1";
+  const uiVersion = "20261108-account-1";
   if (["effectIntensity", "backgroundEffect", "avatarFit", "ownMusicFiles", "discordDecorationHint", "profileScale", "nicknameSize", "discordShowCopyHint", "descriptionSize", "cursorSize", "typewriterText", "layoutEdit", "descriptionAnimation", "previewViewport", "previewStage", "previewCanvas", "previewZoom"].some(id => !$("#"+id)) || document.querySelector('script[src*="halloween.js"]')) {
     const fresh = new URL(location.href);
     if (fresh.searchParams.get("_ui") !== uiVersion) { fresh.searchParams.set("_ui",uiVersion);location.replace(fresh.href); }
@@ -87,6 +87,22 @@
   let previewTimer;
   let toastTimer;
   let discordSnapshotStatus = null;
+  let authUiBusy = false, authUiView = 'login';
+  const authUi = window.IwtxzAuthUi?.create({
+    api,
+    async onAuthenticated(user) {
+      bootstrapAuthController.abort();
+      const attempt = ++authAttemptVersion;
+      await enterAccount(user, attempt);
+    },
+    onAuthFlow({ view, busy }) {
+      if ((!authUiBusy && busy && !authPending) || (view !== authUiView && view !== 'login')) {
+        ++authAttemptVersion;
+        bootstrapAuthController.abort();
+      }
+      authUiBusy = busy; authUiView = view;
+    }
+  });
   let layoutEditing = false;
   const positionKeys=['avatar','name','description','socials','discord','player'];
   let selectedLayoutBlock='',previewExpanded=false,previewMetrics=null;
@@ -421,6 +437,7 @@
   }
 
   function setSection(name) {
+    if(name==='security') void authUi?.refreshAccount();
     musicCatalog?.close();
     if (name === "music" && accountReady) {
       musicCatalog?.open(currentSite.music);
@@ -436,6 +453,8 @@
   }
 
   function resetSession() {
+    authUi?.reset();
+    window.IwtxzDiscordDialog?.close({immediate:true,restoreFocus:false});
     if(previewExpanded)expandPreview(false);
     musicLibrary?.reset(); musicCatalog?.reset(); previousEffects = null;
     authAttemptVersion += 1;
@@ -479,6 +498,7 @@
     sessionVersion += 1;
     const version = sessionVersion;
     currentUser = user;
+    void authUi?.setAccount(user);
     accountReady = false;
     $("#userLine").textContent = `@${user.username}`;
     $("#accountName").textContent = `@${user.username}`;
@@ -548,16 +568,18 @@
     }
     if (site.discordUserId && !/^[0-9]{17,20}$/.test(site.discordUserId)) {
       setSection("links");
+      window.IwtxzDiscordDialog?.open('#discordUserId');
       $("#discordUserId").focus();
       throw new Error("ID Discord должен состоять из 17–20 цифр.");
     }
     if (site.discordSync && !site.discordUserId) {
       setSection("links");
+      window.IwtxzDiscordDialog?.open('#discordUserId');
       $("#discordUserId").focus();
       throw new Error("Для обновления карточки укажи ID пользователя Discord.");
     }
     if (site.avatarDecoration === "discord" && (!site.discordSync || !site.discordUserId)) {
-      setSection("links"); $("#discordUserId").focus();
+      setSection("links"); window.IwtxzDiscordDialog?.open('#discordUserId'); $("#discordUserId").focus();
       throw new Error("Для украшения из Discord укажи ID и включи синхронизацию.");
     }
     return site;
@@ -671,12 +693,13 @@
 
   $("#authForm").addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (authPending) return;
+    if (authPending || authUi?.isBusy() || authUi?.isFlowActive()) return;
     if (authMode === "signup" && $("#password").value !== $("#confirmPassword").value) { status("#authStatus", "Пароли не совпадают.", "error"); return; }
     const mode = authMode;
     const attempt = ++authAttemptVersion;
     bootstrapAuthController.abort();
     authPending = true;
+    authUi?.setOrdinaryBusy(true);
     $("#switchToLogin").classList.add("hidden");
     const credentials = { username: $("#username").value.trim(), password: $("#password").value };
     let signedIn = false;
@@ -702,7 +725,7 @@
           : friendlyError(error), "error");
       $("#switchToLogin").classList.toggle("hidden", !duplicate && !timedOutSignup);
     }
-    finally { authPending = false; all("#authForm button, [data-auth-mode]").forEach((button) => { button.disabled = false; }); }
+    finally { authPending = false; all("#authForm button, [data-auth-mode]").forEach((button) => { button.disabled = false; }); authUi?.setOrdinaryBusy(false); }
   });
 
   $("#switchToLogin").addEventListener("click", () => {
@@ -840,6 +863,7 @@
     try {
       const data = await api("/api/builder/auth/me", { signal: bootstrapAuthController.signal });
       if (attempt !== authAttemptVersion) return;
+      if (authUi?.handleAuthResult(data)) return;
       if (data.user) await enterAccount(data.user, attempt);
       else status("#authStatus", "");
     } catch (error) { if (attempt === authAttemptVersion) status("#authStatus", friendlyError(error), "error"); }

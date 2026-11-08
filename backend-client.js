@@ -15,6 +15,9 @@
   const memoryStorage = new Map();
   let customizationReady = false;
   let profileFeaturesReady = false;
+  const recoveryStorageKey = "iwtxz:auth:recovery";
+  const identityLinkStorageKey = "iwtxz:auth:identity-link";
+  const oauthProviders = new Set(["google", "discord"]);
 
   function error(status, message, code = "request_failed") {
     return Object.assign(new Error(message), { status, code });
@@ -165,7 +168,7 @@
     // starts without that session and cannot queue behind its abandoned lock.
     context.lockName = name => `${name}:session:${authSessionScope(storage, storageKey, initialScope)}`;
     const instance = window.supabase.createClient(settings.url, settings.key, {
-      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false,
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, flowType: "pkce",
         storageKey, storage,
         lock: (name, timeout, action) => boundedAuthLock(context, name, timeout, action), ...authOptions },
       global: { fetch: (input, options) => timedFetch(context, input, options) }
@@ -263,6 +266,109 @@
     return value;
   }
 
+  function realEmail(value) {
+    const email = typeof value === "string" ? value.trim().toLowerCase() : "";
+    if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.endsWith(`@${config().accountEmailDomain}`)) {
+      throw error(400, "Укажи действующий адрес почты.", "invalid_email");
+    }
+    return email;
+  }
+
+  function readFlow(key) {
+    try { return JSON.parse(window.sessionStorage?.getItem(key) || "null"); } catch { return null; }
+  }
+
+  function writeFlow(key, value) {
+    try {
+      if (value === null) window.sessionStorage?.removeItem(key);
+      else window.sessionStorage?.setItem(key, JSON.stringify(value));
+    } catch {}
+    // Private browsing may disable storage. The active page can still finish its flow.
+    memoryStorage[value === null ? "delete" : "set"](key, value);
+  }
+
+  function activeFlow(key) { return readFlow(key) || memoryStorage.get(key) || null; }
+
+  function callbackUrl(kind) {
+    const url = new URL("/index.html", window.location.origin);
+    url.searchParams.set("auth", kind);
+    return url.href;
+  }
+
+  function isOAuthUser(user) {
+    return user?.identities?.some(identity => oauthProviders.has(identity.provider)) || user?.app_metadata?.providers?.some(provider => oauthProviders.has(provider));
+  }
+
+  function recoveryFor(user) {
+    const recovery = activeFlow(recoveryStorageKey);
+    return Boolean(recovery && recovery.userId === user?.id && recovery.expiresAt > Date.now());
+  }
+
+  async function authUser(assertActive = () => {}) {
+    const data = throwIfError(await getClient().auth.getUser());
+    assertActive();
+    if (!data?.user) throw error(401, "Сначала войди в аккаунт.", "unauthorized");
+    return data.user;
+  }
+
+  function accountAuthState(user) {
+    const serviceEmail = !user.email || user.email.toLowerCase().endsWith(`@${config().accountEmailDomain}`);
+    const providers = [...new Set((user.identities || []).map(identity => identity.provider).filter(provider => oauthProviders.has(provider)))];
+    for (const provider of user.app_metadata?.providers || []) if (oauthProviders.has(provider) && !providers.includes(provider)) providers.push(provider);
+    return {
+      email: serviceEmail ? "" : user.email,
+      pendingEmail: user.new_email || "",
+      emailVerified: !serviceEmail && Boolean(user.email_confirmed_at),
+      providers,
+      hasPassword: (user.identities || []).some(identity => identity.provider === "email") || (user.app_metadata?.providers || []).includes("email") || serviceEmail
+    };
+  }
+
+  function clearCallbackUrl(url) {
+    for (const name of ["code", "auth", "error", "error_code", "error_description", "sb_flow_id"]) url.searchParams.delete(name);
+    url.hash = "";
+    try { window.history?.replaceState(window.history.state, "", url.href); } catch {}
+  }
+
+  function processAuthCallback(assertActive) {
+    const context = clientContexts.get(getClient());
+    if (context.callbackResult) return context.callbackResult;
+    const url = new URL(window.location.href || window.location.origin);
+    const kind = url.searchParams.get("auth");
+    if (!["callback", "link", "recovery", "email"].includes(kind)) return null;
+    const fragment = new URLSearchParams(url.hash.slice(1));
+    const code = url.searchParams.get("code");
+    const failure = url.searchParams.get("error") || fragment.get("error");
+    if (!code && !fragment.get("access_token") && !failure) return null;
+    context.callbackResult = (async () => {
+      try {
+        if (failure) throw error(400, "Вход не завершён. Попробуй ещё раз.", "oauth_cancelled");
+        let data;
+        if (code) data = throwIfError(await getClient().auth.exchangeCodeForSession(code), "callback");
+        else {
+          const access_token = fragment.get("access_token"), refresh_token = fragment.get("refresh_token");
+          if (!access_token || !refresh_token) throw error(400, "Ссылка неполная. Запроси новую.", "invalid_callback");
+          data = throwIfError(await getClient().auth.setSession({ access_token, refresh_token }), "callback");
+        }
+        assertActive();
+        if (!data?.session || !data.user) throw error(400, "Ссылка устарела. Начни вход ещё раз.", "invalid_callback");
+        if (kind === "link") {
+          const expected = activeFlow(identityLinkStorageKey);
+          writeFlow(identityLinkStorageKey, null);
+          if (!expected || expected.userId !== data.user.id || expected.expiresAt <= Date.now()) {
+            await getClient().auth.signOut({ scope: "local" });
+            throw error(409, "Привязка не завершена: аккаунт изменился. Войди в свой аккаунт и повтори.", "identity_mismatch");
+          }
+        }
+        const recovery = ["recovery", "PASSWORD_RECOVERY"].includes(data.redirectType) || (!code && fragment.get("type") === "recovery");
+        if (recovery) writeFlow(recoveryStorageKey, { userId: data.user.id, expiresAt: Date.now() + 20 * 60 * 1000 });
+        else writeFlow(recoveryStorageKey, null);
+        return { emailConfirmed: kind === "email", recoveryRequired: recovery };
+      } finally { clearCallbackUrl(url); }
+    })();
+    return context.callbackResult;
+  }
+
   function publicUrl(username) {
     return window.IwtxzProfileLinks?.urlForUser(username) || `/profile.html?u=${encodeURIComponent(username)}`;
   }
@@ -276,6 +382,10 @@
     }
     if (["user_already_exists", "email_exists", "user_already_registered"].includes(code)) return error(409, "Этот логин уже занят.", "username_taken");
     if (code === "weak_password") return error(400, "Пароль слишком простой. Выбери другой пароль.", "invalid_password");
+    if (["provider_disabled", "oauth_provider_not_supported", "validation_failed"].includes(code) && operation === "oauth") return error(503, "Этот способ входа ещё не подключён. Пока используй логин и пароль.", "oauth_not_configured");
+    if (["identity_already_exists", "identity_already_linked"].includes(code)) return error(409, "Этот аккаунт уже привязан к другой странице. Войди через него отдельно.", "identity_exists");
+    if (code === "manual_linking_disabled") return error(503, "Привязка способов входа ещё не включена на сервере.", "identity_linking_disabled");
+    if (["flow_state_not_found", "flow_state_expired", "bad_code_verifier", "otp_expired"].includes(code)) return error(400, "Ссылка устарела или открыта в другом браузере. Запроси новую и открой в том же браузере.", "invalid_callback");
     if (code === "same_password") return error(400, "Новый пароль должен отличаться от текущего.", "invalid_password");
     if (code === "email_not_confirmed") return error(403, "Сервер требует подтверждение служебного адреса. Владелец должен отключить Confirm email для входа по логину.", "email_confirmation_required");
     if (["email_address_not_authorized", "email_address_invalid"].includes(code)) return error(503, "Сервер регистрации ещё не настроен для входа по логину.", "backend_setup_required");
@@ -302,7 +412,7 @@
     const result = await getClient().from("profile_accounts").select("username").eq("user_id", user.id).maybeSingle();
     assertActive();
     const row = throwIfError(result);
-    if (!row?.username) throw error(503, "Аккаунт существует, но его профиль не настроен на сервере.", "backend_setup_required");
+    if (!row?.username) throw error(503, "Аккаунт существует, но его профиль не настроен на сервере.", isOAuthUser(user) ? "profile_setup_required" : "backend_setup_required");
     const account = { userId: user.id, username: normalizeUsername(row.username) };
     clientContexts.get(getClient()).account = account;
     return account;
@@ -351,14 +461,18 @@
   }
 
   async function getMe(assertActive) {
+    const pendingCallback = processAuthCallback(assertActive);
+    const callback = pendingCallback ? await pendingCallback : null;
     const session = throwIfError(await getClient().auth.getSession());
     assertActive();
     if (!session?.session) return { user: null };
+    if (recoveryFor(session.session.user)) return { user: null, recoveryRequired: true };
     try {
       const account = await requireAccount(assertActive);
-      return { user: { username: account.username } };
+      return { user: { username: account.username }, ...(callback?.emailConfirmed ? { emailConfirmed: true } : {}) };
     } catch (cause) {
       assertActive();
+      if (cause.code === "profile_setup_required") return { user: null, needsUsername: true };
       if (cause.code === "unauthorized") {
         await getClient().auth.signOut({ scope: "local" });
         return { user: null };
@@ -368,10 +482,13 @@
   }
 
   async function authenticate(mode, body, assertActive) {
-    const username = normalizeUsername(body.username);
+    writeFlow(recoveryStorageKey, null);
+    writeFlow(identityLinkStorageKey, null);
+    const emailLogin = mode === "login" && String(body.username || "").includes("@");
+    const username = emailLogin ? null : normalizeUsername(body.username);
     const password = mode === "signup" ? validatePassword(body.password) : body.password;
     if (typeof password !== "string" || !password || password.length > 128) throw error(400, "Введите пароль.", "invalid_password");
-    const email = `${username}@${config().accountEmailDomain}`;
+    const email = emailLogin ? realEmail(body.username) : `${username}@${config().accountEmailDomain}`;
     // Finish session recovery before creating an account: a blocked browser auth
     // lock must not create a server account and leave the sign-up screen waiting.
     throwIfError(await getClient().auth.getSession());
@@ -388,7 +505,23 @@
         data.owner_claim = ownerClaim.trim();
       }
       result = await getClient().auth.signUp({ email, password, options: { data } });
-    } else result = await getClient().auth.signInWithPassword({ email, password });
+    } else {
+      result = await getClient().auth.signInWithPassword({ email, password });
+      assertActive();
+      // Existing users keep their original password flow. Only a failed alias
+      // login reaches the private server resolver after a real-email binding.
+      if (!emailLogin && ["invalid_credentials", "invalid_grant"].includes(result?.error?.code) && window.IWTXZ_BACKEND_CONFIG?.usernameAuthUrl) {
+        try {
+          const tokens = await usernameAuthRequest("POST", { username, password });
+          assertActive();
+          result = await getClient().auth.setSession(tokens);
+        } catch (cause) {
+          // A not-yet-deployed resolver must not turn an ordinary incorrect
+          // password into a deployment error. Binding checks readiness first.
+          if (cause.code !== "backend_setup_required") throw cause;
+        }
+      }
+    }
     const data = throwIfError(result, mode);
     assertActive();
     if (!data?.session || !data?.user) {
@@ -396,11 +529,102 @@
     }
     const account = await accountForUser(data.user, assertActive);
     assertActive();
-    if (account.username !== username) {
+    if (!emailLogin && account.username !== username) {
       await getClient().auth.signOut({ scope: "local" });
       throw error(409, "Логин аккаунта не совпадает с профилем. Обратись к владельцу сайта.", "identity_mismatch");
     }
     return { user: { username: account.username } };
+  }
+
+  function usernameAuthEndpoint() {
+    let url;
+    try { url = new URL(window.IWTXZ_BACKEND_CONFIG?.usernameAuthUrl); } catch {}
+    if (!url || url.protocol !== "https:" || url.username || url.password || url.hash || url.search) throw error(503, "Привязка почты ещё не настроена. Вход по логину продолжает работать.", "backend_setup_required");
+    return url;
+  }
+
+  async function usernameAuthRequest(method, body) {
+    const settings = config();
+    const instance = getClient();
+    const response = await timedFetch(clientContexts.get(instance), usernameAuthEndpoint().href, {
+      method, credentials: "omit", headers: { apikey: settings.key, "Content-Type": "application/json" },
+      ...(body ? { body: JSON.stringify(body) } : {})
+    });
+    let result;
+    try { result = await response.json(); } catch {}
+    if (!response.ok) {
+      if (response.status === 429) throw error(429, "Слишком много попыток. Попробуй позже.", "rate_limited");
+      if (response.status === 400 || response.status === 401) throw error(401, "Неверный логин или пароль.", "invalid_login");
+      throw error(503, "Вход по привязанному логину ещё не настроен. Используй почту и пароль.", "backend_setup_required");
+    }
+    if (method === "GET") {
+      if (result?.ready !== true) throw error(503, "Привязка почты ещё не готова на сервере. Попробуй позже.", "backend_setup_required");
+      return result;
+    }
+    if (typeof result?.access_token !== "string" || typeof result?.refresh_token !== "string") throw error(503, "Сервер входа вернул неверный ответ.", "invalid_response");
+    return { access_token: result.access_token, refresh_token: result.refresh_token };
+  }
+
+  async function requestAuthExtension(mode, body, assertActive) {
+    if (mode === "recover") {
+      const email = realEmail(body.email);
+      throwIfError(await getClient().auth.resetPasswordForEmail(email, { redirectTo: callbackUrl("recovery") }), "recover");
+      assertActive();
+      return { ok: true };
+    }
+    if (mode === "oauth") {
+      if (!oauthProviders.has(body.provider)) throw error(400, "Этот способ входа не поддерживается.", "invalid_provider");
+      const link = body.link === true;
+      const instance = getClient();
+      const providerResponse = await timedFetch(clientContexts.get(instance), `${config().url}/auth/v1/settings`, { headers: { apikey: config().key } });
+      let providerSettings;
+      try { providerSettings = await providerResponse.json(); } catch {}
+      assertActive();
+      if (!providerResponse.ok) throw error(503, "Не удалось проверить способы входа. Попробуй ещё раз.", "service_unavailable");
+      if (providerSettings?.external?.[body.provider] !== true) throw error(503, "Этот способ входа ещё не подключён. Пока используй логин и пароль.", "oauth_not_configured");
+      const user = link ? await authUser(assertActive) : null;
+      if (link) writeFlow(identityLinkStorageKey, { userId: user.id, expiresAt: Date.now() + 15 * 60 * 1000 });
+      const options = { redirectTo: callbackUrl(link ? "link" : "callback"), skipBrowserRedirect: true };
+      if (body.provider === "google") options.queryParams = { prompt: "select_account" };
+      try {
+        const data = throwIfError(await instance.auth[link ? "linkIdentity" : "signInWithOAuth"]({ provider: body.provider, options }), "oauth");
+        assertActive();
+        let target;
+        try { target = new URL(data?.url); } catch {}
+        const providerTarget = target && link && ((body.provider === "google" && target.hostname === "accounts.google.com" && /^\/o\/oauth2\/(?:v2\/)?auth$/.test(target.pathname)) || (body.provider === "discord" && target.hostname === "discord.com" && /^\/(?:api\/)?oauth2\/authorize$/.test(target.pathname)));
+        if (!target || target.protocol !== "https:" || target.username || target.password || target.port || (target.origin !== config().url && !providerTarget)) throw error(503, "Не удалось начать вход. Попробуй ещё раз.", "invalid_response");
+        return { url: target.href };
+      } catch (cause) { if (link) writeFlow(identityLinkStorageKey, null); throw cause; }
+    }
+    const user = await authUser(assertActive);
+    if (mode === "account") return accountAuthState(user);
+    if (mode === "email") {
+      const email = realEmail(body.email);
+      await usernameAuthRequest("GET");
+      assertActive();
+      const data = throwIfError(await getClient().auth.updateUser({ email }, { emailRedirectTo: callbackUrl("email") }), "email");
+      assertActive();
+      return { ok: true, ...accountAuthState(data?.user || user) };
+    }
+    if (mode === "recovery-password") {
+      if (!recoveryFor(user)) throw error(403, "Открой действующую ссылку восстановления из письма.", "recovery_required");
+      const password = validatePassword(body.newPassword);
+      throwIfError(await getClient().auth.updateUser({ password }), "password");
+      assertActive();
+      writeFlow(recoveryStorageKey, null);
+      const revocation = await getClient().auth.signOut({ scope: "others" });
+      assertActive();
+      return { ok: true, ...await getMe(assertActive), ...(revocation.error ? { sessionRevocationWarning: true } : {}) };
+    }
+    if (mode === "complete") {
+      if (!isOAuthUser(user)) throw error(403, "Сначала войди через Google или Discord.", "oauth_required");
+      const username = normalizeUsername(body.username);
+      throwIfError(await getClient().rpc("builder_complete_oauth_profile", { requested_username: username }));
+      assertActive();
+      const account = await accountForUser(user, assertActive);
+      return { user: { username: account.username } };
+    }
+    throw error(404, "Страница не найдена.", "not_found");
   }
 
   async function rpc(name, input) {
@@ -560,12 +784,15 @@
     const url = new URL(path, window.location.origin);
     const method = String(options.method || "GET").toUpperCase();
     const mode = url.pathname.split("/").pop();
-    const isGet = url.pathname === "/api/builder/auth/me" || url.pathname === "/api/builder/music/library" || /^\/api\/builder\/sites\/(list|get)$/.test(url.pathname) || /^\/api\/builder\/profile\/[a-z0-9_-]+$/i.test(url.pathname);
+    const isGet = ["/api/builder/auth/me", "/api/builder/auth/account", "/api/builder/music/library"].includes(url.pathname) || /^\/api\/builder\/sites\/(list|get)$/.test(url.pathname) || /^\/api\/builder\/profile\/[a-z0-9_-]+$/i.test(url.pathname);
     if (method !== (isGet ? "GET" : "POST")) throw error(405, isGet ? "Используйте GET." : "Используйте POST.", "method_not_allowed");
     if (url.pathname === "/api/builder/auth/me") return getMe(assertActive);
     if (/^\/api\/builder\/auth\/(signup|login)$/.test(url.pathname)) return authenticate(mode, jsonBody(options), assertActive);
+    if (/^\/api\/builder\/auth\/(oauth|recover|recovery-password|account|email|complete)$/.test(url.pathname)) return requestAuthExtension(mode, isGet ? {} : jsonBody(options), assertActive);
     if (url.pathname === "/api/builder/auth/logout") {
       throwIfError(await getClient().auth.signOut({ scope: "local" }));
+      writeFlow(recoveryStorageKey, null);
+      writeFlow(identityLinkStorageKey, null);
       return { ok: true };
     }
     if (/^\/api\/builder\/profile\/[a-z0-9_-]+$/i.test(url.pathname)) return { site: await readPublishedProfile(mode) };
@@ -589,8 +816,9 @@
         storageKey: `iwtxz-password-verification-${nonce}`
       });
       try {
+        const passwordUser = await authUser(assertActive);
         const verified = throwIfError(await verificationClient.auth.signInWithPassword({
-          email: `${account.username}@${config().accountEmailDomain}`, password: body.currentPassword
+          email: passwordUser.email, password: body.currentPassword
         }), "password");
         assertActive();
         if (!verified?.session || verified?.user?.id !== account.userId) {
@@ -649,9 +877,12 @@
   async function request(path, options = {}) {
     // A deliberate login must not wait for an expired session's refresh or a
     // cancelled bootstrap. Retired clients cannot write over the new session.
-    const freshSession = /^\/api\/builder\/auth\/(signup|login)$/.test(path) && String(options.method).toUpperCase() === "POST" && !options.signal?.aborted;
+    const location = new URL(window.location.href || window.location.origin);
+    const callback = path === "/api/builder/auth/me" && ["callback", "link", "recovery", "email"].includes(location.searchParams.get("auth")) && (location.searchParams.has("code") || location.hash.includes("access_token="));
+    const freshSession = !options.signal?.aborted && ((/^\/api\/builder\/auth\/(signup|login)$/.test(path) && String(options.method).toUpperCase() === "POST") || (callback && !clientContexts.get(client)?.callbackPending));
     const instance = typeof path === "string" && /^\/api\/builder\/profile\/[a-z0-9_-]+$/i.test(path) ? getPublicClient() : getClient(freshSession);
-    return boundedOperation(instance, (assertActive) => dispatchRequest(path, options, assertActive), { ...options, authMutation: /^\/api\/builder\/auth\/(signup|login|password)$/.test(path) });
+    if (callback) clientContexts.get(instance).callbackPending = true;
+    return boundedOperation(instance, (assertActive) => dispatchRequest(path, options, assertActive), { ...options, authMutation: /^\/api\/builder\/auth\/(signup|login|password|oauth|email|complete|recovery-password)$/.test(path) });
   }
 
   async function getPublishedProfile(username) {

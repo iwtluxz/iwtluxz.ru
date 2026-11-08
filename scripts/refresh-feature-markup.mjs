@@ -24,6 +24,11 @@ for (const file of await readdir(root)) {
   }
   if (!html.includes('href="profile-features.css')) html = html.replace("</head>", '  <link rel="stylesheet" href="profile-features.css">\n</head>');
   if(file==='index.html'&&!html.includes('src="site-audio-config.js'))html=html.replace(/(<script src="builder\.js[^\"]*"[^>]*>)/,'<script src="site-audio-config.js" defer></script>\n  $1');
+  if(file==='index.html'){
+    if(!html.includes('src="auth-ui.js'))html=html.replace(/(<script src="builder\.js[^\"]*"[^>]*>)/,'<script src="auth-ui.js" defer></script>\n  $1');
+    if(!html.includes('src="builder-discord-dialog.js'))html=html.replace(/(<script src="builder\.js[^\"]*"[^>]*><\/script>)/,'$1\n  <script src="builder-discord-dialog.js" defer></script>');
+    for(const name of ['auth-ui','builder-discord-dialog'])if(!html.includes(`href="${name}.css`))html=html.replace('</head>',`  <link rel="stylesheet" href="${name}.css">\n</head>`);
+  }
   html=html.replace(/\s*<script src="site-chrome\.js[^\"]*"[^>]*><\/script>/g,'');
   const chromeAnchor=html.match(/<script src="(?:builder|profile|profile-customization)\.js[^\"]*"[^>]*>/);
   html=chromeAnchor?html.replace(chromeAnchor[0],'<script src="site-chrome.js" defer></script>\n  '+chromeAnchor[0]):html.replace('</head>','  <script src="site-chrome.js" defer></script>\n</head>');

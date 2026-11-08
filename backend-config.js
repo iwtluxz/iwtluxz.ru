@@ -5,6 +5,7 @@ window.IWTXZ_BACKEND_CONFIG = Object.freeze({
   url: "https://aknoeytrgzkgdcttwgvb.supabase.co",
   publishableKey: "sb_publishable_cFWt4EsPvLuEJyk8Q9vGEA_GZR6IZ0j",
   accountEmailDomain: "accounts.iwtxz.ru",
+  usernameAuthUrl: "https://aknoeytrgzkgdcttwgvb.supabase.co/functions/v1/account-login",
   bucket: "profile-assets",
   musicApiUrl: "https://music.iwtxz.su",
   discordGuildId: "1557152366208229486",

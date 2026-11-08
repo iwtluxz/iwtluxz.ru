@@ -8,7 +8,7 @@
     "version:assets": "node scripts/version-assets.mjs",
     "sync:profile-routes": "node scripts/sync-profile-routes.mjs",
     "test:profile-routes": "node --test scripts/test-profile-links.mjs scripts/test-profile-routes.mjs",
-    "test:backend-client": "node --test scripts/test-backend-client.mjs scripts/test-auth-sdk.mjs",
+    "test:backend-client": "node --test scripts/test-backend-client.mjs scripts/test-auth-sdk.mjs scripts/test-auth-extensions.mjs scripts/test-account-login.mjs scripts/test-account-auth-sql.mjs",
     "test:builder": "node --test scripts/test-builder.mjs scripts/test-builder-ui.mjs",
     "test:features": "node --test scripts/test-profile-features.mjs scripts/test-profile-settings-sql.mjs"
   },

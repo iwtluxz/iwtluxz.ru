@@ -1,0 +1,48 @@
+.discord-settings-launch { display: flex; align-items: center; gap: 14px; width: 100%; padding: 18px; margin: 10px 0 6px; border: 1px solid #ffffff26; border-radius: 12px; background: #060606; text-align: left; transition: border-color .18s, background .18s; }
+.discord-settings-launch:hover { background: #0b0b0b; border-color: #ffffff60; }
+.discord-settings-launch-icon { flex: 0 0 28px; width: 28px; height: 28px; filter: drop-shadow(0 0 6px #ffffff40); }
+.discord-settings-launch-label { min-width: 0; display: grid; gap: 5px; }
+.discord-settings-launch-label strong { color: #f7f7f7; font-size: 12px; line-height: 1.5; }
+.discord-settings-launch-label small { color: #888; font-size: 10px; line-height: 1.6; }
+.discord-settings-launch-arrow { margin-left: auto; color: #b4b4b4; font-size: 19px; }
+body.discord-settings-open { overflow: hidden; }
+.discord-settings-dialog { width: min(620px, calc(100vw - 32px)); max-width: none; max-height: min(840px, calc(100dvh - 48px)); margin: auto; padding: 0; border: 1px solid #ffffff30; border-radius: 17px; background: #030303; color: var(--text, #fff); box-shadow: 0 28px 100px #000b; overflow: hidden; font: inherit; }
+.discord-settings-dialog:not([open]) { display: none; }
+.discord-settings-dialog[open] { animation: discord-settings-enter .22s cubic-bezier(.2,.75,.25,1) both; }
+.discord-settings-dialog::backdrop { background: #000b; backdrop-filter: blur(7px); animation: discord-settings-shade-in .2s ease both; }
+.discord-settings-dialog.is-closing { animation: discord-settings-exit .16s ease both; pointer-events: none; }
+.discord-settings-dialog.is-closing::backdrop { animation: discord-settings-shade-out .16s ease both; }
+.discord-settings-surface { display: flex; flex-direction: column; max-height: min(838px, calc(100dvh - 50px)); }
+.discord-settings-header { display: flex; flex-shrink: 0; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 23px 24px 19px; border-bottom: 1px solid #ffffff18; }
+.discord-settings-header .eyebrow { margin-bottom: 6px; color: #777; font-size: 9px; }
+.discord-settings-header h2 { margin: 0; font-size: 17px; line-height: 1.6; }
+.discord-settings-close { flex: 0 0 32px; display: grid; place-items: center; width: 32px; height: 32px; padding: 0; margin: -2px -5px 0 0; border: 1px solid #ffffff24; border-radius: 8px; background: #ffffff06; color: #bbb; font: 25px/1 sans-serif; }
+.discord-settings-close:hover { background: #ffffff12; color: #fff; }
+.discord-settings-content { min-height: 0; padding: 21px 24px 5px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #ffffff45 transparent; }
+.discord-settings-content > .hint { margin-bottom: 21px; }
+.discord-settings-content > .checkbox-field { padding: 13px; margin-bottom: 20px; border: 1px solid #ffffff20; border-radius: 8px; background: #ffffff04; }
+.discord-settings-content > .settings-group { padding-top: 0; margin-top: 0; border-top: 0; }
+.discord-settings-content .discord-join-note { margin-bottom: 20px; }
+.discord-settings-content .range-field { margin-bottom: 20px; }
+.discord-settings-footer { display: flex; flex-shrink: 0; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 24px; border-top: 1px solid #ffffff18; background: #030303; }
+.discord-settings-footer .hint { max-width: 340px; font-size: 10px; }
+.discord-settings-footer .button { flex-shrink: 0; min-width: 95px; }
+@keyframes discord-settings-enter { from { opacity: 0; transform: translateY(14px) scale(.975); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes discord-settings-exit { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(8px) scale(.985); } }
+@keyframes discord-settings-shade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes discord-settings-shade-out { from { opacity: 1; } to { opacity: 0; } }
+@media (max-width: 560px) {
+  .discord-settings-dialog { width: calc(100vw - 20px); max-height: calc(100dvh - 24px); border-radius: 13px; }
+  .discord-settings-surface { max-height: calc(100dvh - 26px); }
+  .discord-settings-header { padding: 19px 17px 15px; }
+  .discord-settings-header h2 { font-size: 14px; }
+  .discord-settings-content { padding: 18px 17px 0; }
+  .discord-settings-content .form-grid, .discord-settings-content .toggle-grid { grid-template-columns: 1fr; }
+  .discord-settings-footer { padding: 13px 17px; gap: 12px; }
+  .discord-settings-footer .hint { font-size: 9px; }
+  .discord-settings-launch { padding: 15px 13px; gap: 11px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .discord-settings-dialog[open], .discord-settings-dialog.is-closing, .discord-settings-dialog::backdrop, .discord-settings-dialog.is-closing::backdrop { animation: none; }
+  .discord-settings-launch { transition: none; }
+}

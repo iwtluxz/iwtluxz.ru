@@ -7,6 +7,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const shared = ["backend-config.js", "backend-client.js", "builder.js", "builder.css", "music-library.js", "music-catalog.js", "music-catalog-data.js", "music-services.js", "music-services.css", "profile-scene.js", "profile-scene.css", "profile.js", "profile.css", "profile-settings.js", "profile-links.js", "profile-fallback.js", "profile-customization.js", "profile-customization.css", "profile-features.js", "profile-features.css"];
 shared.push('profile-layout.js','profile-layout.css','profile-decorations.js','profile-decorations.css');
 shared.push('site-chrome.js','site-chrome.css','site-audio-config.js');
+shared.push('auth-ui.js','auth-ui.css','builder-discord-dialog.js','builder-discord-dialog.css');
 const profileMedia = ["img/mainavatar.gif", "img/mysoundicon.png", "sound/sound.mp3"];
 const hashes = new Map();
 for (const asset of [...shared, ...profileMedia]) {

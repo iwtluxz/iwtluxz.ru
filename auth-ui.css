@@ -1,0 +1,72 @@
+.auth-locked .workspace:has(.auth-upgraded) { grid-template-columns: minmax(0, 370px); padding-top: 132px; padding-bottom: 72px; }
+.auth-upgraded { isolation: isolate; }
+.auth-upgraded .auth-wordmark { display: grid; place-items: center; width: 52px; height: 52px; margin: 0 auto 23px; border: 1px solid #ffffff28; border-radius: 16px; background: #080808; color: #fff; font-size: 16px; letter-spacing: -1px; }
+.auth-upgraded .auth-intro h1 { margin-bottom: 27px; font-size: 29px; text-align: center; }
+.auth-providers { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.auth-provider { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 47px; padding: 11px 14px; border: 1px solid #ffffff26; border-radius: 11px; color: #fff; background: #0a0a0a; font-size: 12px; transition: background .16s, border-color .16s, transform .16s; }
+.auth-provider > svg { flex: 0 0 19px; width: 19px; height: 19px; }
+.auth-provider-google { border-color: #eaeaea; background: #eaeaea; color: #000; }
+.auth-provider-google svg { color: #000; }
+.auth-provider:hover { border-color: #ffffff70; background: #161616; transform: translateY(-1px); }
+.auth-provider-google:hover { border-color: #fff; background: #fff; }
+.auth-provider:disabled { transform: none; }
+.auth-divider { display: flex; align-items: center; gap: 14px; margin: 23px 0 21px; color: #6e6e73; font-size: 10px; }
+.auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: #ffffff14; }
+.auth-upgraded .auth-tabs { margin-bottom: 23px; border-color: #ffffff12; background: #070707; }
+.auth-upgraded .auth-tabs button { min-height: 33px; }
+.auth-upgraded .auth-tabs button.active { color: #fff; background: #202020; box-shadow: inset 0 0 0 1px #ffffff14; }
+.auth-upgraded .auth-form input { border-color: #ffffff24; background: #080808; }
+.auth-upgraded .auth-form input:hover { border-color: #ffffff3b; }
+.auth-upgraded .auth-form input:focus-visible { border-color: #fff; }
+.auth-upgraded .auth-form .field { gap: 8px; margin-bottom: 17px; color: #b9b9bf; }
+.auth-upgraded .auth-form .hint { color: #77777e; }
+.auth-upgraded .auth-submit { min-height: 47px; margin-top: 7px; }
+.auth-upgraded .status { overflow-wrap: anywhere; }
+.auth-upgraded .status.success, .auth-account-settings .status.success { color: #d5e7d7; }
+.auth-upgraded .auth-forgotten { display: block; margin: 18px auto 0; padding: 5px 10px; color: #96969d; font-size: 10px; }
+.auth-upgraded .auth-forgotten:hover { color: #fff; }
+.auth-flow-description { margin: 0 0 24px; color: #9a9aa1; font-size: 11px; text-align: center; line-height: 1.9; }
+.auth-back { display: block; margin: 23px auto 0; color: #96969d; font-size: 11px; }
+.auth-address-field { display: flex; align-items: center; min-width: 0; border: 1px solid #ffffff24; border-radius: 10px; background: #080808; }
+.auth-address-field > span { padding-left: 13px; color: #77777e; font-size: 11px; white-space: nowrap; }
+.auth-upgraded .auth-address-field input { padding-left: 3px; border: 0; background: none; box-shadow: none; }
+.auth-address-field:focus-within { outline: 1px solid #fff; }
+.auth-account-settings { display: grid; gap: 25px; margin-bottom: 28px; padding-bottom: 28px; border-bottom: 1px solid #ffffff20; }
+.auth-account-heading { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 19px; }
+.auth-account-heading > div { min-width: 0; flex: 1; }
+.auth-account-heading h3 { margin-bottom: 4px; font-size: 13px; }
+.auth-account-heading .hint { margin: 0; overflow-wrap: anywhere; }
+.auth-account-heading > .text-button { margin: -3px 0 0 auto; font-size: 10px; }
+.auth-account-icon { display: grid; place-items: center; flex: 0 0 36px; width: 36px; height: 36px; border: 1px solid #ffffff1e; border-radius: 10px; background: #090909; }
+.auth-account-icon > svg { width: 21px; height: 21px; }
+.auth-email-card, .auth-connected-accounts { min-width: 0; }
+.auth-email-card .field { margin-bottom: 12px; }
+.auth-email-explanation { margin: 12px 0 0; }
+.auth-email-card .status, .auth-connected-accounts .status, .auth-password-note .status { margin: 12px 0 0; font-size: 11px; overflow-wrap: anywhere; }
+.auth-email-card .status:empty, .auth-connected-accounts .status:empty, .auth-password-note .status:empty { display: none; }
+.auth-email-pending { padding: 10px 12px; border: 1px solid #ffffff1e; border-radius: 8px; color: #ddd; background: #ffffff05; overflow-wrap: anywhere; }
+.auth-connected-accounts > h3 { margin-bottom: 8px; }
+.auth-connected-accounts > .hint { margin-bottom: 17px; }
+.auth-connected-row { display: flex; align-items: center; gap: 12px; margin-top: 10px; padding: 12px; border: 1px solid #ffffff1a; border-radius: 10px; background: #050505; }
+.auth-connected-row > span:nth-child(2) { min-width: 0; font-size: 12px; }
+.auth-connected-row small { display: block; margin-top: 2px; color: #888; font-size: 9px; }
+.auth-connected-row > .button { margin-left: auto; padding-inline: 11px; font-size: 10px; }
+.auth-connected-row > .button:disabled { cursor: default; opacity: .55; }
+.auth-service-mark { display: grid; place-items: center; flex: 0 0 30px; width: 30px; height: 30px; color: #fff; }
+.auth-service-mark svg { width: 21px; height: 21px; }
+.auth-service-google { border-radius: 8px; color: #000; background: #eaeaea; }
+.auth-service-google svg { width: 18px; height: 18px; color: #000; }
+.auth-password-note > .hint { margin-bottom: 13px; }
+@media (max-width: 480px) {
+  .auth-locked .workspace:has(.auth-upgraded) { padding: 123px 25px 64px; }
+  .auth-upgraded .auth-wordmark { width: 46px; height: 46px; margin-bottom: 21px; border-radius: 14px; font-size: 15px; }
+  .auth-upgraded .auth-intro h1 { font-size: 27px; }
+  .auth-upgraded .auth-form input { font-size: 16px; }
+  .auth-address-field > span { font-size: 10px; }
+  .auth-connected-row { gap: 8px; padding: 10px; }
+  .auth-connected-row > .button { padding-inline: 8px; font-size: 9px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-provider { transition: none; }
+  .auth-provider:hover { transform: none; }
+}
