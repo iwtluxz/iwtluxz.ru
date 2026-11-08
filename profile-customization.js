@@ -285,22 +285,24 @@
       if (nodes.discordActivity) { nodes.discordActivity.textContent = activityText; nodes.discordActivity.hidden = !activityText; }
       if (nodes.discordBadges) {
         const content = [];
-        let hasSelectedBadges=false;
-        if (profile && settings.discordShowBadges !== false) {
-          const tag = primaryGuildTag(profile.primaryGuild);
-          if (tag) content.push(tag);
-        }
+        let hasVisibleBadges = false;
         if (settings.discordShowBadges !== false) {
-          const strip = document.createElement("span");
-          strip.className = "discord-badge-strip";
-          const badgeNodes=chosenBadges.map(profileBadge);
-          if(badgeNodes.length){
-            if(window.IwtxzBadgeOverflow)window.IwtxzBadgeOverflow.render(strip,badgeNodes,{owner:nodes.discordBadges});
-            else strip.append(...badgeNodes);
+          const tag = profile ? primaryGuildTag(profile.primaryGuild) : null;
+          const badgeNodes = chosenBadges.map(profileBadge);
+          const visibleNodes = tag ? [tag, ...badgeNodes] : badgeNodes;
+          if (visibleNodes.length) {
+            const strip = document.createElement("span");
+            strip.className = "discord-badge-strip";
+            if (window.IwtxzBadgeOverflow) {
+              window.IwtxzBadgeOverflow.render(strip, visibleNodes, { owner: nodes.discordBadges });
+            } else {
+              strip.append(...visibleNodes.slice(0, 6));
+            }
+            content.push(strip);
+            hasVisibleBadges = true;
           }
-          if (badgeNodes.length) {content.push(strip);hasSelectedBadges=true;}
         }
-        if(!hasSelectedBadges||settings.showDiscord===false)window.IwtxzBadgeOverflow?.dispose(nodes.discordBadges);
+        if (!hasVisibleBadges || settings.showDiscord === false) window.IwtxzBadgeOverflow?.dispose(nodes.discordBadges);
         nodes.discordBadges.replaceChildren(...content);
         nodes.discordBadges.hidden = !content.length;
         nodes.discordBadges.style.display = content.length ? "inline-flex" : "none";
