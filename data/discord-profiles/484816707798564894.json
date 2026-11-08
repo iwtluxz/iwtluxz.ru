@@ -25,11 +25,11 @@
   "statusText": "love @me",
   "status": "idle",
   "activity": {
-    "type": 2,
-    "name": "Dotify",
-    "details": "one more time",
-    "state": "тёмный принц"
+    "type": 0,
+    "name": "Ready or Not",
+    "details": "",
+    "state": ""
   },
   "managedBy": "iwtxz-public-discord-sync",
-  "updatedAt": 1794164471337
+  "updatedAt": 1794177777526
 }
