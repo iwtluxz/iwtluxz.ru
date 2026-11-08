@@ -63,7 +63,7 @@ test("login and generic profile templates do not preload the 4 MB default avatar
 
 test("cached markup missing new controls is refreshed before starting authentication",()=>{
   let calls=0;const ui=loadBuilder(()=>{calls++;return Promise.resolve({});},'', ['profileScale']);
-  try{assert.equal(calls,0);assert.equal(ui.navigations.length,1);assert.equal(new URL(ui.navigations[0]).searchParams.get('_ui'),'20261108-account-1');}finally{ui.close();}
+  try{assert.equal(calls,0);assert.equal(ui.navigations.length,1);assert.equal(new URL(ui.navigations[0]).searchParams.get('_ui'),'20261108-badges-1');}finally{ui.close();}
 });
 
 test("an edit made during a slow save is preserved and is not replaced by the earlier response",async()=>{
@@ -105,6 +105,27 @@ test("a save that drops the selected decoration keeps the choice and never repor
     assert.match(ui.elements.get('editorStatus').textContent,/Сервер не подтвердил украшение аватара/);
     assert.equal(publishCalls,0);
     assert.equal(ui.elements.get('publishButton').disabled,false);
+  }finally{ui.close();}
+});
+
+test('a server dropping chosen Discord icons cannot publish, while a copied matching array can',async()=>{
+  let drop=true,publishCalls=0,submitted;
+  const selection=['nitro-current','streaming-newcomer'];
+  const ui=loadBuilder(async(path,options)=>{
+    if(path.endsWith('/list'))return {sites:[{...site,discordBadges:selection}]};
+    if(path.endsWith('/save')){submitted=JSON.parse(options.body).site;return{site:{...submitted,discordBadges:drop?[]:[...submitted.discordBadges]}};}
+    if(path.endsWith('/publish')){publishCalls++;return {url:'/alice'};}
+    return response(path);
+  });
+  try{
+    await ui.submit();
+    await ui.elements.get('publishButton').fire('click');
+    assert.deepEqual(submitted.discordBadges,selection);
+    assert.match(ui.elements.get('editorStatus').textContent,/Сервер не подтвердил значки Discord/);
+    assert.equal(publishCalls,0);
+    drop=false;
+    await ui.elements.get('publishButton').fire('click');
+    assert.equal(publishCalls,1);
   }finally{ui.close();}
 });
 

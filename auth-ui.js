@@ -34,7 +34,13 @@
     panel.classList.add('auth-upgraded');
     const mark = document.createElement('div');
     mark.className = 'auth-wordmark';
-    mark.textContent = 'iwtxz';
+    const markImage = document.createElement('img');
+    markImage.src = '/img/tree.png';
+    markImage.alt = '';
+    markImage.width = 52;
+    markImage.height = 52;
+    markImage.decoding = 'async';
+    mark.append(markImage);
     mark.setAttribute('aria-hidden', 'true');
     panel.prepend(mark);
     const providerArea = document.createElement('div');

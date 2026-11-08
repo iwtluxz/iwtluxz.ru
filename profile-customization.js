@@ -20,6 +20,14 @@
     strelokk: ["nitro", "house-bravery"]
   });
   const presetBadgeLabels = { nitro: "Discord Nitro", "house-bravery": "HypeSquad Bravery", "server-booster": "Server Booster", "active-developer": "Active Developer" };
+  function discordBadgeDefinition(id) {
+    if (typeof id !== 'string') return null;
+    const catalog = window.IwtxzDiscordBadges;
+    const fromCatalog = catalog?.items?.find(item => item.id === id);
+    if (fromCatalog) return fromCatalog;
+    if (!Object.hasOwn(badgeImages, id)) return null;
+    return { id, label: presetBadgeLabels[id] || id, image: `/img/discord-badges/${badgeImages[id]}` };
+  }
   const decorations = {
     star: ["Звезда", "m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9Z"],
     heart: ["Сердце", "M20.8 4.6a5.5 5.5 0 0 0-7.8 0l-1 1-1-1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"],
@@ -80,9 +88,10 @@
     return element;
   }
   function earnedBadge(item) {
-    const label = text(item.label, 100) || item.id;
+    const definition = discordBadgeDefinition(item.id);
+    const label = text(item.label || definition?.label, 100) || item.id;
     const image = document.createElement("img");
-    image.src = `/img/discord-badges/${badgeImages[item.id]}`;
+    image.src = definition.image;
     image.alt = "";
     image.draggable = false;
     return badge(`${label} · ${item.manual ? "указан в оформлении карточки" : "Discord"}`, image, "discord");
@@ -143,6 +152,11 @@
     if(!profileLayout)loadAddon('profile-layout','IwtxzProfileLayout',addon=>{profileLayout=addon;});
     if(!window.IwtxzAvatarDecorations&&document.head){
       const script=document.createElement('script');script.src='/profile-decorations.js'+sceneVersion;script.onload=()=>{if(!disposed)drawDiscord(lastSnapshot);};document.head.append(script);
+    }
+    if(!window.IwtxzDiscordBadges&&document.head){
+      const existing=document.querySelector?.('script[src*="discord-badges.js"]');
+      if(existing)existing.addEventListener?.('load',()=>{if(!disposed)drawDiscord(lastSnapshot);},{once:true});
+      else{const script=document.createElement('script');script.src='/discord-badges.js'+sceneVersion;script.onload=()=>{if(!disposed)drawDiscord(lastSnapshot);};document.head.append(script);}
     }
     const motion=window.matchMedia?.('(prefers-reduced-motion: reduce)');
     const updateMotion=()=>drawDiscord(lastSnapshot);
@@ -235,7 +249,7 @@
       const statusText = settings.discordShowStatus !== false && profile ? text(profile.statusText, 240) : "";
       if (nodes.discordStatus) { nodes.discordStatus.textContent = statusText; nodes.discordStatus.hidden = !statusText; nodes.discordStatus.style.display = statusText ? "" : "none"; }
       const activity = settings.discordShowActivity !== false && profile?.activity;
-      const activityText = activity ? [text(activity.name, 80), text(activity.details, 100), text(activity.state, 100)].filter(Boolean).join(" · ") : "";
+      const activityText = activity ? [activity.type === 1 ? 'В эфире' : '', text(activity.name, 80), text(activity.details, 100), text(activity.state, 100)].filter(Boolean).join(" · ") : "";
       if (nodes.discordActivity) { nodes.discordActivity.textContent = activityText; nodes.discordActivity.hidden = !activityText; }
       if (nodes.discordBadges) {
         const content = [];
@@ -247,11 +261,12 @@
           const seen = new Set();
           const strip = document.createElement("span");
           strip.className = "discord-badge-strip";
-          const synced = profile && Array.isArray(profile.badges) ? profile.badges.slice(0, 20) : [];
-          const presets = Object.hasOwn(legacyBadgePresets, settings.owner) ? legacyBadgePresets[settings.owner] : [];
-          const manual = presets.map(id => ({ id, label: presetBadgeLabels[id], manual: true }));
+          const synced = profile && Array.isArray(profile.badges) ? profile.badges.slice(0, 40) : [];
+          const presets = !Object.hasOwn(settings, 'discordBadges') && Object.hasOwn(legacyBadgePresets, settings.owner) ? legacyBadgePresets[settings.owner] : [];
+          const chosen = Array.isArray(settings.discordBadges) ? settings.discordBadges.slice(0, 32) : presets;
+          const manual = chosen.map(id => ({ id, label: discordBadgeDefinition(id)?.label || presetBadgeLabels[id], manual: true }));
           for (const item of [...synced, ...manual]) {
-            if (!item || !Object.hasOwn(badgeImages, item.id) || seen.has(item.id)) continue;
+            if (!item || !discordBadgeDefinition(item.id) || seen.has(item.id)) continue;
             strip.append(earnedBadge(item));
             seen.add(item.id);
           }

@@ -28,6 +28,12 @@ for (const file of await readdir(root)) {
     if(!html.includes('src="auth-ui.js'))html=html.replace(/(<script src="builder\.js[^\"]*"[^>]*>)/,'<script src="auth-ui.js" defer></script>\n  $1');
     if(!html.includes('src="builder-discord-dialog.js'))html=html.replace(/(<script src="builder\.js[^\"]*"[^>]*><\/script>)/,'$1\n  <script src="builder-discord-dialog.js" defer></script>');
     for(const name of ['auth-ui','builder-discord-dialog'])if(!html.includes(`href="${name}.css`))html=html.replace('</head>',`  <link rel="stylesheet" href="${name}.css">\n</head>`);
+    if(!html.includes('src="builder-discord-badges.js'))html=html.replace(/(<script src="builder\.js[^\"]*"[^>]*>)/,'<script src="builder-discord-badges.js" defer></script>\n  $1');
+    if(!html.includes('href="builder-discord-badges.css'))html=html.replace('</head>','  <link rel="stylesheet" href="builder-discord-badges.css">\n</head>');
+  }
+  if(!html.includes('src="discord-badges.js')){
+    const badgeAnchor=html.match(/<script src="(?:builder-discord-badges|profile-customization|profile|builder)\.js[^\"]*"[^>]*>/);
+    html=badgeAnchor?html.replace(badgeAnchor[0],'<script src="discord-badges.js" defer></script>\n  '+badgeAnchor[0]):html.replace('</head>','  <script src="discord-badges.js" defer></script>\n</head>');
   }
   html=html.replace(/\s*<script src="site-chrome\.js[^\"]*"[^>]*><\/script>/g,'');
   const chromeAnchor=html.match(/<script src="(?:builder|profile|profile-customization)\.js[^\"]*"[^>]*>/);

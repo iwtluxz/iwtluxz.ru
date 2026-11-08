@@ -76,7 +76,7 @@ function load(overrides = {}) {
       if (state.rpcError) return { data: null, error: state.rpcError };
       if (name === "builder_capabilities") return state.oldCustomizationServer
         ? { data: null, error: { code: "PGRST202" } }
-        : { data: { profileSettingsVersion: state.oldEffectsServer ? 2 : state.oldInteractiveServer ? 3 : state.oldLayoutServer ? 4 : state.oldFreeLayoutServer ? 5 : state.oldEditorV2Server ? 6 : 7,editorV2:!state.oldEditorV2Server, freeLayout:!state.oldFreeLayoutServer, profileLayout: !state.oldLayoutServer, interactiveEffects: !state.oldInteractiveServer, customFonts: true, profileEffects: !state.oldEffectsServer }, error: null };
+        : { data: { profileSettingsVersion: state.oldEffectsServer ? 2 : state.oldInteractiveServer ? 3 : state.oldLayoutServer ? 4 : state.oldFreeLayoutServer ? 5 : state.oldEditorV2Server ? 6 : 7,editorV2:!state.oldEditorV2Server, freeLayout:!state.oldFreeLayoutServer, profileLayout: !state.oldLayoutServer, interactiveEffects: !state.oldInteractiveServer, customFonts: true, profileEffects: !state.oldEffectsServer, discordBadges:state.discordBadgesReady===true }, error: null };
       if (name === "builder_get_profile") return { data: state.draft || { id: state.username, owner: state.username, nickname: state.username }, error: null };
       if (name === "builder_save_profile") { state.draft = structuredClone(input.input); return { data: state.draft, error: null }; }
       if (name === "builder_publish_profile") {
@@ -340,6 +340,19 @@ test("new layout controls require v6, while defaults remain saveable on a v5 ser
   await api.request('/api/builder/sites/save',post({site:{nickname:'Old page',cursorSize:24,descriptionSize:16,objectPositions:{},seasonalTheme:'none'}}));
   const current=load();const site={cursorSize:48,cursorStyle:'ring',nicknameSize:28,nicknameAnimation:'glow',descriptionSize:20,typewriterEnabled:true,typewriterText:'hello',seasonalTheme:'halloween',objectPositions:{name:{x:10,y:-5}}};
   assert.deepEqual(JSON.parse(JSON.stringify((await current.api.request('/api/builder/sites/save',post({site}))).site)),{...site,publicUrl:'/profile.html?u=alice'});
+  assert.equal(current.state.calls.filter(call=>call.name==='builder_capabilities').length,1);
+});
+
+test('Discord badge selection requires server support and round-trips without silently losing icons',async()=>{
+  const old=load();
+  await rejects(old.api.request('/api/builder/sites/save',post({site:{discordBadges:['nitro-current','streaming-newcomer']}})),503,'backend_features_update_required');
+  assert.equal(old.state.calls.some(call=>call.name==='builder_save_profile'),false);
+  const legacy=load({username:'iwtlu'});
+  await rejects(legacy.api.request('/api/builder/sites/save',post({site:{discordBadges:[]}})),503,'backend_features_update_required');
+  const current=load({discordBadgesReady:true});
+  const selection=['nitro-current','streaming-newcomer','orbs'];
+  const result=await current.api.request('/api/builder/sites/save',post({site:{discordBadges:selection}}));
+  assert.deepEqual(Array.from(result.site.discordBadges),selection);
   assert.equal(current.state.calls.filter(call=>call.name==='builder_capabilities').length,1);
 });
 

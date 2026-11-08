@@ -290,7 +290,16 @@
   function activeFlow(key) { return readFlow(key) || memoryStorage.get(key) || null; }
 
   function callbackUrl(kind) {
-    const url = new URL("/index.html", window.location.origin);
+    let site;
+    try { site = new URL(window.IWTXZ_BACKEND_CONFIG?.authSiteUrl || "https://iwtxz.su"); } catch {}
+    const localDevelopment = site && site.protocol === 'http:' && ['localhost','127.0.0.1','[::1]'].includes(site.hostname);
+    if (!site || (site.protocol !== 'https:' && !localDevelopment) || site.username || site.password || site.search || site.hash || !['','/'].includes(site.pathname)) {
+      throw error(503, "Не настроен адрес возврата на сайт.", "backend_setup_required");
+    }
+    if (site.origin !== window.location.origin) {
+      throw error(409, "Открой iwtxz.su и начни подтверждение там, чтобы вернуться в свой аккаунт.", "auth_origin_mismatch");
+    }
+    const url = new URL("/", site.origin);
     url.searchParams.set("auth", kind);
     return url.href;
   }
@@ -566,6 +575,9 @@
   }
 
   async function requestAuthExtension(mode, body, assertActive) {
+    // PKCE verification data belongs to this origin. Reject a foreign/local
+    // start before requesting mail or creating an OAuth flow on another site.
+    if (["recover", "oauth", "email"].includes(mode)) callbackUrl(mode);
     if (mode === "recover") {
       const email = realEmail(body.email);
       throwIfError(await getClient().auth.resetPasswordForEmail(email, { redirectTo: callbackUrl("recovery") }), "recover");
@@ -841,6 +853,10 @@
       const hasFeatures = (site.nicknameAnimation && site.nicknameAnimation !== "none") || (site.avatarDecoration && site.avatarDecoration !== "none") || newSocials.some(key => Boolean(site[key]));
       let settingsCapabilities;
       const loadCapabilities=()=>settingsCapabilities ||= Promise.resolve(getClient().rpc('builder_capabilities'));
+      if (Array.isArray(site.discordBadges) && (site.discordBadges.length || ['iwtlu','shakzy','strelokk'].includes(account.username))) {
+        const capabilities=await loadCapabilities();
+        if(capabilities.error||capabilities.data?.discordBadges!==true)throw error(503,'Для сохранения значков Discord выполни обновление базы 20261108_discord_badge_catalog.sql. Выбранные значки остаются в редакторе.','backend_features_update_required');
+      }
       const oldAnimations=new Set(['none','glow','pulse','float','shimmer','glitch','typewriter','blur','flicker','bounce','wave']);
       const oldDecorations=new Set(['none','discord','phoenix','heartbloom','shy','sakura','moon','embers','aurora','cat']);
       if((site.descriptionAnimation&&site.descriptionAnimation!=='none')||(site.layoutVersion===2&&Object.keys(site.objectPositions||{}).length)||(site.nicknameAnimation&&!oldAnimations.has(site.nicknameAnimation))||(site.avatarDecoration&&!oldDecorations.has(site.avatarDecoration))){

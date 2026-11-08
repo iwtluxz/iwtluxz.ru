@@ -193,6 +193,10 @@ begin
     'avatar', 'img/strelokkavatar.gif', 'background', 'img/artem.gif', 'backgroundType', 'image',
     'music', 'sound/sound1.mp3', 'musicTitle', 'whitek3d - STATUS', 'musicCover', 'img/strelokksoundicon.png');
   end if;
+  result := result || jsonb_build_object('discordBadges', case
+    when username='iwtlu' then '["nitro","house-bravery","server-booster","active-developer"]'::jsonb
+    when username in ('shakzy','strelokk') then '["nitro","house-bravery"]'::jsonb
+    else '[]'::jsonb end);
   return result;
 end;
 $$;
@@ -246,6 +250,26 @@ begin
   return (input->>key)::boolean;
 end;
 $$;
+create or replace function private.profile_discord_badges(input jsonb)
+returns jsonb language plpgsql immutable set search_path = '' as $$
+declare item jsonb; result jsonb := '[]'::jsonb;
+begin
+  if input is null or jsonb_typeof(input) <> 'array' then
+    raise exception using errcode='22023',message='Значки Discord должны быть списком.';
+  end if;
+  if jsonb_array_length(input) > 32 then
+    raise exception using errcode='22023',message='Можно выбрать до 32 значков Discord.';
+  end if;
+  for item in select * from jsonb_array_elements(input) loop
+    if jsonb_typeof(item) <> 'string' or (item #>> '{}') not in ('staff','partner','hypesquad-events','bug-hunter-level-1','bug-hunter-level-2','house-bravery','house-brilliance','house-balance','early-supporter','early-verified-developer','moderator-alumni','server-booster','nitro','active-developer','nitro-current','nitro-basic','nitro-bronze','nitro-silver','nitro-gold','nitro-platinum','nitro-diamond','nitro-emerald','nitro-ruby','nitro-opal','nitro-legacy-bronze','nitro-legacy-silver','nitro-legacy-gold','nitro-legacy-platinum','nitro-legacy-diamond','nitro-legacy-emerald','nitro-legacy-ruby','nitro-legacy-fire','server-booster-1','server-booster-2','server-booster-3','server-booster-6','server-booster-9','server-booster-12','server-booster-15','server-booster-18','server-booster-24','streaming-newcomer','streaming-fledgling','streaming-breakout','streaming-standout','streaming-trendsetter','streaming-headliner','streaming-star','streaming-sensation','streaming-visionary','streaming-phenomenon','account-age-seed','account-age-sprout','account-age-bud','account-age-sapling','account-age-blossom','account-age-redwood','account-age-sequoia','account-age-bristlecone','account-age-stromatolite','account-age-primordial','game-time-casual','game-time-recreational','game-time-dedicated','game-time-committed','game-time-serious','game-time-devoted','game-time-seasoned','game-time-ironclad','game-time-unshakeable','game-time-eternal','game-variety-sampler','game-variety-dabbler','game-variety-enthusiast','game-variety-ranger','game-variety-explorer','game-variety-adventurer','game-variety-voyager','game-variety-maverick','game-variety-polymath','game-variety-universalist','gifting-patron','gifting-champion','gifting-luminary','gifting-icon','gifting-hero','gifting-legend','quest','orbs','legacy-username','last-meadow','lootbox','moderator-legacy','partner-legacy','house-balance-gold','house-balance-koth','supports-commands','automod','verified-bot','premium-bot') then
+      raise exception using errcode='22023',message='Неизвестный значок Discord.';
+    end if;
+    if not result @> jsonb_build_array(item) then result := result || jsonb_build_array(item); end if;
+  end loop;
+  return result;
+end;
+$$;
+
 create or replace function private.profile_normalize(input jsonb, username text, user_id uuid)
 returns jsonb language plpgsql stable set search_path = '' as $$
 declare
@@ -378,6 +402,7 @@ begin
   foreach value in array array['nicknameGradient','discordSync','discordUseAvatar','discordShowStatus','discordShowBadges','discordShowActivity','showButterfly'] loop
     result := result || jsonb_build_object(value, private.profile_boolean(input, value, coalesce((defaults->>value)::boolean, false)));
   end loop;
+  result := result || jsonb_build_object('discordBadges',private.profile_discord_badges(coalesce(input->'discordBadges',defaults->'discordBadges','[]'::jsonb)));
   return result || jsonb_build_object(
     'avatarSize', private.profile_number(input, 'avatarSize',150,80,220),
     'backgroundDim', private.profile_number(input, 'backgroundDim',58,0,85),
@@ -391,7 +416,7 @@ $$;
 
 create or replace function public.builder_capabilities()
 returns jsonb language sql stable set search_path = '' as $$
-  select jsonb_build_object('profileSettingsVersion', 7, 'customFonts', true, 'profileEffects', true, 'interactiveEffects', true,'profileLayout',true,'freeLayout',true,'editorV2',true);
+  select jsonb_build_object('profileSettingsVersion', 7, 'customFonts', true, 'profileEffects', true, 'interactiveEffects', true,'profileLayout',true,'freeLayout',true,'editorV2',true,'discordBadges',true);
 $$;
 revoke all on function public.builder_capabilities() from public;
 grant execute on function public.builder_capabilities() to anon, authenticated;
@@ -485,6 +510,8 @@ create policy iwtxz_assets_guard on storage.objects as restrictive for all to au
 drop policy if exists iwtxz_assets_anonymous_guard on storage.objects;
 create policy iwtxz_assets_anonymous_guard on storage.objects as restrictive for all to anon
   using (bucket_id <> 'profile-assets') with check (bucket_id <> 'profile-assets');
+
+revoke all on function private.profile_discord_badges(jsonb) from public,anon,authenticated;
 
 notify pgrst, 'reload schema';
 commit;

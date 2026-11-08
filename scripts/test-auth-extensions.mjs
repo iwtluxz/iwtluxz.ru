@@ -106,7 +106,7 @@ test('binding is blocked before any Auth mutation until private username login i
   assert.equal(result.email, '');
   assert.equal(result.pendingEmail, 'real@example.com');
   assert.equal(result.emailVerified, false);
-  assert.equal(state.calls.find(call => call[0] === 'update')[2].emailRedirectTo, 'https://iwtxz.su/index.html?auth=email');
+  assert.equal(state.calls.find(call => call[0] === 'update')[2].emailRedirectTo, 'https://iwtxz.su/?auth=email');
 });
 
 test('owner account state distinguishes service alias, pending confirmation and verified personal address', async () => {
@@ -127,22 +127,22 @@ test('recovery accepts only real email and uses the specific first-party callbac
   assert.equal((await api.request('/api/builder/auth/recover', post({ email: ' Real@Example.Com ' }))).ok, true);
   const call = state.calls.find(call => call[0] === 'recover');
   assert.equal(call[1], 'real@example.com');
-  assert.equal(call[2].redirectTo, 'https://iwtxz.su/index.html?auth=recovery');
+  assert.equal(call[2].redirectTo, 'https://iwtxz.su/?auth=recovery');
 });
 
 test('a recovery query parameter never authorizes a reset without an actual recovery session', async () => {
-  const { api, state } = fixture({ url: 'https://iwtxz.su/index.html?auth=recovery' });
+  const { api, state } = fixture({ url: 'https://iwtxz.su/?auth=recovery' });
   assert.equal((await api.request('/api/builder/auth/me')).user.username, 'alice');
   await assert.rejects(api.request('/api/builder/auth/recovery-password', post({ newPassword: 'New-password-123!' })), { code: 'recovery_required' });
   assert.equal(state.calls.some(call => call[0] === 'update'), false);
 });
 
 test('verified PKCE recovery exchanges once, survives reload, sets password then enters cabinet', async () => {
-  const { api, state } = fixture({ url: 'https://iwtxz.su/index.html?auth=recovery&code=secret-one-time-code', redirectType: 'PASSWORD_RECOVERY' });
+  const { api, state } = fixture({ url: 'https://iwtxz.su/?auth=recovery&code=secret-one-time-code', redirectType: 'PASSWORD_RECOVERY' });
   const results = await Promise.all([api.request('/api/builder/auth/me'), api.request('/api/builder/auth/me')]);
   assert.equal(results.every(result => result.recoveryRequired && result.user === null), true);
   assert.equal(state.calls.filter(call => call[0] === 'exchange').length, 1);
-  assert.equal(state.cleanedUrl, 'https://iwtxz.su/index.html');
+  assert.equal(state.cleanedUrl, 'https://iwtxz.su/');
   const reload = fixture({ storage: state.storage });
   assert.equal((await reload.api.request('/api/builder/auth/me')).recoveryRequired, true);
   const result = await reload.api.request('/api/builder/auth/recovery-password', post({ newPassword: 'New-password-123!' }));
@@ -152,14 +152,14 @@ test('verified PKCE recovery exchanges once, survives reload, sets password then
 });
 
 test('ordinary PKCE callback cannot be relabeled as password recovery in the URL', async () => {
-  const { api, state } = fixture({ url: 'https://iwtxz.su/index.html?auth=recovery&code=ordinary-oauth-code' });
+  const { api, state } = fixture({ url: 'https://iwtxz.su/?auth=recovery&code=ordinary-oauth-code' });
   assert.equal((await api.request('/api/builder/auth/me')).user.username, 'alice');
   assert.equal(state.storage.has(recoveryKey), false);
   await assert.rejects(api.request('/api/builder/auth/recovery-password', post({ newPassword: 'New-password-123!' })), { code: 'recovery_required' });
 });
 
 test('legacy recovery fragments are verified and removed from browser history', async () => {
-  const { api, state } = fixture({ url: 'https://iwtxz.su/index.html?auth=recovery#access_token=legacy-access&refresh_token=legacy-refresh&type=recovery' });
+  const { api, state } = fixture({ url: 'https://iwtxz.su/?auth=recovery#access_token=legacy-access&refresh_token=legacy-refresh&type=recovery' });
   assert.equal((await api.request('/api/builder/auth/me')).recoveryRequired, true);
   assert.equal(state.calls.find(call => call[0] === 'setSession')[1].access_token, 'legacy-access');
   assert.equal(state.cleanedUrl.includes('legacy-access'), false);
@@ -172,7 +172,7 @@ test('OAuth checks enabled providers, returns trusted PKCE URL and never redirec
     assert.equal(new URL(result.url).origin, project);
     const options = state.calls.find(call => call[0] === 'oauth')[1].options;
     assert.equal(options.skipBrowserRedirect, true);
-    assert.equal(options.redirectTo, 'https://iwtxz.su/index.html?auth=callback');
+    assert.equal(options.redirectTo, 'https://iwtxz.su/?auth=callback');
   }
   const disabled = fixture({ providers: { google: false } });
   await assert.rejects(disabled.api.request('/api/builder/auth/oauth', post({ provider: 'google' })), { code: 'oauth_not_configured' });
@@ -185,9 +185,9 @@ test('identity linking binds to original user and rejects a callback for a diffe
   const origin = fixture();
   const result = await origin.api.request('/api/builder/auth/oauth', post({ provider: 'discord', link: true }));
   assert.equal(new URL(result.url).origin, 'https://discord.com');
-  assert.equal(origin.state.calls.find(call => call[0] === 'link')[1].options.redirectTo, 'https://iwtxz.su/index.html?auth=link');
+  assert.equal(origin.state.calls.find(call => call[0] === 'link')[1].options.redirectTo, 'https://iwtxz.su/?auth=link');
   assert.equal(JSON.parse(origin.state.storage.get(linkKey)).userId, uid);
-  const wrongUser = fixture({ storage: origin.state.storage, user: { id: 'different-user' }, url: 'https://iwtxz.su/index.html?auth=link&code=wrong-account' });
+  const wrongUser = fixture({ storage: origin.state.storage, user: { id: 'different-user' }, url: 'https://iwtxz.su/?auth=link&code=wrong-account' });
   await assert.rejects(wrongUser.api.request('/api/builder/auth/me'), { code: 'identity_mismatch' });
   assert.equal(wrongUser.state.calls.some(call => call[0] === 'signOut' && call[1].scope === 'local'), true);
   assert.equal(origin.state.storage.has(linkKey), false);
@@ -226,7 +226,7 @@ test('real vendored SDK: PKCE recovery preserves verifier, bypasses an expired s
   const storage = map => ({ getItem: name => map.get(name) || null, setItem: (name, value) => map.set(name, value), removeItem: name => map.delete(name) });
   const window = {
     IWTXZ_BACKEND_CONFIG: { provider: 'supabase', url: project, publishableKey: 'sb_publishable_fixture' },
-    location: { origin: 'https://iwtxz.su', href: 'https://iwtxz.su/index.html?auth=recovery&code=one-time' },
+    location: { origin: 'https://iwtxz.su', href: 'https://iwtxz.su/?auth=recovery&code=one-time' },
     history: { replaceState(_state, _title, value) { window.location.href = value; } },
     localStorage: storage(stored), sessionStorage: storage(tab), crypto: webcrypto,
     addEventListener() {}, removeEventListener() {}, dispatchEvent() {},
@@ -256,7 +256,7 @@ test('real vendored SDK: PKCE recovery preserves verifier, bypasses an expired s
     assert.equal(result.recoveryRequired, true);
     assert.equal(result.user, null);
     assert.equal(state.calls.some(call => call[0].startsWith('/rest/')), false);
-    assert.equal(window.location.href, 'https://iwtxz.su/index.html');
+    assert.equal(window.location.href, 'https://iwtxz.su/');
     assert.equal(stored.has(`${key}-code-verifier`), false);
     const updated = await window.IwtxzBackend.request('/api/builder/auth/recovery-password', post({ newPassword: 'New-password-from-recovery-123!' }));
     assert.equal(updated.user.username, 'alice');

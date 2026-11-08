@@ -3,7 +3,7 @@
   const $ = (selector) => document.querySelector(selector);
   const all = (selector) => [...document.querySelectorAll(selector)];
   // A cached HTML page can request a newer script after a deployment.
-  const uiVersion = "20261108-account-1";
+  const uiVersion = "20261108-badges-1";
   if (["effectIntensity", "backgroundEffect", "avatarFit", "ownMusicFiles", "discordDecorationHint", "profileScale", "nicknameSize", "discordShowCopyHint", "descriptionSize", "cursorSize", "typewriterText", "layoutEdit", "descriptionAnimation", "previewViewport", "previewStage", "previewCanvas", "previewZoom"].some(id => !$("#"+id)) || document.querySelector('script[src*="halloween.js"]')) {
     const fresh = new URL(location.href);
     if (fresh.searchParams.get("_ui") !== uiVersion) { fresh.searchParams.set("_ui",uiVersion);location.replace(fresh.href); }
@@ -26,6 +26,7 @@
     avatarSize: 150, avatarShape: "circle", backgroundDim: 58, accentColor: "#f5f5f7", font: "minecraft", customFont: "", musicLoop: true, showDiscord: true,
     nicknameGradient: false, nicknameGradientStart: "#ffffff", nicknameGradientEnd: "#a1a1aa", nicknameGradientAngle: 90,
     musicPlayerStyle: "classic", showButterfly: false, profileBadges: [], discordUserId: "", discordSync: false,
+    discordBadges: [],
     discordCardStyle: "glass", discordCardColor: "#111111", discordCardOpacity: 65, discordCardRadius: 18,
     discordUseAvatar: true, discordShowStatus: true, discordShowBadges: true, discordShowActivity: true,
     nicknameAnimation: "none", avatarDecoration: "none", avatarFit:"cover", backgroundEffect:"none",effectIntensity:50,profileTilt:false,cursorStyle:"default",customCursor:"",favicon:"",profileScale:100,nicknameSize:32,discordShowCopyHint:true,
@@ -307,15 +308,20 @@
     optionFields.forEach((key) => { site[key] = $("#" + key).value; });
     boolFields.forEach((key) => { site[key] = $("#" + key).checked; });
     site.profileBadges = all("[data-profile-badge]:checked").map((input) => input.dataset.profileBadge).filter((badge) => decorativeBadges.has(badge));
+    site.discordBadges = window.IwtxzDiscordBadgePicker?.read() || currentSite.discordBadges || [];
     return site;
   }
 
   function snapshot(site) {
-    return JSON.stringify(Object.fromEntries([...textFields, ...numberFields, ...optionFields, ...boolFields, ...assetFields, "profileBadges", "objectPositions", "layoutVersion"].map((key) => [key, key==='objectPositions'?normalizePositions(site[key]):site[key]])));
+    return JSON.stringify(Object.fromEntries([...textFields, ...numberFields, ...optionFields, ...boolFields, ...assetFields, "profileBadges", "discordBadges", "objectPositions", "layoutVersion"].map((key) => [key, key==='objectPositions'?normalizePositions(site[key]):site[key]])));
   }
 
   function writeEditor(site) {
     currentSite = { ...defaults, ...site };
+    const legacyDiscordBadges = {iwtlu:['nitro','house-bravery','server-booster','active-developer'],shakzy:['nitro','house-bravery'],strelokk:['nitro','house-bravery']};
+    if (!Object.hasOwn(site,'discordBadges')) currentSite.discordBadges = Object.hasOwn(legacyDiscordBadges,site.owner) ? [...legacyDiscordBadges[site.owner]] : [];
+    currentSite.discordBadges = window.IwtxzDiscordBadges?.normalize(currentSite.discordBadges) || currentSite.discordBadges;
+    window.IwtxzDiscordBadgePicker?.apply(currentSite.discordBadges);
     savedServiceMusic=musicServiceLink(site.music);
     textFields.concat(numberFields, optionFields).forEach((key) => { $("#" + key).value = currentSite[key] ?? ""; });
     boolFields.forEach((key) => { $("#" + key).checked = Boolean(currentSite[key]); });
@@ -593,6 +599,8 @@
     Object.assign(labels,{descriptionSize:'размер описания',cursorSize:'размер курсора',cursorOpacity:'непрозрачность курсора',cursorColor:'цвет курсора',cursorHotspot:'точку нажатия',typewriterEnabled:'печатную строку',typewriterText:'текст печатной строки',typewriterSpeed:'скорость печати'});
     Object.assign(labels,{descriptionAnimation:'анимацию описания'});if(Object.keys(site.objectPositions).length)labels.layoutVersion='координаты блоков';
     const lost=Object.keys(labels).filter(key=>Object.hasOwn(data.site||{},key)||site[key]!==defaults[key]).filter(key=>data.site?.[key]!==site[key]);
+    if(JSON.stringify(data.site?.discordBadges||[])!==JSON.stringify(site.discordBadges||[]))lost.push('discordBadges');
+    labels.discordBadges='значки Discord';
     if(JSON.stringify(normalizePositions(data.site?.objectPositions))!==JSON.stringify(normalizePositions(site.objectPositions)))lost.push('objectPositions');
     labels.objectPositions='расположение блоков';
     if(lost.length)throw new Error(`Сервер не подтвердил ${lost.map(key=>labels[key]).join(", ")}. Выбор остался в редакторе. Попробуй сохранить ещё раз.`);
