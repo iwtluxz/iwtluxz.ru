@@ -8,7 +8,7 @@
   const videoTypes = new Set(["video/mp4", "video/webm"]);
   const fontTypes = new Set(["font/woff", "font/woff2", "font/ttf", "font/otf"]);
   const declaredFontTypes = new Set([...fontTypes, "application/font-woff", "application/x-font-woff", "application/x-font-ttf", "application/x-font-opentype", "application/vnd.ms-opentype", "application/octet-stream", ""]);
-  const reservedUsernames = new Set(["iwtlu", "shakzy", "strelokk", "icetearz", "eris", "admin", "api", "index", "assets"]);
+  const reservedUsernames = new Set(["iwtlu", "shakzy", "icetearz", "eris", "admin", "api", "index", "assets"]);
   let client;
   let publicClient;
   const clientContexts = new WeakMap();
