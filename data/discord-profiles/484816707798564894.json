@@ -25,11 +25,11 @@
   "statusText": "love @me",
   "status": "idle",
   "activity": {
-    "type": 0,
-    "name": "Ready or Not",
-    "details": "",
-    "state": ""
+    "type": 2,
+    "name": "Dotify",
+    "details": "FORTUNA 812 - 3G",
+    "state": "FORTUNA 812"
   },
   "managedBy": "iwtxz-public-discord-sync",
-  "updatedAt": 1794177777526
+  "updatedAt": 1794178705781
 }
