@@ -80,14 +80,14 @@
     element.append(graphic);
     return element;
   }
-  function earnedBadge(item) {
+  function profileBadge(item) {
     const definition = discordBadgeDefinition(item.id);
     const label = text(item.label || definition?.label, 100) || item.id;
     const image = document.createElement("img");
     image.src = definition.image;
     image.alt = "";
     image.draggable = false;
-    const element=badge(`${label} · Discord`, image, "discord");
+    const element=badge(`${label} · значок профиля`, image, "discord");
     element.dataset.discordBadgeId=item.id;
     return element;
   }
@@ -98,7 +98,10 @@
     element.className = "discord-guild-tag";
     element.title = `Тег сервера Discord · ${value.tag}`;
     const image = document.createElement("img");
-    image.src = `https://cdn.discordapp.com/guild-tag-badges/${value.guildId}/${value.badge}.png?size=32`;
+    const hash=value.badge.toLowerCase();
+    const remote=`https://cdn.discordapp.com/guild-tag-badges/${value.guildId}/${hash}.png?size=32`;
+    image.onerror=()=>{image.onerror=null;image.src=remote;};
+    image.src = `/img/discord-guild-badges/${value.guildId}/${hash}.png`;
     image.alt = "";
     image.draggable = false;
     const label = document.createElement("span");
@@ -240,11 +243,20 @@
       if (window.parent !== window) window.parent.postMessage({type:"iwtxz-discord-decoration",userId:requestedUser,decoration:profile?.avatarDecoration||null,ready:Boolean(profile)},location.origin);
       const copyName = text(profile?.username || settings.discord, 60);
       const displayName = text(profile?.displayName || copyName, 80);
-      const enabled = Boolean(copyName || (settings.discordSync && requestedUser));
+      const chosenBadges=[];
+      const chosenIds=new Set();
+      for(const id of Array.isArray(settings.discordBadges)?settings.discordBadges:[]){
+        const definition=discordBadgeDefinition(id);
+        if(!definition||chosenIds.has(id))continue;
+        chosenIds.add(id);chosenBadges.push(definition);
+        if(chosenBadges.length===32)break;
+      }
+      const enabled = Boolean(copyName || (settings.discordSync && requestedUser) || (settings.discordShowBadges!==false&&chosenBadges.length));
       if (nodes.discordName) nodes.discordName.textContent = displayName || "Discord";
       if (nodes.discordCard) {
         nodes.discordCard.hidden = settings.showDiscord === false || !enabled;
         nodes.discordCard.style.display = nodes.discordCard.hidden ? "none" : "";
+        nodes.discordCard.dataset.copyHint=String(Boolean(copyName)&&settings.discordShowCopyHint!==false);
         nodes.discordCard.setAttribute("aria-label", copyName ? `Скопировать Discord: ${copyName}` : "Discord");
         if (nodes.discordCard.hasAttribute("data-discord-copy")) nodes.discordCard.dataset.discordCopy = copyName;
       }
@@ -273,29 +285,22 @@
       if (nodes.discordActivity) { nodes.discordActivity.textContent = activityText; nodes.discordActivity.hidden = !activityText; }
       if (nodes.discordBadges) {
         const content = [];
-        let hasEarnedBadges=false;
+        let hasSelectedBadges=false;
         if (profile && settings.discordShowBadges !== false) {
           const tag = primaryGuildTag(profile.primaryGuild);
           if (tag) content.push(tag);
         }
         if (settings.discordShowBadges !== false) {
-          const seen = new Set();
           const strip = document.createElement("span");
           strip.className = "discord-badge-strip";
-          const hidden = new Set(Array.isArray(settings.discordHiddenBadges) ? settings.discordHiddenBadges.filter(id => typeof id === 'string') : []);
-          const badgeNodes=[];
-          for (const item of availableBadges) {
-            if (hidden.has(item.id) || seen.has(item.id)) continue;
-            badgeNodes.push(earnedBadge(item));
-            seen.add(item.id);
-          }
+          const badgeNodes=chosenBadges.map(profileBadge);
           if(badgeNodes.length){
             if(window.IwtxzBadgeOverflow)window.IwtxzBadgeOverflow.render(strip,badgeNodes,{owner:nodes.discordBadges});
             else strip.append(...badgeNodes);
           }
-          if (seen.size) {content.push(strip);hasEarnedBadges=true;}
+          if (badgeNodes.length) {content.push(strip);hasSelectedBadges=true;}
         }
-        if(!hasEarnedBadges||settings.showDiscord===false)window.IwtxzBadgeOverflow?.dispose(nodes.discordBadges);
+        if(!hasSelectedBadges||settings.showDiscord===false)window.IwtxzBadgeOverflow?.dispose(nodes.discordBadges);
         nodes.discordBadges.replaceChildren(...content);
         nodes.discordBadges.hidden = !content.length;
         nodes.discordBadges.style.display = content.length ? "inline-flex" : "none";

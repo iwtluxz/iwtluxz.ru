@@ -3,8 +3,8 @@
   const $ = (selector) => document.querySelector(selector);
   const all = (selector) => [...document.querySelectorAll(selector)];
   // A cached HTML page can request a newer script after a deployment.
-  const uiVersion = "20261109-badge-controls-1";
-  if (["effectIntensity", "backgroundEffect", "avatarFit", "ownMusicFiles", "discordDecorationHint", "profileScale", "nicknameSize", "discordShowCopyHint", "descriptionSize", "cursorSize", "typewriterText", "layoutEdit", "descriptionAnimation", "previewViewport", "previewStage", "previewCanvas", "previewZoom"].some(id => !$("#"+id)) || (document.head && typeof window.IwtxzDiscordBadgePicker?.readHidden!=='function') || document.querySelector('script[src*="halloween.js"]')) {
+  const uiVersion = "20261109-free-badges-1";
+  if (["effectIntensity", "backgroundEffect", "avatarFit", "ownMusicFiles", "discordDecorationHint", "profileScale", "nicknameSize", "discordShowCopyHint", "descriptionSize", "cursorSize", "typewriterText", "layoutEdit", "descriptionAnimation", "previewViewport", "previewStage", "previewCanvas", "previewZoom"].some(id => !$("#"+id)) || (document.head && typeof window.IwtxzDiscordBadgePicker?.readSelected!=='function') || document.querySelector('script[src*="halloween.js"]')) {
     const fresh = new URL(location.href);
     if (fresh.searchParams.get("_ui") !== uiVersion) { fresh.searchParams.set("_ui",uiVersion);location.replace(fresh.href); }
     else if ($("#authStatus")) $("#authStatus").textContent="Не удалось обновить интерфейс. Обнови страницу с очисткой кеша.";
@@ -89,7 +89,6 @@
   let previewTimer;
   let toastTimer;
   let discordSnapshotStatus = null;
-  let discordBadgeAvailability = null;
   let authUiBusy = false, authUiView = 'login';
   const authUi = window.IwtxzAuthUi?.create({
     api,
@@ -310,7 +309,7 @@
     optionFields.forEach((key) => { site[key] = $("#" + key).value; });
     boolFields.forEach((key) => { site[key] = $("#" + key).checked; });
     site.profileBadges = all("[data-profile-badge]:checked").map((input) => input.dataset.profileBadge).filter((badge) => decorativeBadges.has(badge));
-    site.discordHiddenBadges = window.IwtxzDiscordBadgePicker?.readHidden?.() || currentSite.discordHiddenBadges || [];
+    site.discordBadges = window.IwtxzDiscordBadgePicker?.readSelected?.() || currentSite.discordBadges || [];
     return site;
   }
 
@@ -322,7 +321,7 @@
     currentSite = { ...defaults, ...site };
     currentSite.discordBadges = window.IwtxzDiscordBadges?.normalize(currentSite.discordBadges) || currentSite.discordBadges;
     currentSite.discordHiddenBadges = window.IwtxzDiscordBadges?.normalize(currentSite.discordHiddenBadges) || currentSite.discordHiddenBadges;
-    window.IwtxzDiscordBadgePicker?.applyHidden?.(currentSite.discordHiddenBadges);
+    window.IwtxzDiscordBadgePicker?.applySelected?.(currentSite.discordBadges);
     savedServiceMusic=musicServiceLink(site.music);
     textFields.concat(numberFields, optionFields).forEach((key) => { $("#" + key).value = currentSite[key] ?? ""; });
     boolFields.forEach((key) => { $("#" + key).checked = Boolean(currentSite[key]); });
@@ -359,7 +358,6 @@
     $("#discordCardOpacityValue").value = `${currentSite.discordCardOpacity}%`;
     $("#discordCardRadiusValue").value = `${currentSite.discordCardRadius} px`;
     updateDiscordHint();
-    updateDiscordBadgePicker();
     for (const [id, source] of [["avatarThumbnail", currentSite.avatar], ["accountAvatar", currentSite.avatar], ["coverThumbnail", currentSite.musicCover]]) {
       const image = $("#" + id), value = source || "img/tree.png";
       if (image.getAttribute?.("src") !== value) image.src = value;
@@ -408,17 +406,6 @@
       }
     } else {
       hint.textContent = "Сохрани и примени настройки. После вступления на сервер данные появятся при следующем обновлении.";
-    }
-  }
-
-  function updateDiscordBadgePicker() {
-    const userId=currentSite.discordUserId;
-    const state=!currentSite.discordSync?'disabled':!/^[0-9]{17,20}$/.test(userId)?'waiting':null;
-    if(state){
-      discordBadgeAvailability=null;
-      window.IwtxzDiscordBadgePicker?.setAvailable({userId,state,badges:[]});
-    } else {
-      window.IwtxzDiscordBadgePicker?.setAvailable(discordBadgeAvailability?.userId===userId?discordBadgeAvailability:{userId,state:'loading',badges:[]});
     }
   }
 
@@ -486,7 +473,6 @@
     $("#accountLoadState").classList.add("hidden");
     currentUser = null;
     discordSnapshotStatus = null;
-    discordBadgeAvailability = null;
     window.IwtxzDiscordBadgePicker?.reset();
     discordDecoration = null;decorationAvatarSource="";decorationAvatarThumbnail='';++decorationAvatarVersion;
     dirty = false;
@@ -614,8 +600,8 @@
     Object.assign(labels,{descriptionSize:'размер описания',cursorSize:'размер курсора',cursorOpacity:'непрозрачность курсора',cursorColor:'цвет курсора',cursorHotspot:'точку нажатия',typewriterEnabled:'печатную строку',typewriterText:'текст печатной строки',typewriterSpeed:'скорость печати'});
     Object.assign(labels,{descriptionAnimation:'анимацию описания'});if(Object.keys(site.objectPositions).length)labels.layoutVersion='координаты блоков';
     const lost=Object.keys(labels).filter(key=>Object.hasOwn(data.site||{},key)||site[key]!==defaults[key]).filter(key=>data.site?.[key]!==site[key]);
-    if(JSON.stringify(data.site?.discordHiddenBadges||[])!==JSON.stringify(site.discordHiddenBadges||[]))lost.push('discordHiddenBadges');
-    labels.discordHiddenBadges='показ значков Discord';
+    if(JSON.stringify(data.site?.discordBadges||[])!==JSON.stringify(site.discordBadges||[]))lost.push('discordBadges');
+    labels.discordBadges='значки Discord';
     if(JSON.stringify(normalizePositions(data.site?.objectPositions))!==JSON.stringify(normalizePositions(site.objectPositions)))lost.push('objectPositions');
     labels.objectPositions='расположение блоков';
     if(lost.length)throw new Error(`Сервер не подтвердил ${lost.map(key=>labels[key]).join(", ")}. Выбор остался в редакторе. Попробуй сохранить ещё раз.`);
@@ -869,10 +855,6 @@
       updateDiscordDecoration();
     }
     if(event.data?.type==='iwtxz-discord-decoration'&&event.data.userId===currentSite.discordUserId){discordDecoration=event.data.decoration;updateDiscordDecoration();}
-    if(event.data?.type==='iwtxz-discord-badges'&&event.data.userId===currentSite.discordUserId){
-      discordBadgeAvailability={userId:event.data.userId,state:event.data.state,badges:event.data.badges};
-      updateDiscordBadgePicker();
-    }
   });
   previewFrame.addEventListener("load", sendPreview);
   window.addEventListener("iwtxz-auth-change", (event) => {

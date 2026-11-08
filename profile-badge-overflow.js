@@ -13,7 +13,7 @@
     if (text) node.textContent = text;
     return node;
   };
-  const labelFor = node => String(node.getAttribute?.('aria-label') || node.title || 'Значок Discord').replace(/\s*·\s*Discord\s*$/, '').slice(0, 120);
+  const labelFor = node => String(node.getAttribute?.('aria-label') || node.title || 'Значок Discord').replace(/\s*·\s*(?:Discord|значок профиля)\s*$/, '').slice(0, 120);
   const imageFor = node => node.querySelector?.('img, svg') || node.firstElementChild;
   const keyFor = node => `${node.dataset?.discordBadgeId || imageFor(node)?.getAttribute?.('src') || ''}\u0001${labelFor(node)}`;
   function graphic(node) {
@@ -80,7 +80,7 @@
     const copy = graphic(badge);
     if (copy) state.detailImage.append(copy);
     state.detailName.textContent = labelFor(badge);
-    state.detailDescription.textContent = 'Значок из аккаунта Discord';
+    state.detailDescription.textContent = 'Значок профиля';
     state.buttons.forEach((button, current) => button.setAttribute('aria-pressed', String(current === index)));
   }
   function buildPopup(state) {

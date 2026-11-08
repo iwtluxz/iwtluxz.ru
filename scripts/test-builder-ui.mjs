@@ -64,12 +64,12 @@ test("login and generic profile templates do not preload the 4 MB default avatar
 
 test("cached markup missing new controls is refreshed before starting authentication",()=>{
   let calls=0;const ui=loadBuilder(()=>{calls++;return Promise.resolve({});},'', ['profileScale']);
-  try{assert.equal(calls,0);assert.equal(ui.navigations.length,1);assert.equal(new URL(ui.navigations[0]).searchParams.get('_ui'),'20261109-badge-controls-1');}finally{ui.close();}
+  try{assert.equal(calls,0);assert.equal(ui.navigations.length,1);assert.equal(new URL(ui.navigations[0]).searchParams.get('_ui'),'20261109-free-badges-1');}finally{ui.close();}
 });
 
-test('a cached manual badge picker refreshes before authentication instead of breaking the earned switches',()=>{
+test('a cached restricted badge picker refreshes before authentication instead of breaking free selection',()=>{
   let calls=0;const ui=loadBuilder(()=>{calls++;return Promise.resolve({});},'',[],true);
-  try{assert.equal(calls,0);assert.equal(ui.navigations.length,1);assert.equal(new URL(ui.navigations[0]).searchParams.get('_ui'),'20261109-badge-controls-1');}finally{ui.close();}
+  try{assert.equal(calls,0);assert.equal(ui.navigations.length,1);assert.equal(new URL(ui.navigations[0]).searchParams.get('_ui'),'20261109-free-badges-1');}finally{ui.close();}
 });
 
 test("an edit made during a slow save is preserved and is not replaced by the earlier response",async()=>{
@@ -114,20 +114,20 @@ test("a save that drops the selected decoration keeps the choice and never repor
   }finally{ui.close();}
 });
 
-test('a server dropping per-badge visibility cannot publish, while a copied matching array can',async()=>{
+test('a server dropping chosen Discord badges cannot publish, while a copied matching array can',async()=>{
   let drop=true,publishCalls=0,submitted;
-  const selection=['house-bravery','server-booster'];
+  const selection=['nitro-opal','streaming-newcomer'];
   const ui=loadBuilder(async(path,options)=>{
-    if(path.endsWith('/list'))return {sites:[{...site,discordHiddenBadges:selection}]};
-    if(path.endsWith('/save')){submitted=JSON.parse(options.body).site;return{site:{...submitted,discordHiddenBadges:drop?[]:[...submitted.discordHiddenBadges]}};}
+    if(path.endsWith('/list'))return {sites:[{...site,discordBadges:selection}]};
+    if(path.endsWith('/save')){submitted=JSON.parse(options.body).site;return{site:{...submitted,discordBadges:drop?[]:[...submitted.discordBadges]}};}
     if(path.endsWith('/publish')){publishCalls++;return {url:'/alice'};}
     return response(path);
   });
   try{
     await ui.submit();
     await ui.elements.get('publishButton').fire('click');
-    assert.deepEqual(submitted.discordHiddenBadges,selection);
-    assert.match(ui.elements.get('editorStatus').textContent,/Сервер не подтвердил показ значков Discord/);
+    assert.deepEqual(submitted.discordBadges,selection);
+    assert.match(ui.elements.get('editorStatus').textContent,/Сервер не подтвердил значки Discord/);
     assert.equal(publishCalls,0);
     drop=false;
     await ui.elements.get('publishButton').fire('click');
@@ -208,14 +208,17 @@ test("Discord renderer uses original badges and server-tag artwork, deduplicates
   vm.runInNewContext(customization, { window, document, location: new URL("https://example.test/"), URL, AbortSignal,
     fetch: async () => Response.json(profile), setInterval: () => 1, clearInterval() {} });
   const renderer = window.IwtxzProfileCustomization.createCustomizer({ discordBadges });
-  const settings = { discordSync: true, discordUserId: profile.id, showButterfly: true };
+  const settings = { discordSync: true, discordUserId: profile.id, showButterfly: true, discordBadges: ['house-bravery','house-bravery','__proto__','server-booster'] };
   try {
     renderer.apply(settings);
     await new Promise(resolve => setImmediate(resolve));
     assert.equal(discordBadges.children.length, 2);
     const [tag, strip] = discordBadges.children;
     assert.equal(tag.children[1].textContent, "DOTA");
+    assert.equal(tag.children[0].src, `/img/discord-guild-badges/${profile.primaryGuild.guildId}/${profile.primaryGuild.badge}.png`);
+    tag.children[0].onerror();
     assert.equal(tag.children[0].src, `https://cdn.discordapp.com/guild-tag-badges/${profile.primaryGuild.guildId}/${profile.primaryGuild.badge}.png?size=32`);
+    assert.equal(tag.children[0].onerror,null);
     assert.deepEqual(strip.children.map(badge => badge.children[0].src), ["/img/discord-badges/house-bravery.png", "/img/discord-badges/server-booster.svg"]);
     assert.ok(strip.children.every(badge => badge.children[0].tagName === "IMG"));
     for (const badge of strip.children) await readFile(new URL(`..${badge.children[0].src}`, import.meta.url));
@@ -226,10 +229,15 @@ test("Discord renderer uses original badges and server-tag artwork, deduplicates
     const nitro = originals.find(item => item.children[0].src.endsWith("/nitro.png"));
     assert.equal(nitro,undefined);
     assert.equal(originals.some(item => item.children[0].src.endsWith("/active-developer.svg")),false);
+    renderer.apply({...settings,discordBadges:['nitro']});
+    assert.equal(discordBadges.children[1].children.length,1);
+    assert.equal(discordBadges.children[1].children[0].children[0].src,'/img/discord-badges/nitro.png');
+    assert.match(discordBadges.children[1].children[0].title,/значок профиля/);
     renderer.apply({ ...settings, discordShowBadges: false });
     assert.equal(discordBadges.hidden, true);
     assert.equal(discordBadges.children.length, 0);
     renderer.apply({ ...settings, discordSync: false });
-    assert.equal(discordBadges.children.length, 0);
+    assert.equal(discordBadges.children.length, 1);
+    assert.deepEqual(discordBadges.children[0].children.map(item=>item.dataset.discordBadgeId),['house-bravery','server-booster']);
   } finally { renderer.dispose(); }
 });

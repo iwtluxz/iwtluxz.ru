@@ -7,6 +7,10 @@
 .discord-badge-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
 .discord-badge-actions > .text-button { flex: 0 0 auto; font-size: 10px; }
 .discord-badge-actions > .text-button:disabled { cursor: default; opacity: .4; }
+.discord-badge-filters { display: flex; flex-wrap: nowrap; gap: 6px; margin: 0 0 12px; overflow-x: auto; overscroll-behavior: contain; padding-bottom: 5px; scrollbar-width: thin; }
+.discord-badge-filter { flex: 0 0 auto; min-height: 29px; padding: 6px 10px; border: 1px solid #ffffff24; border-radius: 6px; background: #0a0a0b; color: #a6a6ac; font-size: 10px; }
+.discord-badge-filter:hover { border-color: #ffffff66; color: #fff; }
+.discord-badge-filter[aria-pressed="true"] { color: #fff; background: #242426; border-color: #ffffff5c; }
 .discord-badge-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: start; gap: 7px; max-height: 258px; overflow-y: auto; overscroll-behavior: contain; padding: 2px 5px 2px 1px; scrollbar-width: thin; scrollbar-color: #45454b #0b0b0d; }
 .discord-badge-choice { display: flex; align-items: center; gap: 9px; min-width: 0; min-height: 47px; margin: 0; padding: 9px 10px; border: 1px solid #ffffff1c; border-radius: 8px; color: #bcbcc4; background: #0a0a0c; cursor: pointer; }
 .discord-badge-choice:hover { border-color: #ffffff50; color: #fff; }

@@ -4,7 +4,7 @@ import { mkdtemp, readFile, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve, sep } from "node:path";
 import { fetchDiscordIdentity, fetchDiscordPresences, getAvatarUrl, getCustomStatus, getDiscordBadges, getDiscordActivity, getDiscordPrimaryGuild, getDiscordAvatarDecoration } from "./lib/discord-profile.mjs";
-import { checkDiscordGuildAvailability, discoverDiscordProfiles, removeUnusedDiscordSnapshots, syncProfile } from "./sync-discord-avatars.mjs";
+import { cacheDiscordGuildBadge, checkDiscordGuildAvailability, discoverDiscordProfiles, removeUnusedDiscordSnapshots, syncProfile } from "./sync-discord-avatars.mjs";
 
 const userId = "484816707798564894";
 const guildId = "123456789012345678";
@@ -294,4 +294,91 @@ test("sync updates text despite a bad CDN response and safely clears a removed s
   const content = await readFile(snapshotPath, "utf8");
   await syncProfile(profile, "test-token", "", new Map([[userId, { status: "online", activities: [] }]]));
   assert.equal(await readFile(snapshotPath, "utf8"), content, "unchanged profiles must not create repeated commits");
+});
+
+const guildBadgePng = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a5WQAAAAASUVORK5CYII=', 'base64');
+
+test('guild tag icons are cached as immutable local PNGs and existing icons never refetch', async t => {
+  const root = await tempDirectory(t);
+  const primaryGuild = { guildId, badge: 'A'.repeat(32), tag: 'TEST' };
+  const path = join(root, 'img/discord-guild-badges', guildId, 'a'.repeat(32) + '.png');
+  let requests = 0;
+  const fetchImpl = async (url, options) => {
+    requests++;
+    assert.equal(url, `https://cdn.discordapp.com/guild-tag-badges/${guildId}/${'a'.repeat(32)}.png?size=32`);
+    assert.equal(options.headers.Accept, 'image/png');
+    assert.equal(Object.keys(options.headers).some(key => key.toLowerCase() === 'authorization'), false);
+    assert.equal(options.redirect, 'error');
+    assert.ok(options.signal instanceof AbortSignal);
+    return new Response(guildBadgePng, { headers: { 'content-type': 'image/png; charset=binary' } });
+  };
+  assert.equal(await cacheDiscordGuildBadge(primaryGuild, { root, fetch: fetchImpl }), true);
+  assert.deepEqual(await readFile(path), guildBadgePng);
+  assert.equal(await cacheDiscordGuildBadge(primaryGuild, { root, fetch: fetchImpl }), false);
+  assert.equal(requests, 1);
+  assert.deepEqual(await readFile(path), guildBadgePng);
+});
+
+test('invalid guild tag identifiers cannot request a URL or write outside the icon cache', async t => {
+  const root = await tempDirectory(t);
+  for (const primaryGuild of [null, {}, { guildId: '../private', badge: 'a'.repeat(32) }, { guildId, badge: '../avatar.png' }, { guildId, badge: 'a'.repeat(31) }, { guildId: 1234, badge: 'a'.repeat(32) }, { guildId, badge: { toString: () => 'a'.repeat(32) } }]) {
+    assert.equal(await cacheDiscordGuildBadge(primaryGuild, { root, fetch() { throw new Error('Must not fetch invalid identifiers'); } }), false);
+  }
+});
+
+test('guild icon CDN failures, disguised PNGs and oversized bodies never create a broken local asset', async t => {
+  const root = await tempDirectory(t);
+  const primaryGuild = { guildId, badge: 'b'.repeat(32) };
+  const path = join(root, 'img/discord-guild-badges', guildId, primaryGuild.badge + '.png');
+  const maximumBytes = 128 * 1024;
+  let cancelled = false;
+  const cases = [
+    () => { throw new Error('CDN unavailable'); },
+    () => new Response('failed', { status: 503 }),
+    () => new Response(guildBadgePng, { headers: { 'content-type': 'text/html' } }),
+    () => new Response('<html>error</html>', { headers: { 'content-type': 'image/png' } }),
+    () => new Response(guildBadgePng, { headers: { 'content-type': 'image/png', 'content-length': String(maximumBytes + 1) } }),
+    () => new Response(new ReadableStream({ start(controller) { controller.enqueue(new Uint8Array(maximumBytes)); controller.enqueue(new Uint8Array(1)); }, cancel() { cancelled = true; } }), { headers: { 'content-type': 'image/png' } })
+  ];
+  t.mock.method(console, 'warn', () => {});
+  for (const fetchImpl of cases) {
+    assert.equal(await cacheDiscordGuildBadge(primaryGuild, { root, fetch: fetchImpl }), false);
+    await assert.rejects(readFile(path), error => error.code === 'ENOENT');
+  }
+  assert.equal(cancelled, true);
+});
+
+test('a guild tag download failure keeps the public identity snapshot and does not affect cached icons', async t => {
+  const root = await tempDirectory(t);
+  const snapshotPath = join(root, 'profile.json');
+  const firstGuild = { guildId, badge: 'c'.repeat(32), tag: 'TEST' };
+  const cached = join(root, 'img/discord-guild-badges', guildId, firstGuild.badge + '.png');
+  await cacheDiscordGuildBadge(firstGuild, { root, fetch: async () => new Response(guildBadgePng, { headers: { 'content-type': 'image/png' } }) });
+  const nextGuild = { ...firstGuild, badge: 'd'.repeat(32) };
+  t.mock.method(console, 'log', () => {});
+  t.mock.method(console, 'warn', () => {});
+  await syncProfile({ name: 'test', userId, snapshotPath, dynamic: true, outputs: [] }, 'unused-token', guildId, new Map(), {
+    root,
+    identity: { id: userId, username: 'actual-user', member: true, primaryGuild: nextGuild, badges: [{ id: 'house-bravery' }] },
+    fetch: async () => new Response('unavailable', { status: 503 })
+  });
+  const saved = JSON.parse(await readFile(snapshotPath, 'utf8'));
+  assert.deepEqual(saved.primaryGuild, nextGuild);
+  assert.equal(saved.username, 'actual-user');
+  assert.deepEqual(saved.badges, [{ id: 'house-bravery' }]);
+  assert.deepEqual(await readFile(cached), guildBadgePng);
+});
+
+test('nonmember snapshots never request or cache their previous server tag artwork', async t => {
+  const root = await tempDirectory(t);
+  const snapshotPath = join(root, 'profile.json');
+  let requests = 0;
+  t.mock.method(console, 'log', () => {});
+  await syncProfile({ name: 'test', userId, snapshotPath, dynamic: true, outputs: [] }, 'unused-token', guildId, new Map(), {
+    root,
+    identity: { id: userId, member: false, primaryGuild: { guildId, badge: 'e'.repeat(32) }, badges: [] },
+    fetch: async () => { requests++; throw new Error('Must not request a nonmember tag'); }
+  });
+  assert.equal(requests, 0);
+  assert.equal(JSON.parse(await readFile(snapshotPath, 'utf8')).primaryGuild, undefined);
 });

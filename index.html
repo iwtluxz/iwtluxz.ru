@@ -24,10 +24,10 @@
   <script src="site-audio-config.js?v=2ef578a39d63" defer></script>
   <script src="auth-ui.js?v=eabd36d5cc5f" defer></script>
   <script src="discord-badges.js?v=1637b0a4abd4" defer></script>
-  <script src="builder-discord-badges.js?v=91dbc4c19648" defer></script>
-  <script src="profile-badge-overflow.js?v=c87a818a2bfa" defer></script>
+  <script src="builder-discord-badges.js?v=0dfb6a1ce948" defer></script>
+  <script src="profile-badge-overflow.js?v=02511a5dba22" defer></script>
   <script src="site-chrome.js?v=ce01c35cfc2f" defer></script>
-  <script src="builder.js?v=191082c1b553" defer></script>
+  <script src="builder.js?v=4b8c8e5978f4" defer></script>
   <script src="builder-discord-dialog.js?v=f038935de49e" defer></script>
   <link rel="stylesheet" href="profile-features.css?v=6e54ed2cdc6c">
   <link rel="stylesheet" href="music-services.css?v=b83e04cda2b4">
@@ -37,7 +37,7 @@
   <link rel="stylesheet" href="site-chrome.css?v=a3b8f78c799e">
   <link rel="stylesheet" href="auth-ui.css?v=285f77f7ea44">
   <link rel="stylesheet" href="builder-discord-dialog.css?v=ea6d9814a13a">
-  <link rel="stylesheet" href="builder-discord-badges.css?v=a3ba88cbdf63">
+  <link rel="stylesheet" href="builder-discord-badges.css?v=302a754e1218">
   <link rel="stylesheet" href="profile-badge-overflow.css?v=e69572a526af">
 </head>
 <body class="auth-locked">
@@ -201,7 +201,7 @@
           <p class="hint" id="customFontStatus" role="status" aria-live="polite"></p>
           <div class="settings-group">
             <h3>Украшения</h3>
-            <fieldset class="badge-picker"><legend>Значки на странице</legend><p class="hint">Декоративные значки можно выбрать самому. Значки Discord появятся из аккаунта при синхронизации.</p><div class="badge-options">
+            <fieldset class="badge-picker"><legend>Значки на странице</legend><p class="hint">Значки рядом с ником. Значки Discord выбираются отдельно в настройках плашки.</p><div class="badge-options">
               <label><input type="checkbox" data-profile-badge="star"><span aria-hidden="true">★</span> Звезда</label>
               <label><input type="checkbox" data-profile-badge="heart"><span aria-hidden="true">♡</span> Сердце</label>
               <label><input type="checkbox" data-profile-badge="moon"><span aria-hidden="true">☾</span> Луна</label>
@@ -259,11 +259,11 @@
           <label class="checkbox-field"><input id="showDiscord" type="checkbox" checked><span>Показывать карточку Discord</span></label>
           <div class="settings-group">
             <h3>Discord в твоей карточке</h3>
-            <div class="discord-join-note"><p>Для обновления аватарки, статуса и значков вступи на наш сервер и укажи свой ID Discord.</p><a id="discordJoinLink" class="button small" href="https://discord.gg/cbtEaVcZHC" target="_blank" rel="noopener noreferrer">Вступить в Discord ↗</a></div>
-            <label class="field">ID пользователя Discord<input id="discordUserId" inputmode="numeric" pattern="[0-9]{17,20}" minlength="17" maxlength="20" placeholder="Например, 484816707798564894"><span class="hint">Это числовой ID, а не ник. Для значков включи синхронизацию, вступи на сервер и примени изменения.</span></label>
+            <div class="discord-join-note"><p>Для синхронизации аватарки и статуса вступи на наш сервер и укажи ID Discord. Значки можно выбрать свободно.</p><a id="discordJoinLink" class="button small" href="https://discord.gg/cbtEaVcZHC" target="_blank" rel="noopener noreferrer">Вступить в Discord ↗</a></div>
+            <label class="field">ID пользователя Discord<input id="discordUserId" inputmode="numeric" pattern="[0-9]{17,20}" minlength="17" maxlength="20" placeholder="Например, 484816707798564894"><span class="hint">Числовой ID нужен только для синхронизации. Выбор значков доступен без него.</span></label>
             <details class="url-details"><summary>Где найти свой ID?</summary><p class="hint">В Discord открой «Настройки → Расширенные» и включи режим разработчика. Затем нажми правой кнопкой по своему профилю → «Копировать ID пользователя».</p></details>
-            <label class="checkbox-field"><input id="discordSync" type="checkbox"><span>Получать аватар, значки и украшение из Discord</span></label>
-            <p class="hint">Для значков нужны числовой ID и включённая синхронизация. Одного ника недостаточно. ID: Discord → Настройки → Расширенные → Режим разработчика, затем правой кнопкой по себе → Копировать ID.</p>
+            <label class="checkbox-field"><input id="discordSync" type="checkbox"><span>Получать аватар, статус и украшение из Discord</span></label>
+            <p class="hint">ID: Discord → Настройки → Расширенные → Режим разработчика, затем правой кнопкой по своему профилю → Копировать ID.</p>
             <label class="checkbox-field"><input id="discordShowCopyHint" type="checkbox" checked><span>Показывать подсказку «нажми, чтобы скопировать» и значок копирования</span></label>
             <p class="hint" id="discordSyncHint" aria-live="polite">Добавь ID и вступи на сервер, чтобы включить обновление.</p>
             <div class="form-grid"><label class="field">Стиль карточки<select id="discordCardStyle"><option value="glass">Стекло</option><option value="solid">Сплошной фон</option><option value="minimal">Минимальный</option></select></label><label class="field">Цвет карточки<input id="discordCardColor" type="color" value="#111111"></label></div>
@@ -275,7 +275,7 @@
               <label class="checkbox-field"><input id="discordShowBadges" type="checkbox" checked><span>Значки Discord</span></label>
               <label class="checkbox-field"><input id="discordShowActivity" type="checkbox" checked><span>Активность и трек</span></label>
             </div>
-            <p class="hint">Discord отдаёт только доступные боту данные и публичные значки. Закрытые значки и оформление Nitro могут быть недоступны.</p>
+            <p class="hint">Значки выбираются тобой и сохраняются независимо от синхронизации Discord.</p>
           </div>
         </section>
       </form>

@@ -5,8 +5,6 @@ import {readFile} from 'node:fs/promises';
 
 const catalogSource=await readFile(new URL('../discord-badges.js',import.meta.url),'utf8');
 const pickerSource=await readFile(new URL('../builder-discord-badges.js',import.meta.url),'utf8');
-const userId='484816707798564894';
-const earned=[{id:'house-bravery'},{id:'server-booster'}];
 const plain=value=>JSON.parse(JSON.stringify(value));
 
 function fixture(){
@@ -44,44 +42,58 @@ function fixture(){
   };
 }
 
-test('only received known Discord badges become switches; manual, unavailable and duplicate IDs never add rows',()=>{
+test('the full original badge catalog is selectable without a Discord ID or sync data',()=>{
   const f=fixture();
-  assert.equal(f.rows().length,0);
-  f.api.applyHidden(['nitro-current','orbs']);
-  assert.equal(f.rows().length,0);
-  f.api.setAvailable({userId,state:'ready',badges:[...earned,earned[0],{id:'__proto__'},{id:'not-a-badge'}]});
-  assert.deepEqual(f.rows().map(row=>row.dataset.badgeId),['house-bravery','server-booster']);
-  assert.ok(f.input('house-bravery').checked);
-  assert.ok(f.input('server-booster').checked);
-  assert.equal(f.input('nitro-current'),undefined);
-  assert.equal(f.input('orbs'),undefined);
+  assert.equal(f.api.mode,'manual');
+  assert.equal(f.rows().length,100);
+  assert.deepEqual(plain(f.api.readSelected()),[]);
+  for(const id of ['nitro-current','nitro-opal','streaming-newcomer','orbs','house-bravery']){
+    assert.ok(f.input(id),id);assert.equal(f.input(id).checked,false);
+  }
+  assert.doesNotMatch(f.root.querySelector('.hint').textContent,/получен|синхронизац|только/);
 });
 
-test('earned switches persist hidden IDs, preserve search selection and restore all badges individually or together',()=>{
-  const f=fixture();f.api.setAvailable({userId,state:'ready',badges:earned});
-  f.change('house-bravery',false);
-  assert.deepEqual(plain(f.api.readHidden()),['house-bravery']);
-  f.search('booster');assert.equal(f.input('house-bravery').closest('label').hidden,true);
-  assert.deepEqual(plain(f.api.readHidden()),['house-bravery']);
-  f.action('Выключить все');assert.deepEqual(plain(f.api.readHidden()),['house-bravery','server-booster']);
-  f.action('Включить все');assert.deepEqual(plain(f.api.readHidden()),[]);
-  f.api.applyHidden(['server-booster']);assert.equal(f.input('server-booster').checked,false);
-  f.change('server-booster',true);assert.deepEqual(plain(f.api.readHidden()),[]);
-});
-
-test('availability updates clear unavailable rows without losing saved preferences or rebuilding unchanged focused switches',()=>{
-  const f=fixture();f.api.applyHidden(['house-bravery']);f.api.setAvailable({userId,state:'ready',badges:earned});
-  const first=f.input('house-bravery');first.focus();
-  f.api.setAvailable({userId,state:'ready',badges:earned});
-  assert.equal(f.input('house-bravery'),first);assert.equal(f.document.activeElement,first);assert.equal(first.checked,false);
-  for(const state of ['loading','waiting','unavailable','not-member','disabled']){f.api.setAvailable({userId,state,badges:earned});assert.equal(f.rows().length,0,state);assert.deepEqual(plain(f.api.readHidden()),['house-bravery']);}
-  f.api.setAvailable({userId,state:'ready',badges:earned});assert.equal(f.input('house-bravery').checked,false);
-  f.api.reset();assert.equal(f.rows().length,0);assert.deepEqual(plain(f.api.readHidden()),[]);
-});
-
-test('badges for missing or malformed user IDs never create switches and ready empty data stays empty',()=>{
+test('any selected Nitro, streaming and Orbs badges persist across searches and categories',()=>{
   const f=fixture();
-  for(const badId of ['',null,'name','123','484816707798564894<script>']){f.api.setAvailable({userId:badId,state:'ready',badges:earned});assert.equal(f.rows().length,0);}
-  f.api.setAvailable({userId,state:'ready',badges:[]});assert.equal(f.rows().length,0);
-  assert.match(f.root.querySelector('.discord-badge-empty').textContent,/не передал доступных значков/);
+  const selection=['nitro-opal','streaming-newcomer','orbs'];
+  for(const id of selection)f.change(id,true);
+  assert.deepEqual(plain(f.api.readSelected()),selection);
+  f.search('nitro');assert.equal(f.input('orbs').closest('label').hidden,true);
+  assert.deepEqual(plain(f.api.readSelected()),selection);
+  f.search('');
+  f.root.querySelectorAll('button').find(button=>button.dataset.badgeGroup==='streaming').click();
+  assert.equal(f.input('nitro-opal').closest('label').hidden,true);
+  assert.equal(f.rows().filter(row=>!row.hidden).length,10);
+  assert.deepEqual(plain(f.api.readSelected()),selection);
+  f.root.querySelectorAll('button').find(button=>button.dataset.badgeGroup==='all').click();
+  assert.equal(f.rows().filter(row=>!row.hidden).length,100);
+  f.change('streaming-newcomer',false);
+  assert.deepEqual(plain(f.api.readSelected()),['nitro-opal','orbs']);
+});
+
+test('saved custom selections restore without adding HypeSquad or rebuilding the focused row',()=>{
+  const f=fixture();
+  const saved=['nitro-opal','server-booster-24','account-age-primordial','game-time-unshakeable','game-variety-universalist'];
+  f.api.applySelected(saved);
+  assert.deepEqual(plain(f.api.readSelected()),saved);
+  assert.equal(f.input('house-bravery').checked,false);
+  const first=f.input('nitro-opal');first.focus();
+  f.api.applySelected([...saved]);
+  assert.equal(f.input('nitro-opal'),first);assert.equal(f.document.activeElement,first);
+  f.api.applySelected(['nitro-current','nitro-current','unknown','__proto__']);
+  assert.deepEqual(plain(f.api.readSelected()),['nitro-current']);
+  f.action('Снять выбранные');assert.deepEqual(plain(f.api.readSelected()),[]);
+  assert.equal(f.rows().length,100);
+});
+
+test('selection enforces 32 badges and reset clears choices without removing the catalog',()=>{
+  const f=fixture();
+  const ids=f.rows().slice(0,33).map(row=>row.dataset.badgeId);
+  for(const id of ids)f.change(id,true);
+  assert.equal(f.api.readSelected().length,32);
+  assert.equal(f.input(ids[32]).checked,false);
+  assert.match(f.root.querySelector('.discord-badge-picker-footer').querySelectorAll('.hint')[1].textContent,/32/);
+  f.change(ids[0],false);f.change(ids[32],true);assert.equal(f.input(ids[32]).checked,true);
+  f.search('not-found-123');assert.equal(f.root.querySelector('.discord-badge-empty').hidden,false);
+  f.api.reset();assert.deepEqual(plain(f.api.readSelected()),[]);assert.equal(f.rows().filter(row=>!row.hidden).length,100);
 });

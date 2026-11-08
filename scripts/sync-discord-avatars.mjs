@@ -1,4 +1,4 @@
-import { mkdir, readFile, readdir, unlink, writeFile } from "node:fs/promises";
+import { access, mkdir, readFile, readdir, unlink, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import vm from "node:vm";
@@ -101,11 +101,54 @@ async function writeIfChanged(path, bytes) {
   return true;
 }
 
+/** Cache immutable public server-tag artwork without relying on visitors reaching Discord CDN. */
+export async function cacheDiscordGuildBadge(primaryGuild, { root = projectRoot, fetch: fetchImpl = globalThis.fetch } = {}) {
+  if (typeof primaryGuild?.guildId !== "string" || typeof primaryGuild?.badge !== "string" || !validUserId.test(primaryGuild.guildId) || !/^[a-f0-9]{32}$/i.test(primaryGuild.badge)) return false;
+  const guildId = primaryGuild.guildId;
+  const badgeHash = primaryGuild.badge.toLowerCase();
+  const path = resolve(root, "img/discord-guild-badges", guildId, `${badgeHash}.png`);
+  try {
+    const exists = await access(path).then(() => true).catch(error => {
+      if (error.code === "ENOENT") return false;
+      throw error;
+    });
+    if (exists) return false;
+    const response = await fetchImpl(`https://cdn.discordapp.com/guild-tag-badges/${guildId}/${badgeHash}.png?size=32`, {
+      signal: AbortSignal.timeout(10000), headers: { Accept: "image/png" }, redirect: "error"
+    });
+    const maximumBytes = 128 * 1024;
+    if (!response.ok || response.headers.get("content-type")?.split(";", 1)[0].trim().toLowerCase() !== "image/png") throw new Error(`Invalid guild badge response (${response.status})`);
+    if (Number(response.headers.get("content-length")) > maximumBytes) throw new Error("Guild badge image is too large");
+    const reader = response.body?.getReader();
+    if (!reader) throw new Error("Empty guild badge image");
+    const chunks = [];
+    let length = 0;
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        length += value.byteLength;
+        if (length > maximumBytes) { await reader.cancel(); throw new Error("Guild badge image is too large"); }
+        chunks.push(Buffer.from(value));
+      }
+    } finally { reader.releaseLock(); }
+    const bytes = Buffer.concat(chunks, length);
+    if (bytes.length < 24 || !bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))) throw new Error("Invalid guild badge PNG");
+    await mkdir(dirname(path), { recursive: true });
+    try { await writeFile(path, bytes, { flag: "wx" }); }
+    catch (error) { if (error.code === "EEXIST") return false; throw error; }
+    return true;
+  } catch (error) {
+    console.warn(`guild badge ${guildId}: ${error.message}; keeping existing icons`);
+    return false;
+  }
+}
+
 function escapeHtml(text) {
   return text.replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
 }
 
-export async function syncProfile(profile, token, guildId, presences, { identity: suppliedIdentity } = {}) {
+export async function syncProfile(profile, token, guildId, presences, { identity: suppliedIdentity, root = projectRoot, fetch: fetchImpl = globalThis.fetch } = {}) {
   const identity = suppliedIdentity ?? await fetchDiscordIdentity(profile.userId, token, guildId, { requireMembership: profile.dynamic === true });
   const snapshotPath = profile.snapshotPath || `data/discord-profiles/${profile.userId}.json`;
   const previous = await readFile(snapshotPath, "utf8").then(JSON.parse).catch(() => null);
@@ -129,6 +172,8 @@ export async function syncProfile(profile, token, guildId, presences, { identity
     snapshot.updatedAt = Date.now();
     changed = await writeIfChanged(snapshotPath, Buffer.from(`${JSON.stringify(snapshot, null, 2)}\n`));
   }
+
+  if (allowDetails && identity.primaryGuild) changed = await cacheDiscordGuildBadge(identity.primaryGuild, { root, fetch: fetchImpl }) || changed;
 
   // Text still updates if the CDN fails. Keep working fallback images on errors.
   if (allowDetails && profile.outputs?.length) try {
