@@ -9,6 +9,7 @@ shared.push('profile-layout.js','profile-layout.css','profile-decorations.js','p
 shared.push('site-chrome.js','site-chrome.css','site-audio-config.js');
 shared.push('auth-ui.js','auth-ui.css','builder-discord-dialog.js','builder-discord-dialog.css');
 shared.push('discord-badges.js','builder-discord-badges.js','builder-discord-badges.css');
+shared.push('profile-badge-overflow.js','profile-badge-overflow.css');
 const profileMedia = ["img/mainavatar.gif", "img/mysoundicon.png", "sound/sound.mp3"];
 const hashes = new Map();
 for (const asset of [...shared, ...profileMedia]) {

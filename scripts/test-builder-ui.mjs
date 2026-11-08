@@ -26,7 +26,7 @@ class Element {
   click() { return this.fire("click"); }
 }
 
-function loadBuilder(request, query = "", missingIds = []) {
+function loadBuilder(request, query = "", missingIds = [], staleBadgePicker = false) {
   const elements = new Map([...markup.matchAll(/id="([^"]+)"/g)].map(([, id]) => [id, new Element()]));
   for(const id of missingIds)elements.delete(id);
   const loginTab = new Element(), signupTab = new Element();
@@ -40,6 +40,7 @@ function loadBuilder(request, query = "", missingIds = []) {
   const location = new URL("https://example.test/" + query);
   const navigations=[];location.replace=url=>navigations.push(url);
   const window = { location, addEventListener() {}, IwtxzBackend: { isConfigured: () => true, request } };
+  if(staleBadgePicker){document.head={};window.IwtxzDiscordBadgePicker={read:()=>[],apply(){}};}
   const timers = new Set();
   const context = vm.createContext({ window, document, location, URL, URLSearchParams, Headers, AbortController,
     setTimeout(fn, ms) { const timer = setTimeout(fn, ms >= 5000 ? 20 : ms); timers.add(timer); return timer; }, clearTimeout });
@@ -63,7 +64,12 @@ test("login and generic profile templates do not preload the 4 MB default avatar
 
 test("cached markup missing new controls is refreshed before starting authentication",()=>{
   let calls=0;const ui=loadBuilder(()=>{calls++;return Promise.resolve({});},'', ['profileScale']);
-  try{assert.equal(calls,0);assert.equal(ui.navigations.length,1);assert.equal(new URL(ui.navigations[0]).searchParams.get('_ui'),'20261108-badges-1');}finally{ui.close();}
+  try{assert.equal(calls,0);assert.equal(ui.navigations.length,1);assert.equal(new URL(ui.navigations[0]).searchParams.get('_ui'),'20261109-badge-controls-1');}finally{ui.close();}
+});
+
+test('a cached manual badge picker refreshes before authentication instead of breaking the earned switches',()=>{
+  let calls=0;const ui=loadBuilder(()=>{calls++;return Promise.resolve({});},'',[],true);
+  try{assert.equal(calls,0);assert.equal(ui.navigations.length,1);assert.equal(new URL(ui.navigations[0]).searchParams.get('_ui'),'20261109-badge-controls-1');}finally{ui.close();}
 });
 
 test("an edit made during a slow save is preserved and is not replaced by the earlier response",async()=>{
@@ -108,20 +114,20 @@ test("a save that drops the selected decoration keeps the choice and never repor
   }finally{ui.close();}
 });
 
-test('a server dropping chosen Discord icons cannot publish, while a copied matching array can',async()=>{
+test('a server dropping per-badge visibility cannot publish, while a copied matching array can',async()=>{
   let drop=true,publishCalls=0,submitted;
-  const selection=['nitro-current','streaming-newcomer'];
+  const selection=['house-bravery','server-booster'];
   const ui=loadBuilder(async(path,options)=>{
-    if(path.endsWith('/list'))return {sites:[{...site,discordBadges:selection}]};
-    if(path.endsWith('/save')){submitted=JSON.parse(options.body).site;return{site:{...submitted,discordBadges:drop?[]:[...submitted.discordBadges]}};}
+    if(path.endsWith('/list'))return {sites:[{...site,discordHiddenBadges:selection}]};
+    if(path.endsWith('/save')){submitted=JSON.parse(options.body).site;return{site:{...submitted,discordHiddenBadges:drop?[]:[...submitted.discordHiddenBadges]}};}
     if(path.endsWith('/publish')){publishCalls++;return {url:'/alice'};}
     return response(path);
   });
   try{
     await ui.submit();
     await ui.elements.get('publishButton').fire('click');
-    assert.deepEqual(submitted.discordBadges,selection);
-    assert.match(ui.elements.get('editorStatus').textContent,/Сервер не подтвердил значки Discord/);
+    assert.deepEqual(submitted.discordHiddenBadges,selection);
+    assert.match(ui.elements.get('editorStatus').textContent,/Сервер не подтвердил показ значков Discord/);
     assert.equal(publishCalls,0);
     drop=false;
     await ui.elements.get('publishButton').fire('click');
@@ -215,12 +221,11 @@ test("Discord renderer uses original badges and server-tag artwork, deduplicates
     for (const badge of strip.children) await readFile(new URL(`..${badge.children[0].src}`, import.meta.url));
     renderer.apply({ ...settings, owner: "iwtlu" });
     const originals = discordBadges.children[1].children;
-    assert.equal(originals.length, 4);
-    assert.equal(new Set(originals.map(item => item.children[0].src)).size, 4);
+    assert.equal(originals.length, 2);
+    assert.equal(new Set(originals.map(item => item.children[0].src)).size, 2);
     const nitro = originals.find(item => item.children[0].src.endsWith("/nitro.png"));
-    assert.ok(nitro);
-    assert.match(nitro.title, /оформлении/);
-    assert.ok(originals.some(item => item.children[0].src.endsWith("/active-developer.svg")));
+    assert.equal(nitro,undefined);
+    assert.equal(originals.some(item => item.children[0].src.endsWith("/active-developer.svg")),false);
     renderer.apply({ ...settings, discordShowBadges: false });
     assert.equal(discordBadges.hidden, true);
     assert.equal(discordBadges.children.length, 0);

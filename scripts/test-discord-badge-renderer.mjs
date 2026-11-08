@@ -16,8 +16,8 @@ class Element {
   append(...children) {this.children.push(...children);}
   replaceChildren(...children) {this.children = children;}
 }
-function fixture({badges = [], activity = null, fresh = true} = {}) {
-  const nodes = {discordBadges:new Element(),discordActivity:new Element()};
+function fixture({badges = [], activity = null, fresh = true, member = true, matchingGuild = true, responseStatus = 200, fail = false} = {}) {
+  const nodes = {discordBadges:new Element(),discordActivity:new Element(),discordCard:new Element()};
   const document = {documentElement:new Element(),body:new Element(),createElement:tag => new Element(tag)};
   const catalog = {
     items:[
@@ -28,50 +28,85 @@ function fixture({badges = [], activity = null, fresh = true} = {}) {
     ]
   };
   const guildId = '123456789012345678';
-  const snapshot = {id:'484816707798564894',guildId,member:true,updatedAt:Date.now()-(fresh?0:90000000),badges,activity};
-  const window = {IWTXZ_BACKEND_CONFIG:{discordGuildId:guildId},IwtxzDiscordBadges:catalog};window.parent=window;
-  vm.runInNewContext(source,{window,document,location:new URL('https://example.test/'),URL,AbortSignal,fetch:async()=>Response.json(snapshot),setInterval:()=>1,clearInterval(){}});
+  const snapshot = {id:'484816707798564894',guildId:matchingGuild?guildId:'111111111111111111',member,updatedAt:Date.now()-(fresh?0:90000000),badges,activity};
+  const messages = [];
+  const window = {IWTXZ_BACKEND_CONFIG:{discordGuildId:guildId},IwtxzDiscordBadges:catalog};window.parent={postMessage:(message,origin)=>messages.push({message,origin})};
+  vm.runInNewContext(source,{window,document,location:new URL('https://example.test/'),URL,AbortSignal,fetch:async()=>{if(fail)throw new Error('offline');return Response.json(snapshot,{status:responseStatus});},setInterval:()=>1,clearInterval(){}});
   const customizer=window.IwtxzProfileCustomization.createCustomizer(nodes);
   const settings={discord:'alice',discordSync:true,discordUserId:snapshot.id};
-  return {nodes,customizer,settings};
+  return {nodes,customizer,settings,messages};
 }
 const rendered = nodes => nodes.discordBadges.children.flatMap(strip => strip.children).map(badge=>({title:badge.title,image:badge.children[0].src}));
 const settle = () => new Promise(resolve=>setImmediate(resolve));
 
-test('expanded manual Discord artwork renders from the catalog and merges actual badges without duplicates',async()=>{
-  const {nodes,customizer,settings}=fixture({badges:[{id:'house-bravery',label:'Real badge'},{id:'__proto__'},{id:'nitro-new-tier'}]});
+test('only known badges in the verified snapshot render and manual or legacy artwork cannot add awards',async()=>{
+  const {nodes,customizer,settings,messages}=fixture({badges:[{id:'house-bravery',label:'Real badge'},{id:'house-bravery'},{id:'__proto__'},{id:'nitro-new-tier'}]});
   try{
-    customizer.apply({...settings,discordBadges:['house-bravery','nitro-new-tier','streaming-achievement','streaming-achievement','javascript:bad']});
+    customizer.apply({...settings,owner:'iwtlu',discordBadges:['house-bravery','nitro-new-tier','streaming-achievement','nitro','javascript:bad']});
     await settle();
     const badges=rendered(nodes);
-    assert.equal(badges.length,3);
+    assert.equal(badges.length,2);
     assert.match(badges[0].title,/Real badge · Discord$/);
     assert.match(badges[1].title,/New Nitro tier · Discord$/);
-    assert.match(badges[2].title,/Streaming achievement · указан в оформлении карточки$/);
-    assert.deepEqual(badges.map(item=>item.image),['/img/discord-badges/house-bravery.png','/img/discord-badges/nitro.png','/img/discord-badges/partner.png']);
+    assert.deepEqual(badges.map(item=>item.image),['/img/discord-badges/house-bravery.png','/img/discord-badges/nitro.png']);
+    assert.ok(badges.every(item=>!item.title.includes('оформлении')));
+    const availability=messages.filter(item=>item.message.type==='iwtxz-discord-badges').at(-1);
+    assert.equal(availability.origin,'https://example.test');
+    assert.equal(availability.message.userId,settings.discordUserId);
+    assert.equal(availability.message.state,'ready');
+    assert.deepEqual(Array.from(availability.message.badges,item=>item.id),['house-bravery','nitro-new-tier']);
   }finally{customizer.dispose();}
 });
 
-test('manual artwork survives disabled or unavailable sync while badge visibility hides the whole strip',async()=>{
-  const {nodes,customizer,settings}=fixture({fresh:false,badges:[{id:'house-bravery'}]});
-  try{
-    customizer.apply({...settings,discordBadges:['nitro-new-tier']});await settle();
-    assert.equal(rendered(nodes).length,1);
-    assert.match(rendered(nodes)[0].title,/оформлении/);
-    customizer.apply({...settings,discordSync:false,discordBadges:['nitro-new-tier']});
-    assert.equal(rendered(nodes).length,1);
-    customizer.apply({...settings,discordShowBadges:false,discordBadges:['nitro-new-tier']});
-    assert.equal(nodes.discordBadges.hidden,true);assert.equal(nodes.discordBadges.children.length,0);
-  }finally{customizer.dispose();}
+test('unavailable, stale, wrong-guild, nonmember and disabled snapshots never expose selectable or visible badges',async()=>{
+  for(const [options,expected] of [[{fresh:false},'waiting'],[{matchingGuild:false},'waiting'],[{member:false},'not-member'],[{responseStatus:404},'waiting'],[{fail:true},'unavailable']]){
+    const {nodes,customizer,settings,messages}=fixture({...options,badges:[{id:'house-bravery'}]});
+    try{
+      customizer.apply({...settings,owner:'iwtlu',discordBadges:['nitro-new-tier']});await settle();
+      assert.equal(rendered(nodes).length,0,expected);
+      const availability=messages.filter(item=>item.message.type==='iwtxz-discord-badges').at(-1).message;
+      assert.equal(availability.state,expected);
+      assert.equal(availability.badges.length,0);
+      customizer.apply({...settings,discordSync:false,discordBadges:['nitro-new-tier']});
+      assert.equal(rendered(nodes).length,0);
+      assert.equal(messages.filter(item=>item.message.type==='iwtxz-discord-badges').at(-1).message.state,'disabled');
+    }finally{customizer.dispose();}
+  }
 });
 
-test('explicit empty choices can clear legacy presets without changing old pages which lack the new setting',()=>{
-  const {nodes,customizer,settings}=fixture();
+test('earned badge switches hide and restore individual badges without changing available choices',async()=>{
+  const {nodes,customizer,settings,messages}=fixture({badges:[{id:'house-bravery'},{id:'nitro-new-tier'}]});
   try{
-    customizer.apply({...settings,discordSync:false,owner:'iwtlu'});
-    assert.equal(rendered(nodes).length,4);
-    customizer.apply({...settings,discordSync:false,owner:'iwtlu',discordBadges:[]});
+    customizer.apply({...settings,discordHiddenBadges:['house-bravery','unknown','__proto__']});await settle();
+    assert.equal(rendered(nodes).length,1);
+    assert.match(rendered(nodes)[0].title,/New Nitro tier/);
+    assert.deepEqual(Array.from(messages.filter(item=>item.message.type==='iwtxz-discord-badges').at(-1).message.badges,item=>item.id),['house-bravery','nitro-new-tier']);
+    customizer.apply({...settings,discordHiddenBadges:[]});
+    assert.equal(rendered(nodes).length,2);
+    customizer.apply({...settings,discordHiddenBadges:['house-bravery','nitro-new-tier']});
     assert.equal(rendered(nodes).length,0);
+    customizer.apply({...settings,discordShowBadges:false,discordHiddenBadges:[]});
+    assert.equal(nodes.discordBadges.hidden,true);
+    assert.equal(rendered(nodes).length,0);
+    assert.equal(messages.filter(item=>item.message.type==='iwtxz-discord-badges').at(-1).message.badges.length,2);
+    customizer.apply({...settings,showDiscord:false,discordShowBadges:false,discordHiddenBadges:[]});
+    assert.equal(nodes.discordCard.hidden,true);
+    assert.equal(messages.filter(item=>item.message.type==='iwtxz-discord-badges').at(-1).message.badges.length,2);
+  }finally{customizer.dispose();}
+});
+
+test('changing Discord ID clears the old account badges while the new request is pending',async()=>{
+  const {nodes,customizer,settings,messages}=fixture({badges:[{id:'house-bravery'}]});
+  try{
+    customizer.apply(settings);await settle();assert.equal(rendered(nodes).length,1);
+    const second='711225785150865428';
+    customizer.apply({...settings,discordUserId:second});
+    assert.equal(rendered(nodes).length,0);
+    const pending=messages.filter(item=>item.message.type==='iwtxz-discord-badges').at(-1).message;
+    assert.equal(pending.userId,second);assert.equal(pending.state,'waiting');assert.equal(pending.badges.length,0);
+    await settle();
+    const failed=messages.filter(item=>item.message.type==='iwtxz-discord-badges').at(-1).message;
+    assert.equal(failed.userId,second);assert.equal(failed.state,'unavailable');assert.equal(failed.badges.length,0);
   }finally{customizer.dispose();}
 });
 

@@ -35,6 +35,11 @@ for (const file of await readdir(root)) {
     const badgeAnchor=html.match(/<script src="(?:builder-discord-badges|profile-customization|profile|builder)\.js[^\"]*"[^>]*>/);
     html=badgeAnchor?html.replace(badgeAnchor[0],'<script src="discord-badges.js" defer></script>\n  '+badgeAnchor[0]):html.replace('</head>','  <script src="discord-badges.js" defer></script>\n</head>');
   }
+  if(!html.includes('src="profile-badge-overflow.js')){
+    const overflowAnchor=html.match(/<script src="(?:profile-customization|profile|builder)\.js[^\"]*"[^>]*>/);
+    html=overflowAnchor?html.replace(overflowAnchor[0],'<script src="profile-badge-overflow.js" defer></script>\n  '+overflowAnchor[0]):html.replace('</head>','  <script src="profile-badge-overflow.js" defer></script>\n</head>');
+  }
+  if(!html.includes('href="profile-badge-overflow.css'))html=html.replace('</head>','  <link rel="stylesheet" href="profile-badge-overflow.css">\n</head>');
   html=html.replace(/\s*<script src="site-chrome\.js[^\"]*"[^>]*><\/script>/g,'');
   const chromeAnchor=html.match(/<script src="(?:builder|profile|profile-customization)\.js[^\"]*"[^>]*>/);
   html=chromeAnchor?html.replace(chromeAnchor[0],'<script src="site-chrome.js" defer></script>\n  '+chromeAnchor[0]):html.replace('</head>','  <script src="site-chrome.js" defer></script>\n</head>');

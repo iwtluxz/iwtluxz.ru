@@ -197,6 +197,7 @@ begin
     when username='iwtlu' then '["nitro","house-bravery","server-booster","active-developer"]'::jsonb
     when username in ('shakzy','strelokk') then '["nitro","house-bravery"]'::jsonb
     else '[]'::jsonb end);
+  result := result || jsonb_build_object('discordHiddenBadges','[]'::jsonb);
   return result;
 end;
 $$;
@@ -403,6 +404,7 @@ begin
     result := result || jsonb_build_object(value, private.profile_boolean(input, value, coalesce((defaults->>value)::boolean, false)));
   end loop;
   result := result || jsonb_build_object('discordBadges',private.profile_discord_badges(coalesce(input->'discordBadges',defaults->'discordBadges','[]'::jsonb)));
+  result := result || jsonb_build_object('discordHiddenBadges',private.profile_discord_badges(coalesce(input->'discordHiddenBadges',defaults->'discordHiddenBadges','[]'::jsonb)));
   return result || jsonb_build_object(
     'avatarSize', private.profile_number(input, 'avatarSize',150,80,220),
     'backgroundDim', private.profile_number(input, 'backgroundDim',58,0,85),
@@ -416,7 +418,7 @@ $$;
 
 create or replace function public.builder_capabilities()
 returns jsonb language sql stable set search_path = '' as $$
-  select jsonb_build_object('profileSettingsVersion', 7, 'customFonts', true, 'profileEffects', true, 'interactiveEffects', true,'profileLayout',true,'freeLayout',true,'editorV2',true,'discordBadges',true);
+  select jsonb_build_object('profileSettingsVersion', 7, 'customFonts', true, 'profileEffects', true, 'interactiveEffects', true,'profileLayout',true,'freeLayout',true,'editorV2',true,'discordBadges',true,'discordBadgeVisibility',true);
 $$;
 revoke all on function public.builder_capabilities() from public;
 grant execute on function public.builder_capabilities() to anon, authenticated;

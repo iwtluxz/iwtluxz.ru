@@ -12,15 +12,17 @@
 .site-chrome-button[aria-pressed="true"] { border-color:#bedcf955;color:#eff9ff;background:#b7d7f210; }
 .site-chrome-button:disabled { opacity:.4;cursor:default; }
 .site-chrome-button:focus-visible,.site-project-telegram:focus-visible { outline:1px solid #e1f3ff;outline-offset:3px; }
-.site-project-telegram { position:relative;width:36px;flex:0 0 36px;border:0;background:transparent;overflow:visible; }
-.site-telegram-surface { position:absolute;right:0;top:0;box-sizing:border-box;width:36px;height:100%;overflow:hidden;border:1px solid #ffffff1b;border-radius:10px;background:#080b0ef5;transition:width .24s ease,border-color .2s,background .2s; }
-.site-telegram-icon { position:absolute;left:9px;top:8px;width:18px;height:18px;transition:transform .4s ease; }
-.site-telegram-label { position:absolute;left:36px;top:4px;display:flex;flex-direction:column;white-space:nowrap;opacity:0;transform:translateX(7px);transition:opacity .14s,transform .24s;pointer-events:none; }
+.site-project-telegram { --site-telegram-size:36px;position:relative;width:var(--site-telegram-size);height:var(--site-telegram-size);min-height:var(--site-telegram-size);flex:0 0 var(--site-telegram-size);border:0;border-radius:50%;color:#fff;background:#000;box-shadow:none;overflow:visible; }
+.site-project-telegram:hover,.site-project-telegram:focus-visible { background:#000; }
+.site-telegram-surface { position:absolute;right:0;top:0;box-sizing:border-box;width:var(--site-telegram-size);height:100%;overflow:hidden;border:1px solid #ffffff1b;border-radius:calc(var(--site-telegram-size) / 2);background:#000;transition:width .24s ease,border-color .2s; }
+.site-telegram-icon-slot { position:absolute;inset:0 auto 0 0;display:grid;place-items:center;width:calc(var(--site-telegram-size) - 2px); }
+.site-telegram-icon { width:18px;height:18px;transition:transform .4s ease; }
+.site-telegram-label { position:absolute;left:var(--site-telegram-size);top:50%;display:flex;flex-direction:column;white-space:nowrap;opacity:0;transform:translate(7px,-50%);transition:opacity .14s,transform .24s;pointer-events:none; }
 .site-telegram-label strong { font-size:9px;line-height:14px;font-weight:500;color:#eef5fc; }
 .site-telegram-label>span { font-size:9px;line-height:12px;color:#8e9eac; }
-.site-project-telegram:hover .site-telegram-surface,.site-project-telegram:focus-visible .site-telegram-surface { width:172px;border-color:#ffffff58;background:#10151a; }
+.site-project-telegram:hover .site-telegram-surface,.site-project-telegram:focus-visible .site-telegram-surface { width:172px;border-color:#ffffff58;background:#000; }
 .site-project-telegram:hover .site-telegram-icon,.site-project-telegram:focus-visible .site-telegram-icon { transform:rotate(-360deg); }
-.site-project-telegram:hover .site-telegram-label,.site-project-telegram:focus-visible .site-telegram-label { opacity:1;transform:none; }
+.site-project-telegram:hover .site-telegram-label,.site-project-telegram:focus-visible .site-telegram-label { opacity:1;transform:translate(0,-50%); }
 .site-project-music { position:relative; }
 .site-project-music-panel { position:absolute;z-index:35;right:-43px;top:calc(100% + 9px);width:208px;box-sizing:border-box;padding:14px 15px;border:1px solid #ffffff25;border-radius:12px;background:#080b0ff5;box-shadow:0 14px 35px #000b;opacity:0;visibility:hidden;transform:translateY(-3px);transition:opacity .16s,transform .16s,visibility .16s; }
 .site-project-music-panel::before { content:"";position:absolute;left:0;right:0;top:-13px;height:14px; }
@@ -48,10 +50,10 @@
 @keyframes site-winter-fall { 0%{transform:translate3d(0,-45px,0) rotate(0deg);opacity:0}12%{opacity:.18}85%{opacity:.12}100%{transform:translate3d(28px,110px,0) rotate(90deg);opacity:0} }
 @media(max-width:660px){
  .auth-locked .topbar:has(>.site-chrome-in-header){padding:18px 16px}
- .site-winter-toggle-label{display:none}.site-chrome-in-header{gap:6px}.topbar:has(>.site-chrome-in-header){gap:10px}.topbar:has(>.site-chrome-in-header)>.account-controls{order:3;flex-basis:100%;justify-content:flex-end;margin-top:0}.site-chrome-floating{top:12px;right:12px}.site-project-music-panel{right:-43px;width:195px}.site-chrome-button,.site-project-telegram{height:34px;min-height:34px}.site-chrome-button{min-width:34px}.site-telegram-icon{top:7px}
+ .site-winter-toggle-label{display:none}.site-chrome-in-header{gap:6px}.topbar:has(>.site-chrome-in-header){gap:10px}.topbar:has(>.site-chrome-in-header)>.account-controls{order:3;flex-basis:100%;justify-content:flex-end;margin-top:0}.site-chrome-floating{top:12px;right:12px}.site-project-music-panel{right:-43px;width:195px}.site-chrome-button{height:34px;min-height:34px;min-width:34px}.site-project-telegram{--site-telegram-size:34px}
 }
 @media(hover:none),(pointer:coarse){
- .site-project-telegram{width:112px;flex-basis:112px}.site-telegram-surface{width:112px}.site-telegram-label{left:34px;top:10px;opacity:1;transform:none}.site-telegram-label strong{display:none}.site-telegram-label>span{font-size:10px;line-height:14px}.site-project-telegram:hover .site-telegram-surface,.site-project-telegram:focus-visible .site-telegram-surface{width:112px}.site-project-music-panel{right:-119px}
+ .site-project-telegram:hover:not(:focus-visible) .site-telegram-surface{width:var(--site-telegram-size)}.site-project-telegram:hover:not(:focus-visible) .site-telegram-label{opacity:0;transform:translate(7px,-50%)}.site-project-telegram:hover:not(:focus-visible) .site-telegram-icon{transform:none}
 }
 @media(prefers-reduced-motion:reduce){
  .iwtxz-site-chrome *{transition:none!important;animation:none!important}.site-winter-flake{animation:none;opacity:.13}.site-winter-lights>span{animation:none;opacity:.6}

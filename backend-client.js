@@ -853,6 +853,10 @@
       const hasFeatures = (site.nicknameAnimation && site.nicknameAnimation !== "none") || (site.avatarDecoration && site.avatarDecoration !== "none") || newSocials.some(key => Boolean(site[key]));
       let settingsCapabilities;
       const loadCapabilities=()=>settingsCapabilities ||= Promise.resolve(getClient().rpc('builder_capabilities'));
+      if (Array.isArray(site.discordHiddenBadges) && site.discordHiddenBadges.length) {
+        const capabilities=await loadCapabilities();
+        if(capabilities.error||capabilities.data?.discordBadgeVisibility!==true)throw error(503,'Для сохранения переключателей значков Discord выполни обновление базы 20261108_discord_badge_visibility.sql. Настройки остались в редакторе.','backend_features_update_required');
+      }
       if (Array.isArray(site.discordBadges) && (site.discordBadges.length || ['iwtlu','shakzy','strelokk'].includes(account.username))) {
         const capabilities=await loadCapabilities();
         if(capabilities.error||capabilities.data?.discordBadges!==true)throw error(503,'Для сохранения значков Discord выполни обновление базы 20261108_discord_badge_catalog.sql. Выбранные значки остаются в редакторе.','backend_features_update_required');

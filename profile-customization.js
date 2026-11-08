@@ -12,13 +12,6 @@
     "moderator-alumni": "moderator-alumni.svg", "server-booster": "server-booster.svg",
     nitro: "nitro.png", "active-developer": "active-developer.svg"
   });
-  // These are the badges already chosen in the original authored pages. Bot
-  // data is partial and must not erase the page's manually chosen artwork.
-  const legacyBadgePresets = Object.freeze({
-    iwtlu: ["nitro", "house-bravery", "server-booster", "active-developer"],
-    shakzy: ["nitro", "house-bravery"],
-    strelokk: ["nitro", "house-bravery"]
-  });
   const presetBadgeLabels = { nitro: "Discord Nitro", "house-bravery": "HypeSquad Bravery", "server-booster": "Server Booster", "active-developer": "Active Developer" };
   function discordBadgeDefinition(id) {
     if (typeof id !== 'string') return null;
@@ -94,7 +87,9 @@
     image.src = definition.image;
     image.alt = "";
     image.draggable = false;
-    return badge(`${label} · ${item.manual ? "указан в оформлении карточки" : "Discord"}`, image, "discord");
+    const element=badge(`${label} · Discord`, image, "discord");
+    element.dataset.discordBadgeId=item.id;
+    return element;
   }
   function primaryGuildTag(value) {
     if (!value || !/^\d{17,20}$/.test(value.guildId || "") || !/^[a-f0-9]{32}$/i.test(value.badge || "") ||
@@ -137,6 +132,7 @@
     let loadedFontFamily = "";
     let pollTimer = 0;
     let disposed = false;
+    let snapshotState = 'disabled';
     let scene = window.IwtxzProfileScene?.create();
     let profileLayout = window.IwtxzProfileLayout?.create();
     // Authored profile pages can remain cached across deployments.
@@ -158,6 +154,15 @@
       if(existing)existing.addEventListener?.('load',()=>{if(!disposed)drawDiscord(lastSnapshot);},{once:true});
       else{const script=document.createElement('script');script.src='/discord-badges.js'+sceneVersion;script.onload=()=>{if(!disposed)drawDiscord(lastSnapshot);};document.head.append(script);}
     }
+    if(!window.IwtxzBadgeOverflow&&document.head){
+      if(!document.querySelector('link[href*="profile-badge-overflow.css"]')){
+        const style=document.createElement('link');style.rel='stylesheet';style.href='/profile-badge-overflow.css'+sceneVersion;document.head.append(style);
+      }
+      const existing=document.querySelector('script[src*="profile-badge-overflow.js"]');
+      const ready=()=>{if(!disposed)drawDiscord(lastSnapshot);};
+      if(existing)existing.addEventListener?.('load',ready,{once:true});
+      else{const script=document.createElement('script');script.src='/profile-badge-overflow.js'+sceneVersion;script.onload=ready;document.head.append(script);}
+    }
     const motion=window.matchMedia?.('(prefers-reduced-motion: reduce)');
     const updateMotion=()=>drawDiscord(lastSnapshot);
     motion?.addEventListener?.('change',updateMotion);
@@ -171,6 +176,7 @@
     }
 
     function notify(state, updatedAt) {
+      snapshotState = state;
       if (window.parent !== window) window.parent.postMessage({ type: "iwtxz-discord-status", userId: requestedUser, state, updatedAt }, location.origin);
     }
     function notifyFont(state, source) {
@@ -214,8 +220,22 @@
       });
     }
     function drawDiscord(data) {
-      const valid = data?.member === true && data.guildId === discordGuildId && typeof data.updatedAt === "number" && Date.now() - data.updatedAt < 86_400_000 && data.updatedAt < Date.now() + 300_000;
+      const matching = settings.discordSync === true && Boolean(requestedUser) && data?.id === requestedUser && data.guildId === discordGuildId;
+      const fresh = matching && typeof data.updatedAt === "number" && Date.now() - data.updatedAt < 86_400_000 && data.updatedAt < Date.now() + 300_000;
+      const valid = fresh && data.member === true;
       const profile = valid ? data : null;
+      const availableBadges = [];
+      const availableIds = new Set();
+      for (const item of profile && Array.isArray(profile.badges) ? profile.badges.slice(0, 100) : []) {
+        const definition = item && discordBadgeDefinition(item.id);
+        if (!definition || availableIds.has(item.id)) continue;
+        availableIds.add(item.id);
+        availableBadges.push({ id: item.id, label: text(item.label || definition.label, 100) || item.id });
+      }
+      if (window.parent !== window) {
+        const state = settings.discordSync !== true ? 'disabled' : !requestedUser ? 'waiting' : profile ? 'ready' : fresh && data.member === false ? 'not-member' : snapshotState === 'unavailable' ? 'unavailable' : 'waiting';
+        window.parent.postMessage({ type: 'iwtxz-discord-badges', userId: requestedUser || text(settings.discordUserId, 20), state, badges: availableBadges }, location.origin);
+      }
       window.IwtxzProfileFeatures?.applyAvatarDecoration(nodes.avatar, settings.avatarDecoration, profile?.avatarDecoration);
       if (window.parent !== window) window.parent.postMessage({type:"iwtxz-discord-decoration",userId:requestedUser,decoration:profile?.avatarDecoration||null,ready:Boolean(profile)},location.origin);
       const copyName = text(profile?.username || settings.discord, 60);
@@ -253,6 +273,7 @@
       if (nodes.discordActivity) { nodes.discordActivity.textContent = activityText; nodes.discordActivity.hidden = !activityText; }
       if (nodes.discordBadges) {
         const content = [];
+        let hasEarnedBadges=false;
         if (profile && settings.discordShowBadges !== false) {
           const tag = primaryGuildTag(profile.primaryGuild);
           if (tag) content.push(tag);
@@ -261,17 +282,20 @@
           const seen = new Set();
           const strip = document.createElement("span");
           strip.className = "discord-badge-strip";
-          const synced = profile && Array.isArray(profile.badges) ? profile.badges.slice(0, 40) : [];
-          const presets = !Object.hasOwn(settings, 'discordBadges') && Object.hasOwn(legacyBadgePresets, settings.owner) ? legacyBadgePresets[settings.owner] : [];
-          const chosen = Array.isArray(settings.discordBadges) ? settings.discordBadges.slice(0, 32) : presets;
-          const manual = chosen.map(id => ({ id, label: discordBadgeDefinition(id)?.label || presetBadgeLabels[id], manual: true }));
-          for (const item of [...synced, ...manual]) {
-            if (!item || !discordBadgeDefinition(item.id) || seen.has(item.id)) continue;
-            strip.append(earnedBadge(item));
+          const hidden = new Set(Array.isArray(settings.discordHiddenBadges) ? settings.discordHiddenBadges.filter(id => typeof id === 'string') : []);
+          const badgeNodes=[];
+          for (const item of availableBadges) {
+            if (hidden.has(item.id) || seen.has(item.id)) continue;
+            badgeNodes.push(earnedBadge(item));
             seen.add(item.id);
           }
-          if (seen.size) content.push(strip);
+          if(badgeNodes.length){
+            if(window.IwtxzBadgeOverflow)window.IwtxzBadgeOverflow.render(strip,badgeNodes,{owner:nodes.discordBadges});
+            else strip.append(...badgeNodes);
+          }
+          if (seen.size) {content.push(strip);hasEarnedBadges=true;}
         }
+        if(!hasEarnedBadges||settings.showDiscord===false)window.IwtxzBadgeOverflow?.dispose(nodes.discordBadges);
         nodes.discordBadges.replaceChildren(...content);
         nodes.discordBadges.hidden = !content.length;
         nodes.discordBadges.style.display = content.length ? "inline-flex" : "none";
@@ -284,11 +308,11 @@
         const data = await snapshot(userId);
         if (disposed || serial !== fetchSerial || requestedUser !== userId) return;
         lastSnapshot = data;
-        drawDiscord(data);
         const fresh = data && typeof data.updatedAt === "number" && Date.now() - data.updatedAt < 86_400_000 && data.updatedAt < Date.now() + 300_000;
         notify(data?.guildId === discordGuildId && data?.member === false ? "not-member" : data?.guildId === discordGuildId && data?.member === true && fresh ? "ready" : "waiting", data?.updatedAt);
+        drawDiscord(data);
       } catch {
-        if (!disposed && serial === fetchSerial && requestedUser === userId) { lastSnapshot = null; drawDiscord(null); notify("unavailable"); }
+        if (!disposed && serial === fetchSerial && requestedUser === userId) { lastSnapshot = null; notify("unavailable"); drawDiscord(null); }
       }
     }
     function apply(site) {
@@ -355,6 +379,7 @@
     }
     function dispose() {
       disposed = true;
+      window.IwtxzBadgeOverflow?.dispose(nodes.discordBadges);
       scene?.dispose();
       profileLayout?.dispose();
       motion?.removeEventListener?.('change',updateMotion);

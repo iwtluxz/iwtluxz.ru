@@ -1,0 +1,29 @@
+.discord-badge-strip.iwtxz-badge-overflow { display:inline-flex;align-items:center;flex:0 0 auto;flex-wrap:nowrap;gap:4px;white-space:nowrap;max-width:none;overflow:visible; }
+.iwtxz-discord-card .discord-card-top:has(.iwtxz-badge-overflow),.discord-profile-top:has(.iwtxz-badge-overflow) { flex-wrap:nowrap;min-width:0; }
+.iwtxz-discord-card .discord-card-badges:has(.iwtxz-badge-overflow),.discord-earned-badges:has(.iwtxz-badge-overflow) { flex:0 0 auto;flex-wrap:nowrap;min-width:0;max-width:none;white-space:nowrap; }
+.iwtxz-discord-card .discord-card-top:has(.iwtxz-badge-overflow) > .discord-card-name,.discord-profile-top:has(.iwtxz-badge-overflow) > #discordName { flex:1 1 auto;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.iwtxz-badge-overflow > .iwtxz-badge { flex-shrink:0; }
+.iwtxz-badge-overflow-count { display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;min-width:25px;height:20px;margin:0;padding:0 4px;border:0;border-radius:5px;color:#dedee3;background:#ffffff0b;font:600 11px/1 "Segoe UI",Arial,sans-serif;letter-spacing:0;white-space:nowrap;cursor:pointer; }
+.iwtxz-badge-overflow-count:hover,.iwtxz-badge-overflow-count[aria-expanded="true"] { color:#fff;background:#ffffff19; }
+.iwtxz-badge-overflow-count:focus-visible { outline:1px solid #dcdcff;outline-offset:2px; }
+.iwtxz-badge-popover { position:fixed;inset:auto;margin:0;box-sizing:border-box;width:360px;max-width:calc(100vw - 24px);max-height:calc(100dvh - 24px);padding:0;overflow:auto;overscroll-behavior:contain;border:1px solid #ffffff29;border-radius:14px;background:#080809;color:#f1f1f3;box-shadow:0 12px 44px #000a;font:13px/1.5 "Segoe UI",Arial,sans-serif;letter-spacing:normal;text-align:left;z-index:2147483600;isolation:isolate;animation:iwtxz-badges-in .13s ease-out; }
+.iwtxz-badge-popover[hidden] { display:none!important; }
+.iwtxz-badge-popover::backdrop { background:transparent;pointer-events:none; }
+.iwtxz-badge-popover-header { display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 16px 11px;border-bottom:1px solid #ffffff12; }
+.iwtxz-badge-popover-header h3 { margin:0;color:#f1f1f3;font:600 14px/1.4 "Segoe UI",Arial,sans-serif; }
+.iwtxz-badge-popover-close { display:grid;place-items:center;flex:0 0 25px;width:25px;height:25px;margin:0;padding:0;border:0;border-radius:50%;background:transparent;color:#a5a5ad;font:24px/1 "Segoe UI",Arial,sans-serif;cursor:pointer; }
+.iwtxz-badge-popover-close:hover { background:#ffffff11;color:#fff; }
+.iwtxz-badge-popover-content { display:grid;grid-template-columns:minmax(0,1fr) minmax(130px,.9fr);align-items:start;gap:15px;padding:15px 16px 17px; }
+.iwtxz-badge-popover-grid { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-content:start;gap:7px;max-height:290px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin; }
+.iwtxz-badge-popover-choice { display:grid;place-items:center;box-sizing:border-box;width:100%;aspect-ratio:1;min-height:39px;margin:0;padding:9px;border:1px solid #ffffff16;border-radius:9px;background:#171719;color:#fff;cursor:pointer; }
+.iwtxz-badge-popover-choice:hover,.iwtxz-badge-popover-choice[aria-pressed="true"] { border-color:#9992ff;background:#1c1a28; }
+.iwtxz-badge-popover-choice:focus-visible,.iwtxz-badge-popover-close:focus-visible { outline:2px solid #b5b0ff;outline-offset:-2px; }
+.iwtxz-badge-popover-choice > img,.iwtxz-badge-popover-choice > svg { display:block;width:100%;height:auto;max-height:30px;object-fit:contain; }
+.iwtxz-badge-popover-detail { display:flex;align-items:center;flex-direction:column;gap:8px;min-width:0;padding-top:3px;text-align:center; }
+.iwtxz-badge-popover-art { display:grid;place-items:center;width:75px;height:75px;margin-bottom:3px; }
+.iwtxz-badge-popover-art > img,.iwtxz-badge-popover-art > svg { display:block;width:100%;height:100%;object-fit:contain; }
+.iwtxz-badge-popover-name { max-width:100%;color:#f2f2f5;font-size:13px;line-height:1.4;overflow-wrap:anywhere; }
+.iwtxz-badge-popover-description { color:#92929e;font-size:10px;line-height:1.5; }
+@keyframes iwtxz-badges-in { from { opacity:0;translate:0 4px; } to { opacity:1;translate:0 0; } }
+@media(max-width:360px) { .iwtxz-badge-popover-content { gap:12px;padding:13px;grid-template-columns:minmax(0,1fr) minmax(118px,.9fr); }.iwtxz-badge-popover-choice { padding:8px;min-height:34px; }.iwtxz-badge-popover-art { width:65px;height:65px; } }
+@media(prefers-reduced-motion:reduce) { .iwtxz-badge-popover { animation:none; } }

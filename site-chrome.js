@@ -2,7 +2,7 @@
   'use strict';
   if (window.IwtxzSiteChrome) return;
   const symbols = {
-    telegram: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21.6 3.2-3.2 17c-.24 1.2-.88 1.5-1.8.94l-4.88-3.6-2.36 2.28c-.27.26-.5.48-1.02.48l.35-4.97 9.05-8.17c.4-.35-.08-.55-.6-.2L6 13.99l-4.79-1.5c-1.04-.32-1.06-1.03.22-1.53l18.73-7.22c.87-.32 1.63.2 1.44 1.46Z"/></svg>',
+    telegram: '<svg viewBox="-1 .3 24 24" aria-hidden="true"><path d="m21.6 3.2-3.2 17c-.24 1.2-.88 1.5-1.8.94l-4.88-3.6-2.36 2.28c-.27.26-.5.48-1.02.48l.35-4.97 9.05-8.17c.4-.35-.08-.55-.6-.2L6 13.99l-4.79-1.5c-1.04-.32-1.06-1.03.22-1.53l18.73-7.22c.87-.32 1.63.2 1.44 1.46Z"/></svg>',
     snow: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2v20M3.34 7l17.32 10M3.34 17 20.66 7M8.5 4.2 12 7l3.5-2.8M8.5 19.8 12 17l3.5 2.8M3.5 10.9 7.7 9.5l-.7-4.4m10 13.8-.7-4.4 4.2-1.4M3.5 13.1l4.2 1.4-.7 4.4M17 5.1l-.7 4.4 4.2 1.4" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5.4a1 1 0 0 1 1.55-.83l9 6a1.72 1.72 0 0 1 0 2.86l-9 6A1 1 0 0 1 9 18.6Z"/></svg>',
     pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zm6 0h4v14h-4z"/></svg>'
@@ -34,10 +34,12 @@
     telegram.href = 'https://t.me/iwt_su'; telegram.target = '_blank'; telegram.rel = 'noopener noreferrer';
     telegram.setAttribute('aria-label', 'Telegram проекта iwtxz — @iwt_su'); telegram.title = 'Telegram проекта — @iwt_su';
     const telegramIcon = icon('telegram'); telegramIcon.classList.add('site-telegram-icon');
+    const telegramIconSlot = make('span', 'site-telegram-icon-slot');
+    telegramIconSlot.append(telegramIcon);
     const telegramLabel = make('span', 'site-telegram-label');
     telegramLabel.append(make('strong', '', 'Telegram проекта'), make('span', '', '@iwt_su'));
     const telegramSurface = make('span', 'site-telegram-surface');
-    telegramSurface.append(telegramIcon, telegramLabel); telegram.append(telegramSurface);
+    telegramSurface.append(telegramIconSlot, telegramLabel); telegram.append(telegramSurface);
     let decor, garland, winterButton, musicButton, status, volumeOutput, volume, audio, disposed = false;
     let musicRequested = false, pendingPlay = false, mediaSource = '', mediaStart = 0, mediaVersion = 0, playSerial = 0;
     let configured = window.IWTXZ_SITE_AUDIO_CONFIG || {}, musicError = '';

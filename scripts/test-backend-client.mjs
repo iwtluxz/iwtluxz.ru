@@ -76,7 +76,7 @@ function load(overrides = {}) {
       if (state.rpcError) return { data: null, error: state.rpcError };
       if (name === "builder_capabilities") return state.oldCustomizationServer
         ? { data: null, error: { code: "PGRST202" } }
-        : { data: { profileSettingsVersion: state.oldEffectsServer ? 2 : state.oldInteractiveServer ? 3 : state.oldLayoutServer ? 4 : state.oldFreeLayoutServer ? 5 : state.oldEditorV2Server ? 6 : 7,editorV2:!state.oldEditorV2Server, freeLayout:!state.oldFreeLayoutServer, profileLayout: !state.oldLayoutServer, interactiveEffects: !state.oldInteractiveServer, customFonts: true, profileEffects: !state.oldEffectsServer, discordBadges:state.discordBadgesReady===true }, error: null };
+        : { data: { profileSettingsVersion: state.oldEffectsServer ? 2 : state.oldInteractiveServer ? 3 : state.oldLayoutServer ? 4 : state.oldFreeLayoutServer ? 5 : state.oldEditorV2Server ? 6 : 7,editorV2:!state.oldEditorV2Server, freeLayout:!state.oldFreeLayoutServer, profileLayout: !state.oldLayoutServer, interactiveEffects: !state.oldInteractiveServer, customFonts: true, profileEffects: !state.oldEffectsServer, discordBadges:state.discordBadgesReady===true, discordBadgeVisibility:state.discordBadgeVisibilityReady===true }, error: null };
       if (name === "builder_get_profile") return { data: state.draft || { id: state.username, owner: state.username, nickname: state.username }, error: null };
       if (name === "builder_save_profile") { state.draft = structuredClone(input.input); return { data: state.draft, error: null }; }
       if (name === "builder_publish_profile") {
@@ -354,6 +354,16 @@ test('Discord badge selection requires server support and round-trips without si
   const result=await current.api.request('/api/builder/sites/save',post({site:{discordBadges:selection}}));
   assert.deepEqual(Array.from(result.site.discordBadges),selection);
   assert.equal(current.state.calls.filter(call=>call.name==='builder_capabilities').length,1);
+});
+
+test('individual earned-badge visibility cannot be silently discarded by an old server',async()=>{
+  const old=load({discordBadgesReady:true});
+  await rejects(old.api.request('/api/builder/sites/save',post({site:{discordHiddenBadges:['house-bravery']}})),503,'backend_features_update_required');
+  assert.equal(old.state.calls.some(call=>call.name==='builder_save_profile'),false);
+  const current=load({discordBadgeVisibilityReady:true});
+  const hidden=['house-bravery'];
+  assert.deepEqual(Array.from((await current.api.request('/api/builder/sites/save',post({site:{discordHiddenBadges:hidden}}))).site.discordHiddenBadges),hidden);
+  assert.deepEqual(Array.from((await current.api.request('/api/builder/sites/save',post({site:{discordHiddenBadges:[]}}))).site.discordHiddenBadges),[]);
 });
 
 test("a v3 server saves and publishes animations, decorations and additional social links", async () => {

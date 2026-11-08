@@ -4,7 +4,6 @@
   const catalog = window.IwtxzDiscordBadges;
   const group = document.getElementById('discordUserId')?.closest('.settings-group');
   if (!catalog?.items?.length || !group || document.getElementById('discordBadgePicker')) return;
-  const byId = new Map(catalog.items.map(item => [item.id, item]));
   const normalize = ids => catalog.normalize(Array.isArray(ids) ? ids : []);
   const make = (tag, className, text) => {
     const node = document.createElement(tag);
@@ -14,90 +13,128 @@
   };
   const root = make('fieldset', 'discord-badge-picker');
   root.id = 'discordBadgePicker';
-  root.append(make('legend', '', 'Значки Discord'));
-  const description = make('p', 'hint', 'Добавь оригинальные значки в оформление плашки. Доступные значки аккаунта появятся автоматически при синхронизации.');
+  root.append(make('legend', '', 'Твои значки Discord'));
+  const description = make('p', 'hint', 'Включи значки, которые хочешь показывать в плашке. Здесь доступны только значки, полученные из твоего Discord.');
   description.id = 'discordBadgePickerDescription';
-  root.append(description);
   const toolbar = make('div', 'discord-badge-picker-toolbar');
   const searchLabel = make('label', 'discord-badge-search');
   const search = make('input', '');
-  search.type = 'search'; search.placeholder = 'Найти значок'; search.autocomplete = 'off';
-  search.setAttribute('aria-label', 'Найти значок Discord');
+  search.type = 'search'; search.placeholder = 'Найти свой значок'; search.autocomplete = 'off';
+  search.setAttribute('aria-label', 'Найти свой значок Discord');
   searchLabel.append(search);
-  const clear = make('button', 'text-button', 'Снять выбранные'); clear.type = 'button';
-  toolbar.append(searchLabel, clear);
-  const filters = make('div', 'discord-badge-filters');
-  filters.setAttribute('aria-label', 'Категории значков');
-  const groups = Array.isArray(catalog.groups) ? catalog.groups : [];
-  const presentGroups = new Set(catalog.items.map(item => item.group).filter(Boolean));
-  const groupIds = [...groups.map(item => item.id).filter(id => presentGroups.has(id)), ...[...presentGroups].filter(id => !groups.some(item => item.id === id))];
-  const allGroups = [{ id: 'all', label: 'Все' }, ...groupIds.map(id => ({ id, label: groups.find(group => group.id === id)?.label || ({ nitro: 'Nitro', boost: 'Буст', community: 'Сообщество', legacy: 'Архив', activity: 'Активность' }[id] || id) }))];
-  let selectedGroup = 'all';
-  for (const item of allGroups) {
-    const button = make('button', 'discord-badge-filter', item.label);
-    button.type = 'button'; button.dataset.badgeGroup = item.id;
-    button.setAttribute('aria-pressed', String(item.id === 'all'));
-    button.addEventListener('click', () => { selectedGroup = item.id; filter(); });
-    filters.append(button);
-  }
+  const actions = make('div', 'discord-badge-actions');
+  const showAll = make('button', 'text-button', 'Включить все'); showAll.type = 'button';
+  const hideAll = make('button', 'text-button', 'Выключить все'); hideAll.type = 'button';
+  actions.append(showAll, hideAll); toolbar.append(searchLabel, actions);
   const list = make('div', 'discord-badge-choices');
-  list.setAttribute('role', 'group'); list.setAttribute('aria-label', 'Выбрать значки Discord');
-  const inputs = new Map();
-  const orderedItems = [...catalog.items].sort((a,b) => groupIds.indexOf(a.group)-groupIds.indexOf(b.group));
-  for (const item of orderedItems) {
-    const label = make('label', 'discord-badge-choice');
-    label.title = `${item.label} · оформление карточки`;
-    label.dataset.badgeId = item.id;
-    const input = make('input', ''); input.type = 'checkbox'; input.dataset.discordBadge = item.id;
-    input.setAttribute('aria-describedby', description.id);
-    const image = make('img', ''); image.src = item.image; image.alt = ''; image.loading = 'lazy'; image.decoding = 'async'; image.draggable = false;
-    const text = make('span', 'discord-badge-choice-label', item.label);
-    label.append(input, image, text); list.append(label); inputs.set(item.id, input);
-    input.addEventListener('change', event => {
-      if (read().length > 32) { input.checked = false; event.stopPropagation(); status.textContent = 'Можно выбрать до 32 значков.'; }
-      else status.textContent = '';
-      updateCount();
-    });
-  }
-  const empty = make('p', 'hint discord-badge-empty', 'Ничего не найдено'); empty.hidden = true;
+  list.setAttribute('role', 'group'); list.setAttribute('aria-label', 'Показывать значки Discord');
+  const empty = make('p', 'hint discord-badge-empty');
+  empty.setAttribute('role', 'status'); empty.setAttribute('aria-live', 'polite');
   const footer = make('div', 'discord-badge-picker-footer');
   const count = make('span', 'hint');
   const status = make('span', 'hint'); status.setAttribute('role', 'status'); status.setAttribute('aria-live', 'polite');
   footer.append(count, status);
-  root.append(toolbar, filters, list, empty, footer);
+  root.append(description, toolbar, list, empty, footer);
   const toggles = group.querySelector('#discordShowBadges')?.closest('.toggle-grid');
   if (toggles) toggles.after(root); else group.append(root);
 
-  function read() {
-    return [...inputs].filter(([, input]) => input.checked).map(([id]) => id);
-  }
+  let hiddenIds = new Set();
+  let available = [];
+  let availability = { userId: '', state: 'disabled' };
+  const inputs = new Map();
+  function readHidden() { return normalize([...hiddenIds]); }
+  function announceChange() { root.dispatchEvent(new Event('input', { bubbles: true })); }
   function updateCount() {
-    const amount = read().length;
-    count.textContent = `Выбрано ${amount} / 32`;
-    clear.disabled = amount === 0;
-    for (const [id, input] of inputs) input.closest('label').classList.toggle('is-selected', input.checked);
+    let shown = 0;
+    for (const [id, input] of inputs) {
+      input.checked = !hiddenIds.has(id);
+      if (input.checked) shown++;
+      input.closest('label').classList.toggle('is-selected', input.checked);
+    }
+    count.textContent = available.length ? 'Включено ' + shown + ' из ' + available.length : '';
+    showAll.disabled = available.length === 0 || shown === available.length;
+    hideAll.disabled = available.length === 0 || shown === 0;
+  }
+  function emptyMessage() {
+    if (availability.state === 'ready') return 'Discord не передал доступных значков для этого аккаунта.';
+    if (['disabled', 'sync-disabled'].includes(availability.state)) return 'Включи синхронизацию Discord, чтобы увидеть свои значки.';
+    if (['invalid', 'missing-id'].includes(availability.state)) return 'Укажи свой ID Discord, чтобы получить доступные значки.';
+    if (['not-member', 'notmember'].includes(availability.state)) return 'Вступи на сервер проекта, чтобы обновить данные Discord.';
+    if (['unavailable', 'error'].includes(availability.state)) return 'Не удалось получить значки Discord. Попробуй обновить данные позже.';
+    if (availability.state === 'offline') return 'Данные Discord ещё не обновились. Значки появятся после синхронизации.';
+    return 'Получаем твои значки Discord…';
   }
   function filter() {
     const query = search.value.trim().toLocaleLowerCase('ru');
     let visible = 0;
     for (const [id, input] of inputs) {
-      const item = byId.get(id);
-      const matches = (selectedGroup === 'all' || item.group === selectedGroup) && `${item.label} ${item.id} ${item.keywords || ''}`.toLocaleLowerCase('ru').includes(query);
+      const item = catalog.byId[id];
+      const matches = (item.label + ' ' + item.id + ' ' + (item.keywords || '')).toLocaleLowerCase('ru').includes(query);
       input.closest('label').hidden = !matches;
       if (matches) visible++;
     }
-    for (const button of filters.querySelectorAll('button')) button.setAttribute('aria-pressed', String(button.dataset.badgeGroup === selectedGroup));
-    empty.hidden = visible !== 0; list.hidden = visible === 0;
+    toolbar.hidden = available.length === 0;
+    list.hidden = visible === 0;
+    empty.hidden = visible !== 0;
+    empty.textContent = available.length ? 'Среди твоих значков ничего не найдено.' : emptyMessage();
   }
-  function apply(ids) {
-    const selected = new Set(normalize(ids));
-    for (const [id, input] of inputs) input.checked = selected.has(id);
+  function renderAvailable() {
+    inputs.clear();
+    list.replaceChildren();
+    for (const item of available) {
+      const label = make('label', 'discord-badge-choice');
+      label.title = item.label + ' · получен из Discord';
+      label.dataset.badgeId = item.id;
+      const input = make('input', ''); input.type = 'checkbox'; input.dataset.discordBadge = item.id;
+      input.setAttribute('aria-describedby', description.id);
+      input.setAttribute('role', 'switch');
+      const image = make('img', ''); image.src = item.image; image.alt = ''; image.loading = 'lazy'; image.decoding = 'async'; image.draggable = false;
+      const text = make('span', 'discord-badge-choice-label', item.label);
+      label.append(input, image, text); list.append(label); inputs.set(item.id, input);
+      input.addEventListener('change', event => {
+        status.textContent = '';
+        if (input.checked) hiddenIds.delete(item.id);
+        else if (hiddenIds.size < catalog.maximum || hiddenIds.has(item.id)) hiddenIds.add(item.id);
+        else {
+          event.stopPropagation();
+          status.textContent = 'Достигнут лимит скрытых значков. Включи другой значок и повтори.';
+        }
+        updateCount();
+      });
+    }
+    updateCount(); filter();
+  }
+  function applyHidden(ids) {
+    hiddenIds = new Set(normalize(ids));
     status.textContent = ''; updateCount();
+  }
+  function setAvailable(value = {}) {
+    const userId = typeof value.userId === 'string' ? value.userId : '';
+    const state = typeof value.state === 'string' ? value.state : 'loading';
+    availability = { userId, state };
+    const received = state === 'ready' && /^\d{17,20}$/.test(userId) && Array.isArray(value.badges) ? value.badges : [];
+    const ids = [...new Set(received.map(item => typeof item === 'string' ? item : item?.id).filter(id => typeof id === 'string' && Object.hasOwn(catalog.byId, id)))].slice(0, 40);
+    const next = ids.map(id => catalog.byId[id]);
+    const unchanged = next.length === available.length && next.every((item, index) => item.id === available[index].id);
+    available = next;
+    if (unchanged) { updateCount(); filter(); } else renderAvailable();
+  }
+  function reset() {
+    hiddenIds.clear(); search.value = ''; status.textContent = '';
+    setAvailable({ userId: '', state: 'disabled', badges: [] });
   }
   search.addEventListener('input', event => { event.stopPropagation(); filter(); });
   search.addEventListener('change', event => event.stopPropagation());
-  clear.addEventListener('click', () => { apply([]); root.dispatchEvent(new Event('input', { bubbles: true })); });
-  updateCount();
-  const legacyPresets = Object.freeze({ iwtlu: Object.freeze(['nitro', 'house-bravery', 'server-booster', 'active-developer']), shakzy: Object.freeze(['nitro', 'house-bravery']), strelokk: Object.freeze(['nitro', 'house-bravery']) });
-  window.IwtxzDiscordBadgePicker = Object.freeze({ read: () => normalize(read()), apply, legacyPresets });
+  showAll.addEventListener('click', () => {
+    for (const item of available) hiddenIds.delete(item.id);
+    status.textContent = ''; updateCount(); announceChange();
+  });
+  hideAll.addEventListener('click', () => {
+    const next = new Set([...hiddenIds, ...available.map(item => item.id)]);
+    if (next.size > catalog.maximum) { status.textContent = 'Достигнут лимит скрытых значков.'; return; }
+    hiddenIds = next;
+    status.textContent = ''; updateCount(); announceChange();
+  });
+  reset();
+  window.IwtxzDiscordBadgePicker = Object.freeze({ readHidden, applyHidden, setAvailable, reset, read: readHidden, apply: applyHidden });
 })();
