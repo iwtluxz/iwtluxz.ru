@@ -289,18 +289,20 @@
         if (settings.discordShowBadges !== false) {
           const tag = profile ? primaryGuildTag(profile.primaryGuild) : null;
           const badgeNodes = chosenBadges.map(profileBadge);
-          const visibleNodes = tag ? [tag, ...badgeNodes] : badgeNodes;
-          if (visibleNodes.length) {
+          if (tag) content.push(tag);
+          if (badgeNodes.length) {
             const strip = document.createElement("span");
             strip.className = "discord-badge-strip";
             if (window.IwtxzBadgeOverflow) {
-              window.IwtxzBadgeOverflow.render(strip, visibleNodes, { owner: nodes.discordBadges });
+              window.IwtxzBadgeOverflow.render(strip, badgeNodes, { owner: nodes.discordBadges });
             } else {
-              strip.append(...visibleNodes.slice(0, 6));
+              strip.append(...badgeNodes.slice(0, 6));
             }
             content.push(strip);
-            hasVisibleBadges = true;
+          } else {
+            window.IwtxzBadgeOverflow?.dispose(nodes.discordBadges);
           }
+          hasVisibleBadges = content.length > 0;
         }
         if (!hasVisibleBadges || settings.showDiscord === false) window.IwtxzBadgeOverflow?.dispose(nodes.discordBadges);
         nodes.discordBadges.replaceChildren(...content);

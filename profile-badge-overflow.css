@@ -1,7 +1,7 @@
 .discord-badge-strip.iwtxz-badge-overflow { display:inline-flex;align-items:center;flex:0 0 auto;flex-wrap:nowrap;gap:4px;white-space:nowrap;max-width:none;overflow:visible; }
-.iwtxz-discord-card .discord-card-top:has(.iwtxz-badge-overflow),.discord-profile-top:has(.iwtxz-badge-overflow) { flex-wrap:nowrap;min-width:0; }
+.iwtxz-discord-card .discord-card-top:has(.iwtxz-badge-overflow),.discord-profile-top:has(.iwtxz-badge-overflow) { flex-wrap:nowrap;min-width:0;gap:2px; }
 .iwtxz-discord-card .discord-card-badges:has(.iwtxz-badge-overflow),.discord-earned-badges:has(.iwtxz-badge-overflow) { flex:0 0 auto;flex-wrap:nowrap;min-width:0;max-width:none;white-space:nowrap; }
-.iwtxz-discord-card .discord-card-top:has(.iwtxz-badge-overflow) > .discord-card-name,.discord-profile-top:has(.iwtxz-badge-overflow) > #discordName { flex:1 1 auto;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.iwtxz-discord-card .discord-card-top:has(.iwtxz-badge-overflow) > .discord-card-name,.discord-profile-top:has(.iwtxz-badge-overflow) > #discordName { flex:0 1 auto;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
 .iwtxz-badge-overflow > .iwtxz-badge { flex-shrink:0; }
 .iwtxz-badge-overflow-count { display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;min-width:25px;height:20px;margin:0;padding:0 4px;border:0;border-radius:5px;color:#dedee3;background:#ffffff0b;font:600 11px/1 "Segoe UI",Arial,sans-serif;letter-spacing:0;white-space:nowrap;cursor:pointer; }
 .iwtxz-badge-overflow-count:hover,.iwtxz-badge-overflow-count[aria-expanded="true"] { color:#fff;background:#ffffff19; }
@@ -27,3 +27,9 @@
 @keyframes iwtxz-badges-in { from { opacity:0;translate:0 4px; } to { opacity:1;translate:0 0; } }
 @media(max-width:360px) { .iwtxz-badge-popover-content { gap:12px;padding:13px;grid-template-columns:minmax(0,1fr) minmax(118px,.9fr); }.iwtxz-badge-popover-choice { padding:8px;min-height:34px; }.iwtxz-badge-popover-art { width:65px;height:65px; } }
 @media(prefers-reduced-motion:reduce) { .iwtxz-badge-popover { animation:none; } }
+
+/* Keep the server tag beside the nickname, separate from the selected badges. */
+.iwtxz-discord-card .discord-card-top:has(.iwtxz-badge-overflow) > .discord-card-name { flex:0 1 auto; }
+.iwtxz-discord-card .discord-card-badges:has(.iwtxz-badge-overflow) { gap:3px; }
+.iwtxz-discord-card .discord-badge-strip.iwtxz-badge-overflow { gap:3px;padding:2px 3px;background:rgba(32,32,36,.32);border-radius:6px; }
+.iwtxz-discord-card .discord-guild-tag { gap:2px;padding:1px 2px;background:rgba(255,255,255,.08); }
