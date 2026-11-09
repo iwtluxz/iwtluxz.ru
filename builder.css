@@ -240,17 +240,17 @@ body.preview-expanded { overflow:hidden; }
 
 
 
-/* Festive Minecraft tree, enlarged and inset from the bottom-left edges. */
+/* Festive Minecraft tree, reduced by 1.5x and shifted slightly left. */
 .sidebar-xmas-tree {
   position: fixed;
-  left: 56px;
+  left: 36px;
   bottom: 48px;
   z-index: 0;
   display: block !important;
   width: auto;
-  height: 720px;
+  height: 480px;
   max-height: 80vh;
-  max-width: 600px;
+  max-width: 400px;
   object-fit: contain;
   object-position: left bottom;
   pointer-events: none;
@@ -260,11 +260,11 @@ body.preview-expanded { overflow:hidden; }
 }
 @media (max-width: 660px) {
   .sidebar-xmas-tree {
-    left: 32px;
+    left: 20px;
     bottom: 32px;
-    height: 448px;
+    height: 299px;
     max-height: 70vh;
-    max-width: 352px;
+    max-width: 235px;
   }
 }
 @media (max-height: 620px) {
