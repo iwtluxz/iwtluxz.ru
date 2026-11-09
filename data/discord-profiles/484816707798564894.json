@@ -24,12 +24,7 @@
   },
   "statusText": "love @me",
   "status": "idle",
-  "activity": {
-    "type": 2,
-    "name": "Dotify",
-    "details": "сожги мосты трахай мозг",
-    "state": "ivycraft"
-  },
+  "activity": null,
   "managedBy": "iwtxz-public-discord-sync",
-  "updatedAt": 1794187128720
+  "updatedAt": 1794189512230
 }
