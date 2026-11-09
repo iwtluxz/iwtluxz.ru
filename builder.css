@@ -240,11 +240,11 @@ body.preview-expanded { overflow:hidden; }
 
 
 
-/* Festive Minecraft tree, reduced by 1.5x and shifted slightly left. */
+/* Festive Minecraft tree, aligned with the bottom edge of the browser viewport. */
 .sidebar-xmas-tree {
   position: fixed;
   left: 36px;
-  bottom: 48px;
+  bottom: 0;
   z-index: 0;
   display: block !important;
   width: auto;
@@ -261,7 +261,7 @@ body.preview-expanded { overflow:hidden; }
 @media (max-width: 660px) {
   .sidebar-xmas-tree {
     left: 20px;
-    bottom: 32px;
+    bottom: 0;
     height: 299px;
     max-height: 70vh;
     max-width: 235px;
