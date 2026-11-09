@@ -237,3 +237,32 @@ body.preview-expanded { overflow:hidden; }
 @media(max-width:660px){.preview-panel.is-expanded{inset:6px;top:6px}.grid-controls{gap:7px}.preview-device select{font-size:12px}}
 @media(max-width:1180px) and (min-width:821px){.workspace{grid-template-columns:minmax(300px,.85fr) minmax(420px,1.15fr);gap:18px;padding:22px 20px}.sidebar{grid-column:1/-1;display:flex;align-items:center;gap:18px;min-width:0}.account-summary{margin:0;min-width:150px}.settings-nav{display:flex;flex:1;flex-wrap:wrap;gap:3px}.nav-button{gap:6px;padding-inline:9px}.sidebar-note,.nav-button>span{display:none}}
 @media(max-width:820px){.workspace{grid-template-columns:minmax(0,1fr)}.sidebar{grid-column:auto}.preview-zoom-controls select{font-size:12px}}
+
+
+/* A small festive tree in the open space beside the cabinet navigation. */
+.sidebar-xmas-tree {
+  position: fixed;
+  left: clamp(12px, 2vw, 28px);
+  bottom: clamp(20px, 5vh, 48px);
+  z-index: 2;
+  display: block;
+  width: clamp(120px, 29vw, 160px);
+  max-height: 34vh;
+  height: auto;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  opacity: .98;
+  filter: drop-shadow(0 8px 22px rgba(34, 210, 126, .14));
+  transform-origin: 50% 100%;
+  animation: sidebarXmasFloat 5.4s ease-in-out infinite;
+}
+
+@keyframes sidebarXmasFloat {
+  0%, 100% { transform: translateY(0) rotate(-.7deg); }
+  50% { transform: translateY(-6px) rotate(.7deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-xmas-tree { animation: none; }
+}
