@@ -16,12 +16,7 @@
   "primaryGuild": null,
   "avatarDecoration": null,
   "statusText": "i hope you know you're everything to me",
-  "status": "dnd",
-  "activity": {
-    "type": 0,
-    "name": "ROBLOX",
-    "details": "",
-    "state": ""
-  },
-  "updatedAt": 1794314848213
+  "status": "offline",
+  "activity": null,
+  "updatedAt": 1794349860124
 }

@@ -23,13 +23,8 @@
     "skuId": "1252404760448077864"
   },
   "statusText": "love @me",
-  "status": "idle",
-  "activity": {
-    "type": 0,
-    "name": "ROBLOX",
-    "details": "",
-    "state": ""
-  },
+  "status": "offline",
+  "activity": null,
   "managedBy": "iwtxz-public-discord-sync",
-  "updatedAt": 1794332442159
+  "updatedAt": 1794349862758
 }
