@@ -17,6 +17,11 @@
   "avatarDecoration": null,
   "statusText": "i hope you know you're everything to me",
   "status": "dnd",
-  "activity": null,
-  "updatedAt": 1794305092481
+  "activity": {
+    "type": 2,
+    "name": "Dotify",
+    "details": "top model",
+    "state": "FORTUNA 812"
+  },
+  "updatedAt": 1794313477998
 }
