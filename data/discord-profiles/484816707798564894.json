@@ -25,11 +25,11 @@
   "statusText": "love @me",
   "status": "idle",
   "activity": {
-    "type": 2,
-    "name": "Dotify",
-    "details": "id",
-    "state": "FORTUNA 812, Clayt Carter, LONOWN"
+    "type": 0,
+    "name": "ROBLOX",
+    "details": "",
+    "state": ""
   },
   "managedBy": "iwtxz-public-discord-sync",
-  "updatedAt": 1794314852668
+  "updatedAt": 1794332442159
 }
