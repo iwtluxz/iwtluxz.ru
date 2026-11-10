@@ -240,17 +240,17 @@ body.preview-expanded { overflow:hidden; }
 
 
 
-/* Festive Minecraft tree, aligned with the bottom edge of the browser viewport. */
+/* Responsive Christmas tree: anchored to the viewport, scales with screen size and browser zoom. */
 .sidebar-xmas-tree {
   position: fixed;
-  left: 36px;
+  left: clamp(10px, 1.5vw, 34px);
   bottom: 0;
   z-index: 0;
   display: block !important;
   width: auto;
-  height: 480px;
-  max-height: 80vh;
-  max-width: 400px;
+  height: clamp(180px, calc(20vh + 5vw + 200px), 620px);
+  max-height: 78vh;
+  max-width: min(38vw, 450px);
   object-fit: contain;
   object-position: left bottom;
   pointer-events: none;
@@ -258,15 +258,12 @@ body.preview-expanded { overflow:hidden; }
   opacity: .94;
   filter: drop-shadow(0 6px 16px rgba(255, 180, 45, .12));
 }
-@media (max-width: 660px) {
+/* Compact layout only on touch phones: desktop browser zoom keeps the fluid size. */
+@media (max-width: 660px) and (pointer: coarse) {
   .sidebar-xmas-tree {
-    left: 20px;
-    bottom: 0;
-    height: 299px;
-    max-height: 70vh;
-    max-width: 235px;
+    left: clamp(6px, 2vw, 16px);
+    height: clamp(120px, calc(18vh + 6vw + 65px), 280px);
+    max-height: 36vh;
+    max-width: 44vw;
   }
-}
-@media (max-height: 620px) {
-  .sidebar-xmas-tree { max-height: 80vh; opacity: .88; }
 }
