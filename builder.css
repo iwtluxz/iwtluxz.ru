@@ -240,17 +240,17 @@ body.preview-expanded { overflow:hidden; }
 
 
 
-/* Responsive Christmas tree: anchored to the viewport, scales with screen size and browser zoom. */
+/* Scale with desktop viewport; sit flush against the bottom-left edge. */
 .sidebar-xmas-tree {
   position: fixed;
-  left: clamp(10px, 1.5vw, 34px);
+  left: 0;
   bottom: 0;
   z-index: 0;
-  display: block !important;
+  display: block;
   width: auto;
-  height: clamp(180px, calc(20vh + 5vw + 200px), 620px);
-  max-height: 78vh;
-  max-width: min(38vw, 450px);
+  height: min(47vh, 32vw);
+  max-width: 34vw;
+  max-height: 70vh;
   object-fit: contain;
   object-position: left bottom;
   pointer-events: none;
@@ -258,12 +258,9 @@ body.preview-expanded { overflow:hidden; }
   opacity: .94;
   filter: drop-shadow(0 6px 16px rgba(255, 180, 45, .12));
 }
-/* Compact layout only on touch phones: desktop browser zoom keeps the fluid size. */
-@media (max-width: 660px) and (pointer: coarse) {
+/* Hide on phones, including landscape orientation. */
+@media (max-width: 767px), (max-height: 480px) and (pointer: coarse) {
   .sidebar-xmas-tree {
-    left: clamp(6px, 2vw, 16px);
-    height: clamp(120px, calc(18vh + 6vw + 65px), 280px);
-    max-height: 36vh;
-    max-width: 44vw;
+    display: none !important;
   }
 }
