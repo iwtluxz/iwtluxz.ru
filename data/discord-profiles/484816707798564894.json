@@ -25,11 +25,11 @@
   "statusText": "love @me",
   "status": "idle",
   "activity": {
-    "type": 2,
-    "name": "Dotify",
-    "details": "one more time",
-    "state": "тёмный принц"
+    "type": 0,
+    "name": "ROBLOX",
+    "details": "",
+    "state": ""
   },
   "managedBy": "iwtxz-public-discord-sync",
-  "updatedAt": 1794388541847
+  "updatedAt": 1794416966992
 }
