@@ -5,8 +5,8 @@
   "username": "facelesshvh",
   "globalName": "faceless",
   "displayName": "faceless",
-  "avatarHash": "1d9cad7cb8c79888116a1b50440b27ac",
-  "avatarUrl": "https://cdn.discordapp.com/avatars/711225785150865428/1d9cad7cb8c79888116a1b50440b27ac.png?size=256",
+  "avatarHash": "ace7ac85fb3ef0a5e3a6e33b7985a708",
+  "avatarUrl": "https://cdn.discordapp.com/avatars/711225785150865428/ace7ac85fb3ef0a5e3a6e33b7985a708.png?size=256",
   "badges": [
     {
       "id": "house-bravery",
@@ -26,5 +26,5 @@
   "status": "dnd",
   "activity": null,
   "managedBy": "iwtxz-public-discord-sync",
-  "updatedAt": 1794513052033
+  "updatedAt": 1794530602544
 }

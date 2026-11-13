@@ -16,12 +16,7 @@
   "primaryGuild": null,
   "avatarDecoration": null,
   "statusText": "i hope you know you're everything to me",
-  "status": "dnd",
-  "activity": {
-    "type": 2,
-    "name": "Dotify",
-    "details": "right here w/ horsehead",
-    "state": "Lil Peep"
-  },
-  "updatedAt": 1794513050110
+  "status": "offline",
+  "activity": null,
+  "updatedAt": 1794530600305
 }
