@@ -16,7 +16,12 @@
   "primaryGuild": null,
   "avatarDecoration": null,
   "statusText": "i hope you know you're everything to me",
-  "status": "offline",
-  "activity": null,
-  "updatedAt": 1794605353135
+  "status": "dnd",
+  "activity": {
+    "type": 2,
+    "name": "Dotify",
+    "details": "popstar remix *Garcon Magire, Перемотка*",
+    "state": "cloniu"
+  },
+  "updatedAt": 1794643081896
 }
