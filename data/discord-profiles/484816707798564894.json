@@ -13,11 +13,7 @@
       "label": "HypeSquad Bravery"
     }
   ],
-  "primaryGuild": {
-    "guildId": "1336820993393430549",
-    "tag": "ٴٴ",
-    "badge": "3061c2920569023dde8f0d630ced6c26"
-  },
+  "primaryGuild": null,
   "avatarDecoration": {
     "asset": "a_d260c70fa8f38c499fa452c3cbdc5a0c",
     "skuId": "1252404760448077864"
@@ -26,5 +22,5 @@
   "status": "offline",
   "activity": null,
   "managedBy": "iwtxz-public-discord-sync",
-  "updatedAt": 1794736373779
+  "updatedAt": 1794760741675
 }
