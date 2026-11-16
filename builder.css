@@ -237,30 +237,3 @@ body.preview-expanded { overflow:hidden; }
 @media(max-width:660px){.preview-panel.is-expanded{inset:6px;top:6px}.grid-controls{gap:7px}.preview-device select{font-size:12px}}
 @media(max-width:1180px) and (min-width:821px){.workspace{grid-template-columns:minmax(300px,.85fr) minmax(420px,1.15fr);gap:18px;padding:22px 20px}.sidebar{grid-column:1/-1;display:flex;align-items:center;gap:18px;min-width:0}.account-summary{margin:0;min-width:150px}.settings-nav{display:flex;flex:1;flex-wrap:wrap;gap:3px}.nav-button{gap:6px;padding-inline:9px}.sidebar-note,.nav-button>span{display:none}}
 @media(max-width:820px){.workspace{grid-template-columns:minmax(0,1fr)}.sidebar{grid-column:auto}.preview-zoom-controls select{font-size:12px}}
-
-
-
-/* Scale with desktop viewport; sit flush against the bottom-left edge. */
-.sidebar-xmas-tree {
-  position: fixed;
-  left: 0;
-  bottom: 0;
-  z-index: 0;
-  display: block;
-  width: auto;
-  height: min(47vh, 32vw);
-  max-width: 34vw;
-  max-height: 70vh;
-  object-fit: contain;
-  object-position: left bottom;
-  pointer-events: none;
-  user-select: none;
-  opacity: .94;
-  filter: drop-shadow(0 6px 16px rgba(255, 180, 45, .12));
-}
-/* Hide on phones, including landscape orientation. */
-@media (max-width: 767px), (max-height: 480px) and (pointer: coarse) {
-  .sidebar-xmas-tree {
-    display: none !important;
-  }
-}
