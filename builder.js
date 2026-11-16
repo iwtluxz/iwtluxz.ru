@@ -355,6 +355,16 @@
     $("#avatarSizeValue").value = `${currentSite.avatarSize} px`;
     $("#backgroundDimValue").value = `${currentSite.backgroundDim}%`;
     $("#nicknameGradientAngleValue").value = `${currentSite.nicknameGradientAngle}°`;
+    const gradientSample = $("#nicknameGradientSample");
+    gradientSample.textContent = currentSite.nickname || "nickname";
+    const gradientPreview = gradientSample.parentElement?.style;
+    gradientPreview?.setProperty("--ng-start", currentSite.nicknameGradientStart);
+    gradientPreview?.setProperty("--ng-end", currentSite.nicknameGradientEnd);
+    gradientPreview?.setProperty("--ng-angle", `${currentSite.nicknameGradientAngle}deg`);
+    all('#editorForm input[type="range"]').forEach((range) => {
+      const min = Number(range.min) || 0, max = Number(range.max) || 100;
+      range.style.setProperty("--fill", `${((Number(range.value) - min) / (max - min)) * 100}%`);
+    });
     $("#discordCardOpacityValue").value = `${currentSite.discordCardOpacity}%`;
     $("#discordCardRadiusValue").value = `${currentSite.discordCardRadius} px`;
     updateDiscordHint();
@@ -456,6 +466,8 @@
       if (active) button.setAttribute("aria-current", "page"); else button.removeAttribute("aria-current");
     });
     $("#editorActions").classList.toggle("hidden", name === "security");
+    const panel = $(".editor-panel");
+    if (panel && panel.getBoundingClientRect().top < 0) panel.scrollIntoView({ block: "start", behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ? "auto" : "smooth" });
   }
 
   function resetSession() {

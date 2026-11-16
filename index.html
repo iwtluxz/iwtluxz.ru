@@ -7,7 +7,7 @@
   <meta name="description" content="Твоя страница iwtxz: аватар, музыка, фон и ссылки.">
   <link rel="icon" type="image/png" href="img/tree.png">
   <link rel="preload" href="font/minecraft.ttf" as="font" type="font/ttf" crossorigin>
-  <link rel="stylesheet" href="builder.css?v=71ce885e7477">
+  <link rel="stylesheet" href="builder.css?v=d9d1fbf8ef1c">
   <title>Личный кабинет · iwtxz</title>
   <script src="profile-links.js?v=40c61c4a7df8" defer></script>
   <script src="vendor/supabase-2.102.0.min.js" defer></script>
@@ -27,7 +27,7 @@
   <script src="builder-discord-badges.js?v=0dfb6a1ce948" defer></script>
   <script src="profile-badge-overflow.js?v=02511a5dba22" defer></script>
   <script src="site-chrome.js?v=ce01c35cfc2f" defer></script>
-  <script src="builder.js?v=4b8c8e5978f4" defer></script>
+  <script src="builder.js?v=cb55668124b3" defer></script>
   <script src="builder-discord-dialog.js?v=f038935de49e" defer></script>
   <link rel="stylesheet" href="profile-features.css?v=6e54ed2cdc6c">
   <link rel="stylesheet" href="music-services.css?v=b83e04cda2b4">
@@ -64,12 +64,12 @@
     <aside class="sidebar requires-auth" aria-label="Разделы кабинета">
       <div class="panel account-summary"><img id="accountAvatar" class="account-avatar" src="img/tree.png" alt=""><div><strong id="accountName"></strong><span class="hint">Моя страница</span></div></div>
       <nav class="settings-nav" aria-label="Настройки страницы">
-        <button class="nav-button active" data-section="profile" type="button" aria-current="page"><span>01</span> Профиль</button>
-        <button class="nav-button" data-section="effects" type="button"><span>02</span> Эффекты</button>
-        <button class="nav-button" data-section="appearance" type="button"><span>03</span> Оформление</button>
-        <button class="nav-button" data-section="music" type="button"><span>04</span> Музыка</button>
-        <button class="nav-button" data-section="links" type="button"><span>05</span> Соцсети</button>
-        <button class="nav-button" data-section="security" type="button"><span>06</span> Аккаунт</button>
+        <button class="nav-button active" data-section="profile" type="button" aria-current="page" title="Ник, аватар, описание и вкладка браузера"><svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"/></svg><span class="tab-label">Профиль</span></button>
+        <button class="nav-button" data-section="effects" type="button" title="Фон, курсор, анимации и украшение аватара"><svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 3l1.9 5.1L18 10l-5.1 1.9L11 17l-1.9-5.1L4 10l5.1-1.9z"/><path d="M19 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/></svg><span class="tab-label">Эффекты</span></button>
+        <button class="nav-button" data-section="appearance" type="button" title="Размер аватарки, фон, цвет и шрифт"><svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-.9 2-1.8 0-.5-.2-.9-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1 .8-1.6 1.8-1.6H17a4 4 0 0 0 4-4C21 6.5 17 3 12 3z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7.5" r="1"/><circle cx="14.5" cy="7.5" r="1"/></svg><span class="tab-label">Оформление</span></button>
+        <button class="nav-button" data-section="music" type="button" title="Трек, библиотека и плеер"><svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg><span class="tab-label">Музыка</span></button>
+        <button class="nav-button" data-section="links" type="button" title="Соцсети и карточка Discord"><svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1"/></svg><span class="tab-label">Соцсети</span></button>
+        <button class="nav-button" data-section="security" type="button" title="Вход, почта и пароль"><svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9.5 12l2 2 3.5-4"/></svg><span class="tab-label">Аккаунт</span></button>
       </nav>
       <div class="sidebar-note"><span class="live-dot" aria-hidden="true"></span> Меняй настройки и смотри результат справа.</div>
     </aside>
@@ -81,34 +81,50 @@
       <div class="published-banner hidden" id="publishedBanner"><strong>Страница опубликована</strong><a class="button primary small" id="openProfileTop" target="_blank" rel="noopener noreferrer">Открыть страницу ↗</a></div>
       <form id="editorForm" novalidate>
         <section class="settings-section" data-settings-section="profile" aria-labelledby="profileHeading">
-          <h2 id="profileHeading">Профиль</h2><button class="effects-shortcut" type="button" id="openEffects"><span class="effects-shortcut-icon" aria-hidden="true">✧</span><span><strong>Анимация ника и украшение аватара</strong><small id="effectsSummary">Открыть эффекты</small></span><span aria-hidden="true">↗</span></button>
+          <header class="section-head"><span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"/></svg></span><div><h2 id="profileHeading">Профиль</h2><p class="section-description">Как тебя видят на странице: аватарка, ник, описание и вид вкладки в браузере.</p></div></header>
+          <button class="effects-shortcut" type="button" id="openEffects"><span class="effects-shortcut-icon" aria-hidden="true">✧</span><span><strong>Анимация ника и украшение аватара</strong><small id="effectsSummary">Открыть эффекты</small></span><span aria-hidden="true">↗</span></button>
+          <div class="settings-group">
+          <div class="group-head"><h3>Основное</h3><p class="hint">Аватарка, ник и описание — первое, что видят на странице.</p></div>
           <div class="upload-card"><img id="avatarThumbnail" class="avatar-thumbnail" src="img/tree.png" alt="Текущая аватарка"><div class="upload-details"><label for="avatarFile">Аватарка</label><input id="avatarFile" data-upload="avatar" type="file" accept="image/png,image/jpeg,image/gif,image/webp"><span class="hint" data-file-note="avatar">PNG, JPG, GIF или WebP · до 4 МБ</span></div><button type="button" class="text-button" data-remove="avatar">Убрать</button></div>
           <details class="url-details"><summary>Или указать ссылку на аватарку</summary><label class="field">Ссылка<input id="avatarUrl" data-asset-url="avatar" type="url" placeholder="https://…"></label></details>
 
           <div class="form-grid">
-            <label class="field">Ник на странице<input id="nickname" maxlength="40" placeholder="Как тебя зовут?" required></label>
-            <label class="field">Название вкладки<input id="title" maxlength="80" placeholder="Моя страница" required></label>
+            <label class="field wide">Ник на странице<input id="nickname" maxlength="40" placeholder="Как тебя зовут?" required></label>
+            <label class="field wide">О себе<textarea id="description" maxlength="500" rows="4" placeholder="Пара слов, цитата или просто настроение"></textarea><span class="hint" id="descriptionCount">0 / 500</span></label>
+            <label class="field wide">Текст на экране входа<input id="entryText" maxlength="80" placeholder="click to enter..."><span class="hint">Показывается посетителю до того, как он зайдёт на страницу.</span></label>
+          </div>
+          </div>
+          <div class="settings-group">
+            <div class="group-head"><h3>Размеры</h3><p class="hint">Как карточка и текст выглядят на странице.</p></div>
+            <div class="form-grid">
             <label class="field">Заполнение аватара<select id="avatarFit"><option value="cover">Заполнить круг</option><option value="contain">Показать целиком</option></select></label>
             <label class="field">Масштаб карточки, %<input id="profileScale" type="number" min="70" max="120" value="100"></label>
             <label class="field">Размер ника, px<input id="nicknameSize" type="number" min="18" max="52" value="32"></label>
             <label class="field">Размер описания, px<input id="descriptionSize" type="number" min="10" max="32" value="16"></label>
-
-            <label class="field wide">О себе<textarea id="description" maxlength="500" rows="4" placeholder="Пара слов, цитата или просто настроение"></textarea><span class="hint" id="descriptionCount">0 / 500</span></label>
-            <label class="field wide">Текст на экране входа<input id="entryText" maxlength="80" placeholder="click to enter..."></label>
+            </div>
           </div>
-          <div class="settings-group typewriter-settings"><h3>Название вкладки</h3><label class="checkbox-field"><input id="typewriterEnabled" type="checkbox"><span>Печатная машинка рядом с иконкой сайта</span></label><label class="field">Фразы для вкладки<textarea id="typewriterText" maxlength="300" rows="3" placeholder="Каждая новая строка — отдельная фраза"></textarea></label><label class="field">Задержка между буквами, мс<input id="typewriterSpeed" type="range" min="20" max="200" value="70"><span class="hint">Меньше — быстрее. Пустое поле использует название вкладки.</span></label></div>
-          <div class="settings-group">
-            <h3>Градиент ника</h3>
+          <div class="settings-group typewriter-settings">
+            <div class="group-head"><h3>Вкладка браузера</h3><p class="hint">Название и иконка, которые видны во вкладке с твоей страницей.</p></div>
+            <div class="form-grid"><label class="field wide">Название вкладки<input id="title" maxlength="80" placeholder="Моя страница" required></label></div>
+            <div class="upload-card"><div class="upload-details"><label for="faviconFile">Иконка вкладки</label><input id="faviconFile" data-upload="favicon" type="file" accept="image/png,image/jpeg,image/webp"><span class="hint" data-file-note="favicon">Твоя иконка сайта · PNG, JPG или WebP · до 4 МБ</span></div><button type="button" class="text-button" data-remove="favicon">Убрать</button></div>
+            <label class="checkbox-field"><input id="typewriterEnabled" type="checkbox"><span>Печатная машинка рядом с иконкой сайта</span></label>
+            <div class="dependent-fields"><label class="field">Фразы для вкладки<textarea id="typewriterText" maxlength="300" rows="3" placeholder="Каждая новая строка — отдельная фраза"></textarea></label><label class="field range-field">Задержка между буквами, мс<input id="typewriterSpeed" type="range" min="20" max="200" value="70"><span class="hint">Меньше — быстрее. Пустое поле использует название вкладки.</span></label></div>
+          </div>
+          <div class="settings-group gradient-settings">
+            <div class="group-head"><h3>Градиент ника</h3><p class="hint">Плавный переход между двумя цветами в твоём нике.</p></div>
             <label class="checkbox-field"><input id="nicknameGradient" type="checkbox"><span>Окрасить ник градиентом</span></label>
+            <div class="dependent-fields">
+            <div class="gradient-preview" aria-hidden="true"><span id="nicknameGradientSample">nickname</span></div>
             <div class="form-grid"><label class="field">Первый цвет<input id="nicknameGradientStart" type="color" value="#ffffff"></label><label class="field">Второй цвет<input id="nicknameGradientEnd" type="color" value="#a1a1aa"></label></div>
             <label class="field range-field">Направление<output for="nicknameGradientAngle" id="nicknameGradientAngleValue">90°</output><input id="nicknameGradientAngle" type="range" min="0" max="360" value="90"></label>
+            </div>
           </div>
-          <div class="upload-card"><div class="upload-details"><label for="faviconFile">Иконка вкладки</label><input id="faviconFile" data-upload="favicon" type="file" accept="image/png,image/jpeg,image/webp"><span class="hint" data-file-note="favicon">Твоя иконка сайта · PNG, JPG или WebP · до 4 МБ</span></div><button type="button" class="text-button" data-remove="favicon">Убрать</button></div>
         </section>
         <section class="settings-section hidden" data-settings-section="effects" aria-labelledby="effectsHeading">
-          <div class="effects-heading"><div><h2 id="effectsHeading">Эффекты</h2><p class="section-description">Добавь движения своей странице.</p></div><button class="button small" id="randomizeEffects" type="button">Случайная пара ↗</button></div>
-          <div class="scene-fields"><h3>Живой фон</h3><div class="form-grid"><label class="field">Эффект<select id="backgroundEffect"><option value="none">Без эффекта</option><option value="snow">Снег</option><option value="rain">Дождь</option><option value="matrix">Матрица</option><option value="glitch">Глитч</option><option value="parallax">Параллакс</option></select></label><label class="field">Насыщенность<input id="effectIntensity" type="range" min="10" max="100" value="50" aria-label="Насыщенность эффекта"></label></div><label class="checkbox-field"><input id="profileTilt" type="checkbox"><span>3D-наклон карточки за курсором</span></label><label class="field">Курсор<select id="cursorStyle"><option value="default">Системный</option><option value="dot">Светящаяся точка</option><option value="ring">Кольцо</option><option value="crosshair">Прицел</option></select></label><div class="upload-card"><div class="upload-details"><label for="customCursorFile">Своя картинка курсора</label><input id="customCursorFile" data-upload="customCursor" type="file" accept="image/png,image/webp"><span class="hint" data-file-note="customCursor">PNG или WebP, желательно квадратный · до 4 МБ</span></div><button class="text-button" type="button" data-remove="customCursor">Убрать</button></div></div>
-          <div class="settings-group"><h3>Настройки курсора</h3><div class="form-grid"><label class="field">Размер, px<input id="cursorSize" type="number" min="12" max="96" value="24"></label><label class="field">Непрозрачность, %<input id="cursorOpacity" type="number" min="20" max="100" value="100"></label><label class="field">Цвет<input id="cursorColor" type="color" value="#ffffff"></label><label class="field">Точка нажатия<select id="cursorHotspot"><option value="center">Центр картинки</option><option value="top-left">Верхний левый угол</option></select></label></div><p class="hint">Свой курсор виден при управлении мышью. Цвет применяется к точке, кольцу и прицелу.</p></div>
+          <div class="effects-heading section-head"><span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M11 3l1.9 5.1L18 10l-5.1 1.9L11 17l-1.9-5.1L4 10l5.1-1.9z"/><path d="M19 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/></svg></span><div><h2 id="effectsHeading">Эффекты</h2><p class="section-description">Добавь движения своей странице: фон, курсор и анимации текста.</p></div><button class="button small" id="randomizeEffects" type="button">Случайная пара ↗</button></div>
+          <div class="settings-group scene-fields"><div class="group-head"><h3>Живой фон</h3><p class="hint">Анимированные частицы поверх фона страницы.</p></div><div class="form-grid"><label class="field">Эффект<select id="backgroundEffect"><option value="none">Без эффекта</option><option value="snow">Снег</option><option value="rain">Дождь</option><option value="matrix">Матрица</option><option value="glitch">Глитч</option><option value="parallax">Параллакс</option></select></label><label class="field range-field">Насыщенность<input id="effectIntensity" type="range" min="10" max="100" value="50" aria-label="Насыщенность эффекта"></label></div><label class="checkbox-field"><input id="profileTilt" type="checkbox"><span>3D-наклон карточки за курсором</span></label></div>
+          <div class="settings-group"><div class="group-head"><h3>Курсор</h3><p class="hint">Свой курсор виден при управлении мышью. Цвет применяется к точке, кольцу и прицелу.</p></div><label class="field">Стиль курсора<select id="cursorStyle"><option value="default">Системный</option><option value="dot">Светящаяся точка</option><option value="ring">Кольцо</option><option value="crosshair">Прицел</option></select></label><div class="upload-card"><div class="upload-details"><label for="customCursorFile">Своя картинка курсора</label><input id="customCursorFile" data-upload="customCursor" type="file" accept="image/png,image/webp"><span class="hint" data-file-note="customCursor">PNG или WebP, желательно квадратный · до 4 МБ</span></div><button class="text-button" type="button" data-remove="customCursor">Убрать</button></div><div class="form-grid"><label class="field">Размер, px<input id="cursorSize" type="number" min="12" max="96" value="24"></label><label class="field">Непрозрачность, %<input id="cursorOpacity" type="number" min="20" max="100" value="100"></label><label class="field">Цвет<input id="cursorColor" type="color" value="#ffffff"></label><label class="field">Точка нажатия<select id="cursorHotspot"><option value="center">Центр картинки</option><option value="top-left">Верхний левый угол</option></select></label></div></div>
+          <div class="settings-group"><div class="group-head"><h3>Анимация ника</h3><p class="hint">Так ник будет двигаться на странице. Пример — в рамке ниже.</p></div>
           <div class="effect-demo" aria-hidden="true"><span id="nicknameEffectDemo">nickname</span></div>
             <label class="field wide">Анимация ника<select id="nicknameAnimation">
             <!-- nickname-animations:start -->
@@ -132,7 +148,8 @@
 <option value="orbit">Орбита</option>
 <option value="heartbeat">Сердцебиение</option>
           <!-- nickname-animations:end -->
-            </select></label>
+            </select></label></div>
+          <div class="settings-group"><div class="group-head"><h3>Анимация описания</h3><p class="hint">Движение текста «О себе».</p></div>
           <div class="effect-demo description-effect-demo"><span id="descriptionEffectDemo">Твоё описание</span></div><label class="field">Анимация описания<select id="descriptionAnimation"><!-- description-animations:start -->
 <option value="none">Без анимации</option>
 <option value="glow">Мягкое свечение</option>
@@ -143,8 +160,8 @@
 <option value="flicker">Мерцание</option>
 <option value="wave">Покачивание</option>
 <option value="gradient">Цветной перелив</option>
-          <!-- description-animations:end --></select></label>
-          <div class="decoration-settings"><div class="decoration-heading"><h3>Украшение аватара</h3><span id="decorationLabel">Без украшения</span></div><input id="avatarDecoration" type="hidden" value="none"><div class="decoration-picker" id="decorationPicker" aria-label="Украшения аватара">
+          <!-- description-animations:end --></select></label></div>
+          <div class="decoration-settings settings-group"><div class="decoration-heading group-head"><h3>Украшение аватара</h3><span id="decorationLabel">Без украшения</span></div><input id="avatarDecoration" type="hidden" value="none"><div class="decoration-picker" id="decorationPicker" aria-label="Украшения аватара">
           <!-- decoration-picker:start -->
 <button type="button" class="decoration-option selected" data-decoration="none" aria-pressed="true"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><span class="decoration-mode">—</span></span><span>Без украшения</span></button>
 <button type="button" class="decoration-option" data-decoration="discord" aria-pressed="false"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><span class="decoration-mode">DS</span></span><span>Из Discord</span></button>
@@ -190,17 +207,20 @@
           <p class="decoration-discord-hint" id="discordDecorationHint"></p><button type="button" class="text-button hidden" id="undoEffects">Отменить случайный выбор</button>
         </section>
         <section class="settings-section hidden" data-settings-section="appearance" aria-labelledby="appearanceHeading">
-          <h2 id="appearanceHeading">Оформление</h2>
-          <label class="field range-field">Размер аватарки<output for="avatarSize" id="avatarSizeValue">150 px</output><input id="avatarSize" type="range" min="80" max="220" step="2" value="150"></label>
+          <header class="section-head"><span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-.9 2-1.8 0-.5-.2-.9-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1 .8-1.6 1.8-1.6H17a4 4 0 0 0 4-4C21 6.5 17 3 12 3z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7.5" r="1"/><circle cx="14.5" cy="7.5" r="1"/></svg></span><div><h2 id="appearanceHeading">Оформление</h2><p class="section-description">Общий вид страницы: размер аватарки, фон, цвета и шрифт.</p></div></header>
+          <div class="settings-group"><div class="group-head"><h3>Аватарка</h3><p class="hint">Размер круга с аватаркой на странице.</p></div>
+          <label class="field range-field">Размер аватарки<output for="avatarSize" id="avatarSizeValue">150 px</output><input id="avatarSize" type="range" min="80" max="220" step="2" value="150"></label></div>
+          <div class="settings-group"><div class="group-head"><h3>Фон</h3><p class="hint">Картинка, GIF или видео за карточкой профиля.</p></div>
           <div class="upload-card"><div class="upload-details"><label for="backgroundFile">Фон страницы</label><input id="backgroundFile" data-upload="background" type="file" accept="image/png,image/jpeg,image/gif,image/webp,video/mp4,video/webm"><span class="hint" data-file-note="background">Картинка, GIF, MP4 или WebM · до 4 МБ</span></div><button type="button" class="text-button" data-remove="background">Убрать</button></div>
           <details class="url-details"><summary>Или указать ссылку на фон</summary><label class="field">Ссылка<input id="backgroundUrl" data-asset-url="background" type="url" placeholder="https://…"></label><label class="field">Тип фона<select id="backgroundType"><option value="image">Картинка / GIF</option><option value="video">Видео</option></select></label></details>
-          <label class="field range-field">Затемнение фона<output for="backgroundDim" id="backgroundDimValue">58%</output><input id="backgroundDim" type="range" min="0" max="85" value="58"></label>
+          <label class="field range-field">Затемнение фона<output for="backgroundDim" id="backgroundDimValue">58%</output><input id="backgroundDim" type="range" min="0" max="85" value="58"></label></div>
+          <div class="settings-group"><div class="group-head"><h3>Цвет и шрифт</h3><p class="hint">Акцентный цвет и шрифт, которым набрана твоя страница.</p></div>
           <div class="form-grid"><label class="field">Цвет акцента страницы<input id="accentColor" type="color" value="#f5f5f7"></label><label class="field">Шрифт страницы<select id="font"><option value="minecraft">Minecraft</option><option value="system">Обычный</option><option value="custom">Свой шрифт</option></select><span class="hint">Меняет превью и твою страницу. Кабинет остаётся в Minecraft.</span></label></div>
           <div class="upload-card"><span class="font-file-icon" aria-hidden="true">Aa</span><div class="upload-details"><label for="customFontFile">Свой шрифт</label><input id="customFontFile" data-upload="customFont" type="file" accept=".woff,.woff2,.ttf,.otf,font/woff,font/woff2,font/ttf,font/otf"><span class="hint" data-file-note="customFont">WOFF, WOFF2, TTF или OTF · до 4 МБ</span></div><button type="button" class="text-button" data-remove="customFont">Убрать</button></div>
           <details class="url-details"><summary>Или указать ссылку на шрифт</summary><label class="field">Прямая ссылка на файл<input id="customFontUrl" data-asset-url="customFont" type="url" placeholder="https://…/font.woff2"></label><span class="hint">Сервер со шрифтом должен разрешать загрузку с других сайтов.</span></details>
-          <p class="hint" id="customFontStatus" role="status" aria-live="polite"></p>
+          <p class="hint" id="customFontStatus" role="status" aria-live="polite"></p></div>
           <div class="settings-group">
-            <h3>Украшения</h3>
+            <div class="group-head"><h3>Значки</h3></div>
             <fieldset class="badge-picker"><legend>Значки на странице</legend><p class="hint">Значки рядом с ником. Значки Discord выбираются отдельно в настройках плашки.</p><div class="badge-options">
               <label><input type="checkbox" data-profile-badge="star"><span aria-hidden="true">★</span> Звезда</label>
               <label><input type="checkbox" data-profile-badge="heart"><span aria-hidden="true">♡</span> Сердце</label>
@@ -213,7 +233,7 @@
           </div>
         </section>
         <section class="settings-section hidden" data-settings-section="music" aria-labelledby="musicHeading">
-          <h2 id="musicHeading">Музыка</h2><p class="section-description">Твоя библиотека, аудиофайлы и ссылки — всё для музыки на странице.</p>
+          <header class="section-head"><span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg></span><div><h2 id="musicHeading">Музыка</h2><p class="section-description">Твоя библиотека, аудиофайлы и ссылки — всё для музыки на странице.</p></div></header>
           <div class="music-own-files" id="ownMusicFiles">
           <div class="music-library" id="musicLibrary"><h3>Моя библиотека</h3><p class="hint">YouTube, Bandcamp или Vimeo. SoundCloud пока недоступен.</p><div class="library-import"><input type="url" data-library-url placeholder="Ссылка на трек" aria-label="Ссылка для библиотеки" maxlength="1000"><button class="button" type="button" data-library-import>Добавить</button></div><p class="status" role="status" aria-live="polite" data-library-status></p><ul class="library-list" data-library-list></ul></div>
           <div class="upload-card"><div class="upload-details"><label for="musicFile">Твой трек</label><input id="musicFile" data-upload="music" type="file" accept="audio/mpeg,audio/mp3,audio/ogg,audio/wav,audio/x-wav,audio/mp4,audio/webm"><span class="hint" data-file-note="music">MP3, OGG, WAV, M4A или WebM · до 4 МБ</span></div><button type="button" class="text-button" data-remove="music">Убрать</button></div>
@@ -223,7 +243,7 @@
           <label class="checkbox-field"><input id="musicLoop" type="checkbox" checked><span>Повторять трек</span></label>
           </div>
 
-          <div class="settings-group music-player-settings"><h3>Плеер</h3>          <label class="field">Вид плеера<select id="musicPlayerStyle"><option value="classic">Классический</option><option value="compact">Компактный</option></select></label>
+          <div class="settings-group music-player-settings"><div class="group-head"><h3>Плеер</h3><p class="hint">Как плеер выглядит на твоей странице.</p></div>          <label class="field">Вид плеера<select id="musicPlayerStyle"><option value="classic">Классический</option><option value="compact">Компактный</option></select></label>
 </div>
           <details class="service-catalog-section"><summary>Подборки и поиск по сервисам</summary>          <div class="music-catalog" id="musicCatalog" data-music-service="yandex">
             <div class="catalog-services" data-catalog-services role="group" aria-label="Музыкальный сервис"></div>
@@ -236,7 +256,7 @@
 </details>
         </section>
         <section class="settings-section hidden" data-settings-section="links" aria-labelledby="linksHeading">
-          <h2 id="linksHeading">Соцсети</h2><p class="section-description">Выбери сеть и добавь ссылку.</p>
+          <header class="section-head"><span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1"/></svg></span><div><h2 id="linksHeading">Соцсети</h2><p class="section-description">Нажми на сеть и добавь ссылку — она появится на странице. Заполненные помечены «Добавлено».</p></div></header>
           <div class="social-editor" id="socialEditor">
           <!-- social-editor:start -->
 <details class="social-field" data-social-field="discord"><summary><img src="img/socials/discord.svg" alt="" loading="lazy"><span>Discord</span><small data-social-state>Добавить</small></summary><div class="social-field-body"><label class="field">Имя в Discord<input id="discord" type="text" maxlength="60" placeholder="username" autocomplete="off"></label><button type="button" class="text-button" data-social-remove="discord">Убрать</button></div></details>
@@ -258,12 +278,11 @@
           </div>
           <label class="checkbox-field"><input id="showDiscord" type="checkbox" checked><span>Показывать карточку Discord</span></label>
           <div class="settings-group">
-            <h3>Discord в твоей карточке</h3>
+            <div class="group-head"><h3>Discord в твоей карточке</h3><p class="hint">Аватар, статус и значки Discord на странице.</p></div>
             <div class="discord-join-note"><p>Для синхронизации аватарки и статуса вступи на наш сервер и укажи ID Discord. Значки можно выбрать свободно.</p><a id="discordJoinLink" class="button small" href="https://discord.gg/cbtEaVcZHC" target="_blank" rel="noopener noreferrer">Вступить в Discord ↗</a></div>
             <label class="field">ID пользователя Discord<input id="discordUserId" inputmode="numeric" pattern="[0-9]{17,20}" minlength="17" maxlength="20" placeholder="Например, 484816707798564894"><span class="hint">Числовой ID нужен только для синхронизации. Выбор значков доступен без него.</span></label>
             <details class="url-details"><summary>Где найти свой ID?</summary><p class="hint">В Discord открой «Настройки → Расширенные» и включи режим разработчика. Затем нажми правой кнопкой по своему профилю → «Копировать ID пользователя».</p></details>
             <label class="checkbox-field"><input id="discordSync" type="checkbox"><span>Получать аватар, статус и украшение из Discord</span></label>
-            <p class="hint">ID: Discord → Настройки → Расширенные → Режим разработчика, затем правой кнопкой по своему профилю → Копировать ID.</p>
             <label class="checkbox-field"><input id="discordShowCopyHint" type="checkbox" checked><span>Показывать подсказку «нажми, чтобы скопировать» и значок копирования</span></label>
             <p class="hint" id="discordSyncHint" aria-live="polite">Добавь ID и вступи на сервер, чтобы включить обновление.</p>
             <div class="form-grid"><label class="field">Стиль карточки<select id="discordCardStyle"><option value="glass">Стекло</option><option value="solid">Сплошной фон</option><option value="minimal">Минимальный</option></select></label><label class="field">Цвет карточки<input id="discordCardColor" type="color" value="#111111"></label></div>
@@ -280,8 +299,8 @@
         </section>
       </form>
       <section class="settings-section hidden" data-settings-section="security" aria-labelledby="securityHeading">
-        <h2 id="securityHeading">Аккаунт</h2><p class="section-description">Логин определяет адрес страницы. Пароль можно изменить здесь.</p>
-        <form id="passwordForm"><label class="field">Текущий пароль<input id="currentPassword" type="password" autocomplete="current-password" maxlength="128" required></label><label class="field">Новый пароль<input id="newPassword" type="password" autocomplete="new-password" minlength="8" maxlength="128" required></label><label class="field">Повтори новый пароль<input id="repeatNewPassword" type="password" autocomplete="new-password" minlength="8" maxlength="128" required></label><button class="button" type="submit">Изменить пароль</button><p class="status" id="passwordStatus" role="status" aria-live="polite"></p></form>
+        <header class="section-head"><span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9.5 12l2 2 3.5-4"/></svg></span><div><h2 id="securityHeading">Аккаунт</h2><p class="section-description">Логин определяет адрес страницы. Пароль можно изменить здесь.</p></div></header>
+        <form id="passwordForm"><div class="group-head"><h3>Смена пароля</h3><p class="hint">Минимум 8 символов. Старый пароль перестанет работать.</p></div><label class="field">Текущий пароль<input id="currentPassword" type="password" autocomplete="current-password" maxlength="128" required></label><label class="field">Новый пароль<input id="newPassword" type="password" autocomplete="new-password" minlength="8" maxlength="128" required></label><label class="field">Повтори новый пароль<input id="repeatNewPassword" type="password" autocomplete="new-password" minlength="8" maxlength="128" required></label><button class="button" type="submit">Изменить пароль</button><p class="status" id="passwordStatus" role="status" aria-live="polite"></p></form>
         <div class="danger-zone"><h3>Сброс страницы</h3><p class="hint">Удалит черновик и опубликованную версию. Аккаунт останется.</p><button class="button danger" id="deleteButton" type="button">Удалить мою страницу</button></div>
       </section>
       <div class="editor-actions" id="editorActions"><button class="button" id="saveButton" type="button">Сохранить черновик</button><button class="button primary" id="publishButton" type="button">Применить к странице</button><p class="status wide" id="editorStatus" role="status" aria-live="polite">Черновик виден только тебе. Изменения появятся на странице после применения.</p></div>
