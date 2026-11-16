@@ -7,7 +7,7 @@
   <meta name="description" content="Твоя страница iwtxz: аватар, музыка, фон и ссылки.">
   <link rel="icon" type="image/png" href="img/tree.png">
   <link rel="preload" href="font/minecraft.ttf" as="font" type="font/ttf" crossorigin>
-  <link rel="stylesheet" href="builder.css?v=d9d1fbf8ef1c">
+  <link rel="stylesheet" href="builder.css?v=84a8fa99e88e">
   <title>Личный кабинет · iwtxz</title>
   <script src="profile-links.js?v=40c61c4a7df8" defer></script>
   <script src="vendor/supabase-2.102.0.min.js" defer></script>
@@ -26,8 +26,8 @@
   <script src="discord-badges.js?v=1637b0a4abd4" defer></script>
   <script src="builder-discord-badges.js?v=0dfb6a1ce948" defer></script>
   <script src="profile-badge-overflow.js?v=02511a5dba22" defer></script>
-  <script src="site-chrome.js?v=ce01c35cfc2f" defer></script>
-  <script src="builder.js?v=cb55668124b3" defer></script>
+  <script src="site-chrome.js?v=450b749f24e4" defer></script>
+  <script src="builder.js?v=337e0524c47c" defer></script>
   <script src="builder-discord-dialog.js?v=f038935de49e" defer></script>
   <link rel="stylesheet" href="profile-features.css?v=6e54ed2cdc6c">
   <link rel="stylesheet" href="music-services.css?v=b83e04cda2b4">
@@ -40,7 +40,7 @@
   <link rel="stylesheet" href="builder-discord-badges.css?v=302a754e1218">
   <link rel="stylesheet" href="profile-badge-overflow.css?v=877329c19548">
 </head>
-<body class="auth-locked">
+<body class="auth-locked editor-simple">
   <header class="topbar">
     <a class="brand" href="index.html">iwtxz</a>
     <div class="row account-controls hidden" id="accountControls"><span id="userLine" class="muted"></span><button class="button small" id="logoutButton" type="button">Выйти</button></div>
@@ -77,6 +77,7 @@
     <section class="panel editor-panel requires-auth" aria-labelledby="editorHeading">
       <div class="panel-heading"><div><span class="eyebrow">сделай по-своему</span><h1 id="editorHeading">Моя страница</h1></div><span class="draft-state" id="draftState">Черновик</span></div>
       <div class="account-load-state hidden" id="accountLoadState"><p class="status" id="accountLoadStatus" role="status" aria-live="polite"></p><button class="button hidden" id="retryAccountLoad" type="button">Повторить загрузку</button></div>
+      <div class="editor-mode"><div class="editor-mode-heading"><strong>Режим редактора</strong><span>Настройки страницы не меняются</span></div><div class="editor-mode-switch" role="group" aria-label="Режим редактора"><button type="button" id="editorModeSimple" aria-pressed="true">Простой</button><button type="button" id="editorModeAdvanced" aria-pressed="false">Продвинутый</button></div><p id="editorModeHint" class="hint" role="status">Основные настройки. Точные параметры — в продвинутом режиме.</p></div>
       <div class="page-address"><span class="hint">Адрес страницы</span><a id="pageAddress" target="_blank" rel="noopener noreferrer"></a><button class="text-button" id="copyAddress" type="button">Скопировать</button></div>
       <div class="published-banner hidden" id="publishedBanner"><strong>Страница опубликована</strong><a class="button primary small" id="openProfileTop" target="_blank" rel="noopener noreferrer">Открыть страницу ↗</a></div>
       <form id="editorForm" novalidate>
@@ -98,9 +99,9 @@
             <div class="group-head"><h3>Размеры</h3><p class="hint">Как карточка и текст выглядят на странице.</p></div>
             <div class="form-grid">
             <label class="field">Заполнение аватара<select id="avatarFit"><option value="cover">Заполнить круг</option><option value="contain">Показать целиком</option></select></label>
-            <label class="field">Масштаб карточки, %<input id="profileScale" type="number" min="70" max="120" value="100"></label>
-            <label class="field">Размер ника, px<input id="nicknameSize" type="number" min="18" max="52" value="32"></label>
-            <label class="field">Размер описания, px<input id="descriptionSize" type="number" min="10" max="32" value="16"></label>
+            <label class="field" data-advanced>Масштаб карточки, %<input id="profileScale" type="number" min="70" max="120" value="100"></label>
+            <label class="field" data-advanced>Размер ника, px<input id="nicknameSize" type="number" min="18" max="52" value="32"></label>
+            <label class="field" data-advanced>Размер описания, px<input id="descriptionSize" type="number" min="10" max="32" value="16"></label>
             </div>
           </div>
           <div class="settings-group typewriter-settings">
@@ -108,7 +109,7 @@
             <div class="form-grid"><label class="field wide">Название вкладки<input id="title" maxlength="80" placeholder="Моя страница" required></label></div>
             <div class="upload-card"><div class="upload-details"><label for="faviconFile">Иконка вкладки</label><input id="faviconFile" data-upload="favicon" type="file" accept="image/png,image/jpeg,image/webp"><span class="hint" data-file-note="favicon">Твоя иконка сайта · PNG, JPG или WebP · до 4 МБ</span></div><button type="button" class="text-button" data-remove="favicon">Убрать</button></div>
             <label class="checkbox-field"><input id="typewriterEnabled" type="checkbox"><span>Печатная машинка рядом с иконкой сайта</span></label>
-            <div class="dependent-fields"><label class="field">Фразы для вкладки<textarea id="typewriterText" maxlength="300" rows="3" placeholder="Каждая новая строка — отдельная фраза"></textarea></label><label class="field range-field">Задержка между буквами, мс<input id="typewriterSpeed" type="range" min="20" max="200" value="70"><span class="hint">Меньше — быстрее. Пустое поле использует название вкладки.</span></label></div>
+            <div class="dependent-fields"><label class="field">Фразы для вкладки<textarea id="typewriterText" maxlength="300" rows="3" placeholder="Каждая новая строка — отдельная фраза"></textarea></label><label class="field range-field" data-advanced>Задержка между буквами, мс<input id="typewriterSpeed" type="range" min="20" max="200" value="70"><span class="hint">Меньше — быстрее. Пустое поле использует название вкладки.</span></label></div>
           </div>
           <div class="settings-group gradient-settings">
             <div class="group-head"><h3>Градиент ника</h3><p class="hint">Плавный переход между двумя цветами в твоём нике.</p></div>
@@ -116,13 +117,13 @@
             <div class="dependent-fields">
             <div class="gradient-preview" aria-hidden="true"><span id="nicknameGradientSample">nickname</span></div>
             <div class="form-grid"><label class="field">Первый цвет<input id="nicknameGradientStart" type="color" value="#ffffff"></label><label class="field">Второй цвет<input id="nicknameGradientEnd" type="color" value="#a1a1aa"></label></div>
-            <label class="field range-field">Направление<output for="nicknameGradientAngle" id="nicknameGradientAngleValue">90°</output><input id="nicknameGradientAngle" type="range" min="0" max="360" value="90"></label>
+            <label class="field range-field" data-advanced>Направление<output for="nicknameGradientAngle" id="nicknameGradientAngleValue">90°</output><input id="nicknameGradientAngle" type="range" min="0" max="360" value="90"></label>
             </div>
           </div>
         </section>
         <section class="settings-section hidden" data-settings-section="effects" aria-labelledby="effectsHeading">
           <div class="effects-heading section-head"><span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M11 3l1.9 5.1L18 10l-5.1 1.9L11 17l-1.9-5.1L4 10l5.1-1.9z"/><path d="M19 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/></svg></span><div><h2 id="effectsHeading">Эффекты</h2><p class="section-description">Добавь движения своей странице: фон, курсор и анимации текста.</p></div><button class="button small" id="randomizeEffects" type="button">Случайная пара ↗</button></div>
-          <div class="settings-group scene-fields"><div class="group-head"><h3>Живой фон</h3><p class="hint">Анимированные частицы поверх фона страницы.</p></div><div class="form-grid"><label class="field">Эффект<select id="backgroundEffect"><option value="none">Без эффекта</option><option value="snow">Снег</option><option value="rain">Дождь</option><option value="matrix">Матрица</option><option value="glitch">Глитч</option><option value="parallax">Параллакс</option></select></label><label class="field range-field">Насыщенность<input id="effectIntensity" type="range" min="10" max="100" value="50" aria-label="Насыщенность эффекта"></label></div><label class="checkbox-field"><input id="profileTilt" type="checkbox"><span>3D-наклон карточки за курсором</span></label></div>
+          <div class="settings-group scene-fields"><div class="group-head"><h3>Живой фон</h3><p class="hint">Анимированные частицы поверх фона страницы.</p></div><div class="form-grid"><label class="field">Эффект<select id="backgroundEffect"><option value="none">Без эффекта</option><option value="snow">Снег</option><option value="rain">Дождь</option><option value="matrix">Матрица</option><option value="glitch">Глитч</option><option value="parallax">Параллакс</option></select></label><label class="field range-field" data-advanced>Насыщенность<input id="effectIntensity" type="range" min="10" max="100" value="50" aria-label="Насыщенность эффекта"></label></div><label class="checkbox-field"><input id="profileTilt" type="checkbox"><span>3D-наклон карточки за курсором</span></label></div>
           <div class="settings-group"><div class="group-head"><h3>Курсор</h3><p class="hint">Свой курсор виден при управлении мышью. Цвет применяется к точке, кольцу и прицелу.</p></div><label class="field">Стиль курсора<select id="cursorStyle"><option value="default">Системный</option><option value="dot">Светящаяся точка</option><option value="ring">Кольцо</option><option value="crosshair">Прицел</option></select></label><div class="upload-card"><div class="upload-details"><label for="customCursorFile">Своя картинка курсора</label><input id="customCursorFile" data-upload="customCursor" type="file" accept="image/png,image/webp"><span class="hint" data-file-note="customCursor">PNG или WebP, желательно квадратный · до 4 МБ</span></div><button class="text-button" type="button" data-remove="customCursor">Убрать</button></div><div class="form-grid"><label class="field">Размер, px<input id="cursorSize" type="number" min="12" max="96" value="24"></label><label class="field">Непрозрачность, %<input id="cursorOpacity" type="number" min="20" max="100" value="100"></label><label class="field">Цвет<input id="cursorColor" type="color" value="#ffffff"></label><label class="field">Точка нажатия<select id="cursorHotspot"><option value="center">Центр картинки</option><option value="top-left">Верхний левый угол</option></select></label></div></div>
           <div class="settings-group"><div class="group-head"><h3>Анимация ника</h3><p class="hint">Так ник будет двигаться на странице. Пример — в рамке ниже.</p></div>
           <div class="effect-demo" aria-hidden="true"><span id="nicknameEffectDemo">nickname</span></div>
@@ -208,7 +209,7 @@
         </section>
         <section class="settings-section hidden" data-settings-section="appearance" aria-labelledby="appearanceHeading">
           <header class="section-head"><span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-.9 2-1.8 0-.5-.2-.9-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1 .8-1.6 1.8-1.6H17a4 4 0 0 0 4-4C21 6.5 17 3 12 3z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7.5" r="1"/><circle cx="14.5" cy="7.5" r="1"/></svg></span><div><h2 id="appearanceHeading">Оформление</h2><p class="section-description">Общий вид страницы: размер аватарки, фон, цвета и шрифт.</p></div></header>
-          <div class="settings-group"><div class="group-head"><h3>Аватарка</h3><p class="hint">Размер круга с аватаркой на странице.</p></div>
+          <div class="settings-group" data-advanced><div class="group-head"><h3>Аватарка</h3><p class="hint">Размер круга с аватаркой на странице.</p></div>
           <label class="field range-field">Размер аватарки<output for="avatarSize" id="avatarSizeValue">150 px</output><input id="avatarSize" type="range" min="80" max="220" step="2" value="150"></label></div>
           <div class="settings-group"><div class="group-head"><h3>Фон</h3><p class="hint">Картинка, GIF или видео за карточкой профиля.</p></div>
           <div class="upload-card"><div class="upload-details"><label for="backgroundFile">Фон страницы</label><input id="backgroundFile" data-upload="background" type="file" accept="image/png,image/jpeg,image/gif,image/webp,video/mp4,video/webm"><span class="hint" data-file-note="background">Картинка, GIF, MP4 или WebM · до 4 МБ</span></div><button type="button" class="text-button" data-remove="background">Убрать</button></div>
@@ -286,8 +287,8 @@
             <label class="checkbox-field"><input id="discordShowCopyHint" type="checkbox" checked><span>Показывать подсказку «нажми, чтобы скопировать» и значок копирования</span></label>
             <p class="hint" id="discordSyncHint" aria-live="polite">Добавь ID и вступи на сервер, чтобы включить обновление.</p>
             <div class="form-grid"><label class="field">Стиль карточки<select id="discordCardStyle"><option value="glass">Стекло</option><option value="solid">Сплошной фон</option><option value="minimal">Минимальный</option></select></label><label class="field">Цвет карточки<input id="discordCardColor" type="color" value="#111111"></label></div>
-            <label class="field range-field">Плотность фона<output for="discordCardOpacity" id="discordCardOpacityValue">65%</output><input id="discordCardOpacity" type="range" min="0" max="100" value="65"></label>
-            <label class="field range-field">Скругление<output for="discordCardRadius" id="discordCardRadiusValue">18 px</output><input id="discordCardRadius" type="range" min="0" max="32" value="18"></label>
+            <label class="field range-field" data-advanced>Плотность фона<output for="discordCardOpacity" id="discordCardOpacityValue">65%</output><input id="discordCardOpacity" type="range" min="0" max="100" value="65"></label>
+            <label class="field range-field" data-advanced>Скругление<output for="discordCardRadius" id="discordCardRadiusValue">18 px</output><input id="discordCardRadius" type="range" min="0" max="32" value="18"></label>
             <div class="toggle-grid">
               <label class="checkbox-field"><input id="discordUseAvatar" type="checkbox" checked><span>Аватарка из Discord</span></label>
               <label class="checkbox-field"><input id="discordShowStatus" type="checkbox" checked><span>Статус</span></label>
@@ -308,7 +309,7 @@
     <aside class="panel preview-panel requires-auth" aria-labelledby="previewHeading">
       <div class="preview-heading"><h2 id="previewHeading">Превью</h2><span class="preview-badge"><span class="live-dot" aria-hidden="true"></span> в реальном времени</span></div>
       <div class="layout-toolbar"><button class="button small" id="layoutEdit" type="button" aria-pressed="false">Переместить блоки</button><button class="text-button" id="layoutReset" type="button">Сбросить позиции</button><button class="text-button" id="previewExpand" type="button" aria-pressed="false">Развернуть ↗</button><label class="preview-device">Экран<select id="previewViewport"><option value="1280x800">Компьютер · 1280 × 800</option><option value="1920x1080">Большой экран · 1920 × 1080</option><option value="390x844">Телефон · 390 × 844</option><option value="window">Моё окно</option></select></label><div class="preview-zoom-controls"><label for="previewZoom">Масштаб</label><select id="previewZoom"><option value="fit">Вписать целиком</option><option value="0.5">50%</option><option value="0.75" selected>75% · крупно</option><option value="1">100%</option><option value="1.25">125%</option><option value="1.5">150%</option></select><button class="text-button" id="previewCenter" type="button">К центру</button></div><p class="hint" id="layoutHint" role="status">Превью можно прокручивать. Масштаб меняет только размер просмотра.</p></div>
-      <details class="layout-grid-settings"><summary>Сетка и выравнивание</summary><div class="grid-controls"><label class="checkbox-field"><input id="layoutGridVisible" type="checkbox"><span>Показать сетку</span></label><label class="checkbox-field"><input id="layoutGridSnap" type="checkbox" checked><span>Привязка</span></label><label class="checkbox-field"><input id="layoutCenterLines" type="checkbox" checked><span>Линии центра</span></label><label class="field">Шаг, px<input id="layoutGridStep" type="number" min="8" max="80" value="24"></label><label class="field">Цвет<input id="layoutGridColor" type="color" value="#ffffff"></label><label class="field">Яркость, %<input id="layoutGridOpacity" type="number" min="5" max="60" value="15"></label></div><span class="hint" id="layoutSelection">Выбери блок в режиме перемещения</span><div class="layout-align-controls"><button class="button small" id="layoutAlignHorizontal" type="button">По центру ↔</button><button class="button small" id="layoutAlignVertical" type="button">По центру ↕</button><button class="button small" id="layoutAlignBoth" type="button">В центр экрана</button></div></details>
+      <details class="layout-grid-settings" data-advanced><summary>Сетка и выравнивание</summary><div class="grid-controls"><label class="checkbox-field"><input id="layoutGridVisible" type="checkbox"><span>Показать сетку</span></label><label class="checkbox-field"><input id="layoutGridSnap" type="checkbox" checked><span>Привязка</span></label><label class="checkbox-field"><input id="layoutCenterLines" type="checkbox" checked><span>Линии центра</span></label><label class="field">Шаг, px<input id="layoutGridStep" type="number" min="8" max="80" value="24"></label><label class="field">Цвет<input id="layoutGridColor" type="color" value="#ffffff"></label><label class="field">Яркость, %<input id="layoutGridOpacity" type="number" min="5" max="60" value="15"></label></div><span class="hint" id="layoutSelection">Выбери блок в режиме перемещения</span><div class="layout-align-controls"><button class="button small" id="layoutAlignHorizontal" type="button">По центру ↔</button><button class="button small" id="layoutAlignVertical" type="button">По центру ↕</button><button class="button small" id="layoutAlignBoth" type="button">В центр экрана</button></div></details>
       <div class="preview-tab"><img id="previewTabIcon" src="img/tree.png" alt=""><span id="previewTabTitle">Твоя страница | iwtxz</span><span class="hint" id="previewResolution">1280 × 800</span></div>
       <div class="preview-stage" id="previewStage" tabindex="0" aria-label="Превью страницы с прокруткой"><div class="preview-canvas" id="previewCanvas"><iframe id="previewFrame" title="Предпросмотр твоей страницы" src="profile.html?preview=1" loading="lazy" sandbox="allow-scripts allow-same-origin" allow="autoplay; clipboard-write"></iframe></div></div>
       <div class="preview-footer"><span class="hint" id="publishedStatus">Страница ещё не опубликована</span><a class="text-button hidden" id="openProfile" target="_blank" rel="noopener noreferrer">Открыть страницу ↗</a></div>

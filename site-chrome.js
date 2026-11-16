@@ -13,6 +13,7 @@
     if (instance) return instance;
     if (window.parent !== window) return inert;
     const cabinet = Boolean(document.getElementById('authForm'));
+    if (!cabinet) return inert;
     const controller = new AbortController();
     const motion = matchMedia('(prefers-reduced-motion: reduce)');
     const listen = (node, type, handler, options = {}) => node.addEventListener(type, handler, { ...options, signal: controller.signal });

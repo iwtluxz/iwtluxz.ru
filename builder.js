@@ -3,8 +3,8 @@
   const $ = (selector) => document.querySelector(selector);
   const all = (selector) => [...document.querySelectorAll(selector)];
   // A cached HTML page can request a newer script after a deployment.
-  const uiVersion = "20261109-free-badges-1";
-  if (["effectIntensity", "backgroundEffect", "avatarFit", "ownMusicFiles", "discordDecorationHint", "profileScale", "nicknameSize", "discordShowCopyHint", "descriptionSize", "cursorSize", "typewriterText", "layoutEdit", "descriptionAnimation", "previewViewport", "previewStage", "previewCanvas", "previewZoom"].some(id => !$("#"+id)) || (document.head && typeof window.IwtxzDiscordBadgePicker?.readSelected!=='function') || document.querySelector('script[src*="halloween.js"]')) {
+  const uiVersion = "20261116-editor-modes-1";
+  if (["editorModeSimple", "editorModeAdvanced", "editorModeHint", "effectIntensity", "backgroundEffect", "avatarFit", "ownMusicFiles", "discordDecorationHint", "profileScale", "nicknameSize", "discordShowCopyHint", "descriptionSize", "cursorSize", "typewriterText", "layoutEdit", "descriptionAnimation", "previewViewport", "previewStage", "previewCanvas", "previewZoom"].some(id => !$("#"+id)) || (document.head && typeof window.IwtxzDiscordBadgePicker?.readSelected!=='function') || document.querySelector('script[src*="halloween.js"]')) {
     const fresh = new URL(location.href);
     if (fresh.searchParams.get("_ui") !== uiVersion) { fresh.searchParams.set("_ui",uiVersion);location.replace(fresh.href); }
     else if ($("#authStatus")) $("#authStatus").textContent="Не удалось обновить интерфейс. Обнови страницу с очисткой кеша.";
@@ -106,12 +106,15 @@
     }
   });
   let layoutEditing = false;
+  let editorMode = "simple", modeStorageAvailable = true;
+  try { if (window.localStorage.getItem("iwtxz:editor-mode") === "advanced") editorMode = "advanced"; }
+  catch { modeStorageAvailable = false; }
   const positionKeys=['avatar','name','description','socials','discord','player'];
   let selectedLayoutBlock='',previewExpanded=false,previewMetrics=null;
   const gridDefaults={visible:false,step:24,snap:true,centerLines:true,color:'#ffffff',opacity:15};
   let gridSettings={...gridDefaults};
   try{const stored=JSON.parse(window.localStorage?.getItem('iwtxz:layout-grid')||'{}');gridSettings={...gridSettings,...stored};}catch{}
-  function sendGrid(){previewFrame.contentWindow?.postMessage({type:'iwtxz-layout-grid',grid:gridSettings},location.origin);}
+  function sendGrid(){previewFrame.contentWindow?.postMessage({type:'iwtxz-layout-grid',grid:editorMode==='simple'?{...gridSettings,visible:false,snap:false}:gridSettings},location.origin);}
   function updateGrid(){
     gridSettings={visible:$('#layoutGridVisible').checked,snap:$('#layoutGridSnap').checked,centerLines:$('#layoutCenterLines').checked,step:Math.min(80,Math.max(8,Number($('#layoutGridStep').value)||24)),color:/^#[a-f0-9]{6}$/i.test($('#layoutGridColor').value)?$('#layoutGridColor').value:'#ffffff',opacity:Math.min(60,Math.max(5,Number($('#layoutGridOpacity').value)||15))};
     try{window.localStorage?.setItem('iwtxz:layout-grid',JSON.stringify(gridSettings));}catch{}sendGrid();
@@ -159,6 +162,24 @@
     previewFrame.contentWindow?.postMessage({type:'iwtxz-layout-edit',enabled:layoutEditing},location.origin);
     sendGrid();
   }
+  function setEditorMode(mode, remember = true) {
+    editorMode = mode === "advanced" ? "advanced" : "simple";
+    document.body.classList.toggle("editor-simple", editorMode === "simple");
+    $("#editorModeSimple").setAttribute("aria-pressed", String(editorMode === "simple"));
+    $("#editorModeAdvanced").setAttribute("aria-pressed", String(editorMode === "advanced"));
+    if (remember) {
+      try { window.localStorage.setItem("iwtxz:editor-mode", editorMode); modeStorageAvailable = true; }
+      catch { modeStorageAvailable = false; }
+    }
+    $("#editorModeHint").textContent = (editorMode === "simple"
+      ? "Основные настройки. Точные параметры — в продвинутом режиме."
+      : "Все настройки, включая размеры, сетку и точные параметры.") +
+      (modeStorageAvailable ? "" : " Режим не сохранится: хранилище браузера недоступно.");
+    sendGrid();
+  }
+  $("#editorModeSimple").addEventListener("click", () => setEditorMode("simple"));
+  $("#editorModeAdvanced").addEventListener("click", () => setEditorMode("advanced"));
+  setEditorMode(editorMode, false);
   let previewVisible = true;
   function sendPreviewVisibility() {
     previewFrame.contentWindow?.postMessage({type:"iwtxz-preview-visibility",visible:previewVisible&&!document.hidden},location.origin);

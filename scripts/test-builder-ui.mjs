@@ -7,6 +7,7 @@ const source = await readFile(new URL("../builder.js", import.meta.url), "utf8")
 const markup = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const customization = await readFile(new URL("../profile-customization.js", import.meta.url), "utf8");
 const featuresSource = await readFile(new URL("../profile-features.js", import.meta.url), "utf8");
+const chromeSource = await readFile(new URL("../site-chrome.js", import.meta.url), "utf8");
 
 class Element {
   constructor(tagName = "SPAN") {
@@ -26,27 +27,28 @@ class Element {
   click() { return this.fire("click"); }
 }
 
-function loadBuilder(request, query = "", missingIds = [], staleBadgePicker = false) {
+function loadBuilder(request, query = "", missingIds = [], staleBadgePicker = false, storage = new Map()) {
   const elements = new Map([...markup.matchAll(/id="([^"]+)"/g)].map(([, id]) => [id, new Element()]));
   for(const id of missingIds)elements.delete(id);
   const loginTab = new Element(), signupTab = new Element();
   loginTab.dataset.authMode = "login"; signupTab.dataset.authMode = "signup";
   const buttons = [elements.get("authSubmit"), elements.get("showPassword"), loginTab, signupTab];
-  elements.get("previewFrame").contentWindow = { postMessage() {} };
+  const previewMessages = [];
+  elements.get("previewFrame").contentWindow = { postMessage(message) { previewMessages.push(message); } };
   const body = new Element(); body.classList.add("auth-locked");
   const document = { body,
     querySelector(selector) { return selector === '[data-auth-mode="login"]' ? loginTab : selector === '[data-auth-mode="signup"]' ? signupTab : elements.get(selector.slice(1)); },
     querySelectorAll(selector) { return selector === "[data-auth-mode]" ? [loginTab, signupTab] : selector === "#authForm button, [data-auth-mode]" ? buttons : []; } };
   const location = new URL("https://example.test/" + query);
   const navigations=[];location.replace=url=>navigations.push(url);
-  const window = { location, addEventListener() {}, IwtxzBackend: { isConfigured: () => true, request } };
+  const window = { location, addEventListener() {}, localStorage: { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value) }, IwtxzBackend: { isConfigured: () => true, request } };
   if(staleBadgePicker){document.head={};window.IwtxzDiscordBadgePicker={read:()=>[],apply(){}};}
   const timers = new Set();
   const context = vm.createContext({ window, document, location, URL, URLSearchParams, Headers, AbortController,
     setTimeout(fn, ms) { const timer = setTimeout(fn, ms >= 5000 ? 20 : ms); timers.add(timer); return timer; }, clearTimeout });
   vm.runInContext(featuresSource, context);
   vm.runInContext(source, context);
-  return { elements, body, buttons, navigations, close() { for (const timer of timers) clearTimeout(timer); }, async submit() {
+  return { elements, body, buttons, navigations, previewMessages, close() { for (const timer of timers) clearTimeout(timer); }, async submit() {
     elements.get("username").value = "alice"; elements.get("password").value = "Test-password-123!";
     await elements.get("authForm").fire("submit");
   } };
@@ -63,13 +65,63 @@ test("login and generic profile templates do not preload the 4 MB default avatar
 });
 
 test("cached markup missing new controls is refreshed before starting authentication",()=>{
-  let calls=0;const ui=loadBuilder(()=>{calls++;return Promise.resolve({});},'', ['profileScale']);
-  try{assert.equal(calls,0);assert.equal(ui.navigations.length,1);assert.equal(new URL(ui.navigations[0]).searchParams.get('_ui'),'20261109-free-badges-1');}finally{ui.close();}
+  for (const id of ["profileScale", "editorModeAdvanced"]) {
+    let calls=0;const ui=loadBuilder(()=>{calls++;return Promise.resolve({});},'', [id]);
+    try{assert.equal(calls,0);assert.equal(ui.navigations.length,1);assert.equal(new URL(ui.navigations[0]).searchParams.get('_ui'),'20261116-editor-modes-1');}finally{ui.close();}
+  }
 });
 
 test('a cached restricted badge picker refreshes before authentication instead of breaking free selection',()=>{
   let calls=0;const ui=loadBuilder(()=>{calls++;return Promise.resolve({});},'',[],true);
-  try{assert.equal(calls,0);assert.equal(ui.navigations.length,1);assert.equal(new URL(ui.navigations[0]).searchParams.get('_ui'),'20261109-free-badges-1');}finally{ui.close();}
+  try{assert.equal(calls,0);assert.equal(ui.navigations.length,1);assert.equal(new URL(ui.navigations[0]).searchParams.get('_ui'),'20261116-editor-modes-1');}finally{ui.close();}
+});
+
+test("editor modes preserve hidden settings and remember the selected mode", async () => {
+  const storage = new Map([["iwtxz:layout-grid", JSON.stringify({ visible: true, snap: true })]]);
+  let submitted;
+  const ui = loadBuilder(async (path, options) => {
+    if (path.endsWith("/list")) return { sites: [{ ...site, nicknameSize: 41, typewriterSpeed: 123 }] };
+    if (path.endsWith("/save")) { submitted = JSON.parse(options.body).site; return { site: submitted }; }
+    return response(path);
+  }, "", [], false, storage);
+  try {
+    await ui.submit();
+    assert.equal(ui.body.classList.contains("editor-simple"), true);
+    assert.equal(ui.previewMessages.filter(message => message.type === "iwtxz-layout-grid").at(-1).grid.visible, false);
+    ui.elements.get("editorModeAdvanced").click();
+    assert.equal(ui.body.classList.contains("editor-simple"), false);
+    assert.equal(ui.elements.get("editorModeAdvanced").attributes.get("aria-pressed"), "true");
+    assert.equal(ui.previewMessages.filter(message => message.type === "iwtxz-layout-grid").at(-1).grid.visible, true);
+    ui.elements.get("editorModeSimple").click();
+    assert.equal(ui.elements.get("nicknameSize").value, 41);
+    assert.equal(ui.elements.get("typewriterSpeed").value, 123);
+    await ui.elements.get("saveButton").fire("click");
+    assert.equal(submitted.nicknameSize, 41);
+    assert.equal(submitted.typewriterSpeed, 123);
+    ui.elements.get("editorModeAdvanced").click();
+    const reopened = loadBuilder(path => Promise.resolve(response(path)), "", [], false, storage);
+    try { assert.equal(reopened.body.classList.contains("editor-simple"), false); }
+    finally { reopened.close(); }
+  } finally { ui.close(); }
+});
+
+test("editor mode remains usable and reports unavailable browser storage", () => {
+  const storage = { get() { throw new Error("blocked"); }, set() { throw new Error("blocked"); } };
+  const ui = loadBuilder(path => Promise.resolve(response(path)), "", [], false, storage);
+  try {
+    ui.elements.get("editorModeAdvanced").click();
+    assert.equal(ui.body.classList.contains("editor-simple"), false);
+    assert.match(ui.elements.get("editorModeHint").textContent, /хранилище браузера недоступно/);
+  } finally { ui.close(); }
+});
+
+test("project Telegram is not added to public profile pages", () => {
+  const window = {};
+  window.parent = window;
+  const document = { getElementById: () => null };
+  vm.runInNewContext(chromeSource, { window, document });
+  assert.equal(typeof window.IwtxzSiteChrome.create, "function");
+  assert.equal(typeof window.IwtxzSiteChrome.create().dispose, "function");
 });
 
 test("an edit made during a slow save is preserved and is not replaced by the earlier response",async()=>{
