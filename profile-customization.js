@@ -32,6 +32,7 @@
   };
   const snapshotCache = new Map();
   const discordGuildId = window.IWTXZ_BACKEND_CONFIG?.discordGuildId || "1557152366208229486";
+  const nameSegmenter = typeof Intl.Segmenter === "function" ? new Intl.Segmenter(undefined, { granularity: "grapheme" }) : null;
 
   function clamp(value, min, max, fallback) {
     const amount = Number(value);
@@ -39,6 +40,10 @@
   }
   function color(value, fallback) { return /^#[0-9a-f]{6}$/i.test(value || "") ? value : fallback; }
   function text(value, limit = 160) { return typeof value === "string" ? value.slice(0, limit) : ""; }
+  function displayDiscordName(value) {
+    const characters = nameSegmenter ? Array.from(nameSegmenter.segment(value), item => item.segment) : Array.from(value);
+    return characters.length > 24 ? `${characters.slice(0, 24).join("")}…` : value;
+  }
   function asset(value, font = false) {
     if (typeof value !== "string" || value.length > 2048 || !value.trim()) return "";
     try {
@@ -253,7 +258,11 @@
         if(chosenBadges.length===32)break;
       }
       const enabled = Boolean(copyName || (settings.discordSync && requestedUser) || (settings.discordShowBadges!==false&&chosenBadges.length));
-      if (nodes.discordName) nodes.discordName.textContent = displayName || "Discord";
+      if (nodes.discordName) {
+        const name = displayName || "Discord";
+        nodes.discordName.textContent = displayDiscordName(name);
+        nodes.discordName.title = name;
+      }
       if (nodes.discordCard) {
         nodes.discordCard.hidden = settings.showDiscord === false || !enabled;
         nodes.discordCard.style.display = nodes.discordCard.hidden ? "none" : "";

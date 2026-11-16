@@ -17,11 +17,11 @@ class Element {
   append(...children){this.children.push(...children);}
   replaceChildren(...children){this.children=children;}
 }
-function fixture({badges=[],activity=null,fresh=true,member=true,matchingGuild=true,responseStatus=200,fail=false,overflow=false}={}){
+function fixture({badges=[],activity=null,fresh=true,member=true,matchingGuild=true,responseStatus=200,fail=false,overflow=false,displayName,username}={}){
   const nodes={discordBadges:new Element(),discordActivity:new Element(),discordCard:new Element(),discordName:new Element()};
   const document={documentElement:new Element(),body:new Element(),createElement:tag=>new Element(tag)};
   const guildId='123456789012345678';
-  const snapshot={id:'484816707798564894',guildId:matchingGuild?guildId:'111111111111111111',member,updatedAt:Date.now()-(fresh?0:90000000),badges,activity};
+  const snapshot={id:'484816707798564894',guildId:matchingGuild?guildId:'111111111111111111',member,updatedAt:Date.now()-(fresh?0:90000000),badges,activity,displayName,username};
   const messages=[],overflowCalls=[];
   const window={IWTXZ_BACKEND_CONFIG:{discordGuildId:guildId}};
   window.parent={postMessage:(message,origin)=>messages.push({message,origin})};
@@ -66,6 +66,30 @@ test('chosen badges render without a Discord account or sync and survive unavail
       assert.equal(nodes.discordCard.dataset.copyHint,'false');
     }finally{customizer.dispose();}
   }
+});
+
+test('long Discord names are shortened without changing the copied username',()=>{
+  const {nodes,customizer}=fixture();
+  try{
+    const name='A'.repeat(23)+'👨‍👩‍👧‍👦'+'XY';
+    customizer.apply({discord:name,discordSync:false});
+    assert.equal(nodes.discordName.textContent,'A'.repeat(23)+'👨‍👩‍👧‍👦…');
+    assert.equal(nodes.discordName.title,name);
+    assert.equal(nodes.discordCard.attributes.get('aria-label'),`Скопировать Discord: ${name}`);
+    customizer.apply({discord:'A'.repeat(24),discordSync:false});
+    assert.equal(nodes.discordName.textContent,'A'.repeat(24));
+  }finally{customizer.dispose();}
+});
+
+test('a synchronized display name is shortened while the full Discord username remains copyable',async()=>{
+  const displayName='Д'.repeat(25);
+  const {nodes,customizer,settings}=fixture({displayName,username:'real_username'});
+  try{
+    customizer.apply(settings);await settle();
+    assert.equal(nodes.discordName.textContent,'Д'.repeat(24)+'…');
+    assert.equal(nodes.discordName.title,displayName);
+    assert.equal(nodes.discordCard.attributes.get('aria-label'),'Скопировать Discord: real_username');
+  }finally{customizer.dispose();}
 });
 
 test('individual selection, empty lists and the global switch are respected independently of old hidden lists',async()=>{
