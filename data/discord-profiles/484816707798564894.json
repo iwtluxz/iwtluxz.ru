@@ -23,13 +23,8 @@
     "skuId": "1252404760448077864"
   },
   "statusText": "ww basedgod life",
-  "status": "idle",
-  "activity": {
-    "type": 2,
-    "name": "Dotify",
-    "details": "lora piana",
-    "state": "FORTUNA 812"
-  },
+  "status": "offline",
+  "activity": null,
   "managedBy": "iwtxz-public-discord-sync",
-  "updatedAt": 1794805974103
+  "updatedAt": 1794815517510
 }
