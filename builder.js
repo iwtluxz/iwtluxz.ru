@@ -690,7 +690,7 @@
     const allowed = key === "customFont" ? /^font\/(woff|woff2|ttf|otf)$/.test(type)
       : key === "music" ? /^audio\/(mpeg|mp3|ogg|wav|x-wav|mp4|webm)$/.test(type)
       : image || (key === "background" && /^video\/(mp4|webm)$/.test(type));
-    if (!allowed || !file.size || file.size > 4 * 1024 * 1024) {
+    if (!allowed || !file.size || (!image && file.size > 4 * 1024 * 1024)) {
       input.value = "";
       status("#editorStatus", !allowed ? "Этот формат не поддерживается. Выбери файл из списка под полем." : "Размер файла должен быть больше нуля и не больше 4 МБ.", "error");
       return;
@@ -698,9 +698,13 @@
     input.disabled = true;
     uploadCount += 1;
     updateBusy();
-    status("#editorStatus", `Загружаем «${file.name}»…`);
+    status("#editorStatus", image && file.size > 4 * 1024 * 1024 ? `Сжимаем «${file.name}»…` : `Загружаем «${file.name}»…`);
     try {
-      const result = await api(`/api/builder/assets/upload?kind=${key}&name=${encodeURIComponent(file.name)}`, { method: "POST", headers: { "content-type": type }, body: file, upload: true });
+      if (image && file.size > 4 * 1024 * 1024 && !window.IwtxzImageCompression) throw new Error("Сжатие изображений недоступно. Обнови страницу.");
+      const upload = image && file.size > 4 * 1024 * 1024 ? await window.IwtxzImageCompression.compress(file, type) : file;
+      if (version !== sessionVersion) return;
+      status("#editorStatus", `Загружаем «${file.name}»…`);
+      const result = await api(`/api/builder/assets/upload?kind=${key}&name=${encodeURIComponent(upload.name)}`, { method: "POST", headers: { "content-type": image && upload !== file ? upload.type : type }, body: upload, upload: true });
       if (version !== sessionVersion) return;
       currentSite[key] = result.url;
       const urlInput = document.querySelector(`[data-asset-url="${key}"]`);
@@ -709,7 +713,7 @@
       if (key === "music" && !$("#musicTitle").value) $("#musicTitle").value = file.name.replace(/\.[^.]+$/, "");
       if (key === "music") void musicLibrary?.remember(result.url, $("#musicTitle").value || file.name.replace(/\.[^.]+$/, ""));
       if (key === "customFont") $("#font").value = "custom";
-      document.querySelector(`[data-file-note="${key}"]`).textContent = `${file.name} · ${(file.size / 1024 / 1024).toFixed(1)} МБ · загружено`;
+      document.querySelector(`[data-file-note="${key}"]`).textContent = `${file.name} · ${(upload.size / 1024 / 1024).toFixed(1)} МБ · ${upload !== file ? "сжато и загружено" : "загружено"}`;
       updatePreview();
       status("#editorStatus", "Файл загружен. Сохрани черновик или примени изменения к странице.", "ok");
     } catch (error) { if (version === sessionVersion) status("#editorStatus", friendlyError(error), "error"); }

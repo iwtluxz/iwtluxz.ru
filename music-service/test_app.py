@@ -15,6 +15,15 @@ BOB='967385a2-8f95-4499-97b1-8ff92d973caa'
 SUPABASE='https://fixture.supabase.co'
 
 class MusicTests(unittest.TestCase):
+    def test_youtube_download_403_explains_the_provider_restriction(self):
+        process=MagicMock(); process.wait.return_value=1
+        def launch(command,**options):
+            options['stderr'].write(b'ERROR: unable to download video data: HTTP Error 403: Forbidden')
+            return process
+        with tempfile.TemporaryDirectory(prefix='iwtxz-download-test-') as directory, patch('app.subprocess.Popen',side_effect=launch):
+            with self.assertRaisesRegex(ApiError,'YouTube.*403'):
+                Library.download(None,'https://www.youtube.com/watch?v=jNQXAC9IVRw',Path(directory))
+
     def test_downloader_allows_mixed_ipv6_metadata_ipv4_audio_and_keeps_runtime_and_limits(self):
         with tempfile.TemporaryDirectory(prefix='iwtxz-download-test-') as directory:
             target=Path(directory)

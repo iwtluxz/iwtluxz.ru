@@ -9,12 +9,13 @@
     const feedback=root.querySelector('[data-catalog-status]');
     const serviceSearch=document.createElement('a');serviceSearch.className='catalog-open-search';serviceSearch.target='_blank';serviceSearch.rel='noopener noreferrer';serviceSearch.hidden=true;
     root.querySelector('.catalog-tools').append(serviceSearch);
-    let service='yandex',mood='all',selected='',listening='',remote=null,searchTimer,searchController,searchVersion=0,importing=false;
+    let service='yandex',mood='all',selected='',listening='',remote=null,searchTimer,searchController,searchVersion=0,importing=false,searching=false,searchFailed=false;
     const imported=new Set();
-    function cancelSearch(){clearTimeout(searchTimer);searchController?.abort();++searchVersion;remote=null;}
+    function cancelSearch(){clearTimeout(searchTimer);searchController?.abort();++searchVersion;remote=null;searching=false;searchFailed=false;}
     function scheduleSearch(){
-      cancelSearch();const query=search.value.trim();render();
-      if(query.length<2)return;
+      cancelSearch();const query=search.value.trim(),featured=service==='soundcloud'&&!query;
+      feedback.textContent='';
+      if(query.length<2&&!featured){render();return;}
       const direct=api.source(query);
       if(direct){
         service=direct.service;
@@ -22,19 +23,19 @@
         remote=[known||{id:'linked-'+direct.id,service,title:'Трек из '+direct.name,artist:direct.name,url:direct.url,cover:'',metadataMissing:true}];
         render();feedback.textContent=['youtube','soundcloud'].includes(direct.service)?'Ссылка распознана. Можно послушать и скачать аудиофайл.':'Ссылка распознана. Для скачивания найди этот трек на YouTube по исполнителю и названию.';return;
       }
-      const version=searchVersion;
+      const version=searchVersion;searching=true;render();
       searchTimer=setTimeout(async()=>{
         const controller=new AbortController();searchController=controller;const timeout=setTimeout(()=>controller.abort(),35000);feedback.textContent='Ищем треки…';
         try{
           const base=new URL(window.IWTXZ_BACKEND_CONFIG?.musicApiUrl);
           if(base.protocol!=='https:'||base.username||base.password)throw new Error('Поиск пока не подключён.');
-          const url=new URL('/v1/catalog/search',base);url.search=new URLSearchParams({service,q:query});
+          const url=new URL('/v1/catalog/search',base);url.search=new URLSearchParams({service,q:featured?'popular':query});
           const response=await fetch(url,{signal:controller.signal,credentials:'omit'});const data=await response.json();
           if(version!==searchVersion)return;
           if(!response.ok)throw new Error(data.error||'Не удалось выполнить поиск.');
           remote=(Array.isArray(data.tracks)?data.tracks:[]).filter(track=>api.source(track.url)?.service===service);
-          feedback.textContent=remote.length?'Результаты поиска':'По этому запросу ничего не найдено.';render();
-        }catch(error){if(version===searchVersion)feedback.textContent=error.name==='AbortError'?'Поиск занял слишком много времени. Попробуй ещё раз.':error.message;}
+          searching=false;feedback.textContent=remote.length?(featured?'Популярное в SoundCloud':'Результаты поиска'):'По этому запросу ничего не найдено.';render();
+        }catch(error){if(version===searchVersion){searching=false;searchFailed=true;feedback.textContent=error.name==='AbortError'?'Поиск занял слишком много времени. Попробуй ещё раз.':error.message;render();}}
         finally{clearTimeout(timeout);}
       },400);
     }
@@ -55,7 +56,7 @@
       list.replaceChildren();
       for(const track of items){
         const row=document.createElement('li');row.className='catalog-track';row.classList.toggle('selected',selected===track.url);
-        const art=image(track.cover,'catalog-cover');art.addEventListener('error',()=>art.classList.add('unavailable'),{once:true});
+        const art=image(track.cover||api.services[track.service].icon,'catalog-cover');if(!track.cover)art.classList.add('placeholder');art.addEventListener('error',()=>art.classList.add('unavailable'),{once:true});
         const info=document.createElement('div');info.className='catalog-track-info';
         const title=document.createElement('strong');title.textContent=track.title;
         const artist=document.createElement('span');artist.textContent=track.artist;info.append(title,artist);
@@ -101,7 +102,8 @@
         const actions=document.createElement('div');actions.className='catalog-actions';actions.append(choose,embed);
         row.append(art,info,listen,actions);list.append(row);
       }
-      root.querySelector('[data-catalog-empty]').hidden=items.length>0;
+      const empty=root.querySelector('[data-catalog-empty]');empty.hidden=items.length>0;
+      empty.textContent=searching?'Ищем треки…':searchFailed?'Поиск временно недоступен.':service==='soundcloud'&&needle.length<2&&remote===null?'Введи название трека или исполнителя.':'Ничего не нашлось. Попробуй другое настроение или запрос.';
       root.querySelector('[data-catalog-count]').textContent=`${items.length} треков · ${remote!==null?'поиск':'подборка iwtxz'}`;
     }
     for(const [id,brand] of Object.entries(api.services)) {

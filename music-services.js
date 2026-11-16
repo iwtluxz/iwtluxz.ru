@@ -2,9 +2,9 @@
   'use strict';
   const services=Object.freeze({
     yandex:{name:'Яндекс Музыка',icon:'/img/music/yandex.png',tagline:'Твоя волна на тёмной стороне'},
-    youtube:{name:'YouTube',icon:'/img/socials/youtube.svg',tagline:'Звуки, которые остаются с тобой'},
-    spotify:{name:'Spotify',icon:'/img/socials/spotify.svg',tagline:'Собери настроение своей страницы'},
-    soundcloud:{name:'SoundCloud',icon:'/img/socials/soundcloud.svg',tagline:'Открой новые звуки и исполнителей'}
+    youtube:{name:'YouTube',icon:'/img/music/youtube.svg',tagline:'Звуки, которые остаются с тобой'},
+    spotify:{name:'Spotify',icon:'/img/music/spotify.svg',tagline:'Собери настроение своей страницы'},
+    soundcloud:{name:'SoundCloud',icon:'/img/music/soundcloud.svg',tagline:'Открой новые звуки и исполнителей'}
   });
   function source(value) {
     try {

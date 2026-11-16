@@ -3,11 +3,18 @@ import json
 import http.client
 import socket
 import ssl
+from urllib.error import HTTPError
 from types import SimpleNamespace
 from unittest.mock import patch, MagicMock
 from catalog import Catalog,CatalogError,connect_ipv4,IPv4HTTPSConnection,IPv4HTTPSHandler
 
 class CatalogTests(unittest.TestCase):
+    def test_yandex_geographic_restriction_explains_the_provider_failure(self):
+        catalog=Catalog()
+        with patch.object(catalog,'json',side_effect=HTTPError('https://example.test',451,'Unavailable',{},None)):
+            with self.assertRaisesRegex(CatalogError,'ограничивает доступ'):
+                catalog.search('yandex','track')
+
     def test_soundcloud_search_uses_public_track_urls_and_discards_invalid_results(self):
         payload={'entries':[
             {'id':'123','title':'Song','uploader':'Artist','webpage_url':'https://soundcloud.com/artist/song','duration':90},

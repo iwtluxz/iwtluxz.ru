@@ -28,7 +28,7 @@ class Element {
   click() { return this.fire("click"); }
 }
 
-function loadBuilder(request, query = "", missingIds = [], staleBadgePicker = false, storage = new Map(), music = null) {
+function loadBuilder(request, query = "", missingIds = [], staleBadgePicker = false, storage = new Map(), music = null, upload = null) {
   const elements = new Map([...markup.matchAll(/id="([^"]+)"/g)].map(([, id]) => [id, new Element()]));
   for(const id of missingIds)elements.delete(id);
   const loginTab = new Element(), signupTab = new Element();
@@ -36,14 +36,17 @@ function loadBuilder(request, query = "", missingIds = [], staleBadgePicker = fa
   const buttons = [elements.get("authSubmit"), elements.get("showPassword"), loginTab, signupTab];
   const previewMessages = [];
   elements.get("previewFrame").contentWindow = { postMessage(message) { previewMessages.push(message); } };
+  const uploadInput=elements.get("avatarFile"), uploadNote=new Element();
+  if(upload){uploadInput.dataset.upload="avatar";uploadInput.files=[upload.file];uploadNote.dataset.fileNote="avatar";}
   const body = new Element(); body.classList.add("auth-locked");
   const document = { body,
-    querySelector(selector) { return selector === '[data-auth-mode="login"]' ? loginTab : selector === '[data-auth-mode="signup"]' ? signupTab : elements.get(selector.slice(1)); },
-    querySelectorAll(selector) { return selector === "[data-auth-mode]" ? [loginTab, signupTab] : selector === "#authForm button, [data-auth-mode]" ? buttons : []; } };
+    querySelector(selector) { return selector === '[data-auth-mode="login"]' ? loginTab : selector === '[data-auth-mode="signup"]' ? signupTab : upload && selector === '[data-file-note="avatar"]' ? uploadNote : elements.get(selector.slice(1)); },
+    querySelectorAll(selector) { return selector === "[data-auth-mode]" ? [loginTab, signupTab] : selector === "#authForm button, [data-auth-mode]" ? buttons : upload && selector === "[data-upload]" ? [uploadInput] : upload && selector === "[data-file-note]" ? [uploadNote] : []; } };
   const location = new URL("https://example.test/" + query);
   const navigations=[];location.replace=url=>navigations.push(url);
   const window = { location, addEventListener() {}, localStorage: { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value) }, IwtxzBackend: { isConfigured: () => true, request } };
   if(music){window.IwtxzMusicServices={source:value=>value===music.url?{url:value}:null};window.IwtxzMusicCatalog={create:handlers=>{music.handlers=handlers;return {open(){},close(){},reset(){}};}};}
+  if(upload)window.IwtxzImageCompression={compress:upload.compress};
   if(staleBadgePicker){document.head={};window.IwtxzDiscordBadgePicker={read:()=>[],apply(){}};}
   const timers = new Set();
   const context = vm.createContext({ window, document, location, URL, URLSearchParams, Headers, AbortController,
@@ -75,6 +78,24 @@ test("embedding a catalog track requires login and persists its service URL", as
     await ui.elements.get('saveButton').fire('click');
     assert.equal(submitted.music,music.url);
     assert.equal(submitted.musicTitle,'Artist — Song');
+  }finally{ui.close();}
+});
+
+test("large uploaded pictures are compressed before the backend request", async () => {
+  const file={name:"picture.png",size:5*1024*1024,type:"image/png"};
+  const compressed={name:"picture.webp",size:500000,type:"image/webp"};
+  let uploaded;
+  const upload={file,compress:async input=>{assert.equal(input,file);return compressed;}};
+  const ui=loadBuilder(async(path,options)=>{
+    if(path.includes('/assets/upload')){uploaded={path,...options};return {url:'https://example.test/avatar.webp'};}
+    return response(path);
+  },'',[],false,new Map(),null,upload);
+  try{
+    await ui.submit();
+    await ui.elements.get('avatarFile').fire('change');
+    assert.equal(uploaded.body,compressed);
+    assert.equal(uploaded.headers['content-type'],'image/webp');
+    assert.match(uploaded.path,/picture\.webp/);
   }finally{ui.close();}
 });
 

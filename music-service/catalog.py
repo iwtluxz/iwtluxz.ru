@@ -9,6 +9,7 @@ import subprocess
 import threading
 import time
 from urllib.parse import urlencode
+from urllib.error import HTTPError
 from urllib.request import Request, urlopen, HTTPSHandler, build_opener
 
 class CatalogError(Exception): pass
@@ -72,7 +73,12 @@ class Catalog:
         except Exception as error:raise CatalogError('Сервис поиска сейчас не отвечает. Попробуй ещё раз или вставь ссылку на трек.') from error
         finally:self.slots.release()
     def search_yandex(self,query):
-        result=self.json('https://api.music.yandex.net/search?'+urlencode({'text':query,'type':'track','page':0}))
+        try:
+            result=self.json('https://api.music.yandex.net/search?'+urlencode({'text':query,'type':'track','page':0}))
+        except HTTPError as error:
+            if error.code == 451:
+                raise CatalogError('Яндекс Музыка ограничивает доступ с этого сервера. Открой поиск Яндекса по ссылке ниже.') from error
+            raise
         tracks=[]
         for item in (result.get('result',{}).get('tracks',{}).get('results',[]) or [])[:12]:
             albums=item.get('albums',[])

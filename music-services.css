@@ -27,6 +27,7 @@
 .catalog-track:hover { background: #ffffff07; }
 .catalog-track.selected { background: var(--music-wash); border-color: color-mix(in srgb,var(--music-brand) 35%,transparent); }
 .catalog-cover { display: block; width: 43px; height: 43px; border-radius: 7px; object-fit: cover; background: var(--music-wash); }
+.catalog-cover.placeholder { box-sizing: border-box; padding: 8px; object-fit: contain; }
 .catalog-cover.unavailable { opacity: 0; }
 .catalog-track-info { min-width: 0; }
 .catalog-track-info strong, .catalog-track-info span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.6; }

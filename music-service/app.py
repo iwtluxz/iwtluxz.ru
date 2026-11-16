@@ -143,15 +143,20 @@ class Library:
         # Node/Deno is needed by current yt-dlp for YouTube's JavaScript challenges.
         js_runtime = os.environ.get('YTDLP_JS_RUNTIME', '')
         if js_runtime: command[1:1] = ['--js-runtimes', js_runtime]
-        process = subprocess.Popen(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=(os.name != 'nt'))
-        try:
-            result = process.wait(timeout=240)
-        except subprocess.TimeoutExpired:
-            if os.name != 'nt':
-                import signal; os.killpg(process.pid, signal.SIGKILL)
-            else: process.kill()
-            process.wait(); raise ApiError(504, 'Загрузка заняла слишком много времени. Попробуй другой трек.')
-        if result != 0 or not (directory/'track.mp3').is_file(): raise ApiError(422, 'Не удалось получить аудио. Сервис может быть недоступен с сервера или ограничивать этот трек. Попробуй другую ссылку.')
+        with tempfile.TemporaryFile() as errors:
+            process = subprocess.Popen(command, stdout=subprocess.DEVNULL, stderr=errors, start_new_session=(os.name != 'nt'))
+            try:
+                result = process.wait(timeout=240)
+            except subprocess.TimeoutExpired:
+                if os.name != 'nt':
+                    import signal; os.killpg(process.pid, signal.SIGKILL)
+                else: process.kill()
+                process.wait(); raise ApiError(504, 'Загрузка заняла слишком много времени. Попробуй другой трек.')
+            if result != 0 or not (directory/'track.mp3').is_file():
+                errors.seek(0, os.SEEK_END); errors.seek(max(0, errors.tell() - 8192))
+                if urlsplit(source).hostname in ('youtube.com','www.youtube.com','music.youtube.com','youtu.be') and b'HTTP Error 403' in errors.read():
+                    raise ApiError(422, 'YouTube отклонил загрузку с сервера (403). Используй встроенный плеер или загрузи свой аудиофайл.')
+                raise ApiError(422, 'Не удалось получить аудио. Сервис может быть недоступен с сервера или ограничивать этот трек. Попробуй другую ссылку.')
         metadata = json.loads((directory/'track.info.json').read_text(encoding='utf8'))
         return metadata, directory/'track.mp3'
 

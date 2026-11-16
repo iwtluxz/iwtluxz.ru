@@ -16,9 +16,9 @@
   <script src="profile-decorations.js?v=4a4bc7aa65a9" defer></script>
   <script src="profile-features.js?v=e79afe5e6b21" defer></script>
   <script src="music-library.js?v=2fab4296d8bb" defer></script>
-  <script src="music-services.js?v=edf984807172" defer></script>
+  <script src="music-services.js?v=bf573127bff9" defer></script>
   <script src="music-catalog-data.js?v=920cd10922e5" defer></script>
-  <script src="music-catalog.js?v=cf18b819163b" defer></script>
+  <script src="music-catalog.js?v=fa74e7b6c350" defer></script>
   <script src="profile-scene.js?v=795f7d6f88de" defer></script>
   <script src="profile-layout.js?v=79074bd28891" defer></script>
   <script src="site-audio-config.js?v=2ef578a39d63" defer></script>
@@ -27,10 +27,11 @@
   <script src="builder-discord-badges.js?v=0dfb6a1ce948" defer></script>
   <script src="profile-badge-overflow.js?v=02511a5dba22" defer></script>
   <script src="site-chrome.js?v=450b749f24e4" defer></script>
-  <script src="builder.js?v=55b1a9f40cb7" defer></script>
+  <script src="image-compression.js?v=68e15b806c42" defer></script>
+  <script src="builder.js?v=06937239e299" defer></script>
   <script src="builder-discord-dialog.js?v=f038935de49e" defer></script>
   <link rel="stylesheet" href="profile-features.css?v=6e54ed2cdc6c">
-  <link rel="stylesheet" href="music-services.css?v=a949d4937549">
+  <link rel="stylesheet" href="music-services.css?v=7c729d89a2af">
   <link rel="stylesheet" href="profile-scene.css?v=d901490b8aa2">
   <link rel="stylesheet" href="profile-layout.css?v=183623eec637">
   <link rel="stylesheet" href="profile-decorations.css?v=905e884c7dad">
@@ -86,7 +87,7 @@
           <button class="effects-shortcut" type="button" id="openEffects"><span class="effects-shortcut-icon" aria-hidden="true">✧</span><span><strong>Анимация ника и украшение аватара</strong><small id="effectsSummary">Открыть эффекты</small></span><span aria-hidden="true">↗</span></button>
           <div class="settings-group">
           <div class="group-head"><h3>Основное</h3><p class="hint">Аватарка, ник и описание — первое, что видят на странице.</p></div>
-          <div class="upload-card"><img id="avatarThumbnail" class="avatar-thumbnail" src="img/tree.png" alt="Текущая аватарка"><div class="upload-details"><label for="avatarFile">Аватарка</label><input id="avatarFile" data-upload="avatar" type="file" accept="image/png,image/jpeg,image/gif,image/webp"><span class="hint" data-file-note="avatar">PNG, JPG, GIF или WebP · до 4 МБ</span></div><button type="button" class="text-button" data-remove="avatar">Убрать</button></div>
+          <div class="upload-card"><img id="avatarThumbnail" class="avatar-thumbnail" src="img/tree.png" alt="Текущая аватарка"><div class="upload-details"><label for="avatarFile">Аватарка</label><input id="avatarFile" data-upload="avatar" type="file" accept="image/png,image/jpeg,image/gif,image/webp"><span class="hint" data-file-note="avatar">Картинки сжимаются автоматически · GIF до 4 МБ</span></div><button type="button" class="text-button" data-remove="avatar">Убрать</button></div>
           <details class="url-details"><summary>Или указать ссылку на аватарку</summary><label class="field">Ссылка<input id="avatarUrl" data-asset-url="avatar" type="url" placeholder="https://…"></label></details>
 
           <div class="form-grid">
@@ -212,7 +213,7 @@
           <div class="settings-group" data-advanced><div class="group-head"><h3>Аватарка</h3><p class="hint">Размер круга с аватаркой на странице.</p></div>
           <label class="field range-field">Размер аватарки<output for="avatarSize" id="avatarSizeValue">150 px</output><input id="avatarSize" type="range" min="80" max="220" step="2" value="150"></label></div>
           <div class="settings-group"><div class="group-head"><h3>Фон</h3><p class="hint">Картинка, GIF или видео за карточкой профиля.</p></div>
-          <div class="upload-card"><div class="upload-details"><label for="backgroundFile">Фон страницы</label><input id="backgroundFile" data-upload="background" type="file" accept="image/png,image/jpeg,image/gif,image/webp,video/mp4,video/webm"><span class="hint" data-file-note="background">Картинка, GIF, MP4 или WebM · до 4 МБ</span></div><button type="button" class="text-button" data-remove="background">Убрать</button></div>
+          <div class="upload-card"><div class="upload-details"><label for="backgroundFile">Фон страницы</label><input id="backgroundFile" data-upload="background" type="file" accept="image/png,image/jpeg,image/gif,image/webp,video/mp4,video/webm"><span class="hint" data-file-note="background">Картинки сжимаются автоматически · GIF и видео до 4 МБ</span></div><button type="button" class="text-button" data-remove="background">Убрать</button></div>
           <details class="url-details"><summary>Или указать ссылку на фон</summary><label class="field">Ссылка<input id="backgroundUrl" data-asset-url="background" type="url" placeholder="https://…"></label><label class="field">Тип фона<select id="backgroundType"><option value="image">Картинка / GIF</option><option value="video">Видео</option></select></label></details>
           <label class="field range-field">Затемнение фона<output for="backgroundDim" id="backgroundDimValue">58%</output><input id="backgroundDim" type="range" min="0" max="85" value="58"></label></div>
           <div class="settings-group"><div class="group-head"><h3>Цвет и шрифт</h3><p class="hint">Акцентный цвет и шрифт, которым набрана твоя страница.</p></div>
@@ -240,7 +241,7 @@
           <div class="upload-card"><div class="upload-details"><label for="musicFile">Твой трек</label><input id="musicFile" data-upload="music" type="file" accept="audio/mpeg,audio/mp3,audio/ogg,audio/wav,audio/x-wav,audio/mp4,audio/webm"><span class="hint" data-file-note="music">MP3, OGG, WAV, M4A или WebM · до 4 МБ</span></div><button type="button" class="text-button" data-remove="music">Убрать</button></div>
           <div class="url-details music-direct-url"><h3>Прямая ссылка на аудио</h3><label class="field">Ссылка на аудиофайл<input id="musicUrl" data-asset-url="music" type="url" placeholder="https://…/track.mp3"></label><p class="hint">MP3 и другие аудиофайлы работают сразу. Для скачивания с YouTube или SoundCloud вставь ссылку в «Мою библиотеку». Яндекс Музыку и Spotify ищи в подборке ниже.</p></div>
           <label class="field">Название трека<input id="musicTitle" maxlength="80" placeholder="Исполнитель — название"></label>
-          <div class="upload-card"><img id="coverThumbnail" class="cover-thumbnail" src="img/tree.png" alt="Обложка трека"><div class="upload-details"><label for="musicCoverFile">Обложка</label><input id="musicCoverFile" data-upload="musicCover" type="file" accept="image/png,image/jpeg,image/gif,image/webp"><span class="hint" data-file-note="musicCover">Картинка · до 4 МБ</span></div><button type="button" class="text-button" data-remove="musicCover">Убрать</button></div>
+          <div class="upload-card"><img id="coverThumbnail" class="cover-thumbnail" src="img/tree.png" alt="Обложка трека"><div class="upload-details"><label for="musicCoverFile">Обложка</label><input id="musicCoverFile" data-upload="musicCover" type="file" accept="image/png,image/jpeg,image/gif,image/webp"><span class="hint" data-file-note="musicCover">Картинки сжимаются автоматически · GIF до 4 МБ</span></div><button type="button" class="text-button" data-remove="musicCover">Убрать</button></div>
           <label class="checkbox-field"><input id="musicLoop" type="checkbox" checked><span>Повторять трек</span></label>
           </div>
 
