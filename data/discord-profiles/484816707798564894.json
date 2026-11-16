@@ -19,8 +19,13 @@
     "skuId": "1252404760448077864"
   },
   "statusText": "love @me",
-  "status": "offline",
-  "activity": null,
+  "status": "idle",
+  "activity": {
+    "type": 2,
+    "name": "Dotify",
+    "details": "ww basedgod life",
+    "state": "FORTUNA 812"
+  },
   "managedBy": "iwtxz-public-discord-sync",
-  "updatedAt": 1794802234373
+  "updatedAt": 1794804564508
 }
