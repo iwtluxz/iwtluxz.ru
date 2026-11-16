@@ -13,14 +13,23 @@
       "label": "HypeSquad Bravery"
     }
   ],
-  "primaryGuild": null,
+  "primaryGuild": {
+    "guildId": "1315970305243746388",
+    "tag": "゛𐙚",
+    "badge": "6c6c2d3b418835606a087195e005330b"
+  },
   "avatarDecoration": {
     "asset": "a_d260c70fa8f38c499fa452c3cbdc5a0c",
     "skuId": "1252404760448077864"
   },
   "statusText": "ww basedgod life",
   "status": "idle",
-  "activity": null,
+  "activity": {
+    "type": 2,
+    "name": "Dotify",
+    "details": "cleopatra",
+    "state": "FORTUNA 812, Clayt Carter"
+  },
   "managedBy": "iwtxz-public-discord-sync",
-  "updatedAt": 1794805045666
+  "updatedAt": 1794805443542
 }
