@@ -134,6 +134,7 @@
     let loadedFont = null;
     let loadedFontFamily = "";
     let pollTimer = 0;
+    let liveStream = null, liveReady = false, liveBlocked = false;
     let disposed = false;
     let snapshotState = 'disabled';
     let scene = window.IwtxzProfileScene?.create();
@@ -318,14 +319,60 @@
       const serial = ++fetchSerial;
       try {
         const data = await snapshot(userId);
-        if (disposed || serial !== fetchSerial || requestedUser !== userId) return;
+        if (disposed || liveReady || liveBlocked || serial !== fetchSerial || requestedUser !== userId) return;
         lastSnapshot = data;
         const fresh = data && typeof data.updatedAt === "number" && Date.now() - data.updatedAt < 86_400_000 && data.updatedAt < Date.now() + 300_000;
         notify(data?.guildId === discordGuildId && data?.member === false ? "not-member" : data?.guildId === discordGuildId && data?.member === true && fresh ? "ready" : "waiting", data?.updatedAt);
         drawDiscord(data);
       } catch {
-        if (!disposed && serial === fetchSerial && requestedUser === userId) { lastSnapshot = null; notify("unavailable"); drawDiscord(null); }
+        if (!disposed && !liveReady && !liveBlocked && serial === fetchSerial && requestedUser === userId) { lastSnapshot = null; notify("unavailable"); drawDiscord(null); }
       }
+    }
+    function connectDiscordLive(userId) {
+      liveStream?.close();
+      liveStream = null;
+      liveReady = false;
+      liveBlocked = false;
+      if (!userId || typeof window.EventSource !== "function" || !window.IWTXZ_BACKEND_CONFIG?.discordLiveUrl) return;
+      let endpoint;
+      try {
+        endpoint = new URL(window.IWTXZ_BACKEND_CONFIG.discordLiveUrl);
+        if (endpoint.protocol !== "https:" || endpoint.username || endpoint.password || endpoint.search || endpoint.hash) throw new Error("Invalid Discord live URL");
+      } catch (error) { console.warn("Discord live URL is invalid:", error.message); return; }
+      let stream;
+      try { stream = new window.EventSource(`${endpoint.href.replace(/\/$/, "")}/discord/stream/${userId}`); }
+      catch (error) { console.warn("Discord live connection failed:", error.message); return; }
+      liveStream = stream;
+      stream.addEventListener("profile", event => {
+        if (disposed || stream !== liveStream || requestedUser !== userId) return;
+        try {
+          const data = JSON.parse(event.data);
+          if (data?.id !== userId || data.guildId !== discordGuildId || data.member !== true ||
+              !["online", "idle", "dnd", "offline"].includes(data.status) || !Number.isFinite(data.updatedAt)) throw new Error("Invalid live profile");
+          liveReady = true;
+          liveBlocked = false;
+          ++fetchSerial;
+          lastSnapshot = data;
+          notify("ready", data.updatedAt);
+          drawDiscord(data);
+        } catch (error) { console.warn("Discord live update rejected:", error.message); }
+      });
+      const fallback = () => {
+        if (disposed || stream !== liveStream || requestedUser !== userId || !liveReady) return;
+        liveReady = false;
+        void refreshDiscord(userId);
+      };
+      stream.addEventListener("unavailable", event => {
+        if (disposed || stream !== liveStream || requestedUser !== userId) return;
+        let reason;
+        try { reason = JSON.parse(event.data).reason; }
+        catch (error) { console.warn("Discord live state rejected:", error.message); fallback(); return; }
+        if (reason === "membership" || reason === "disabled") {
+          liveBlocked = true; liveReady = false; ++fetchSerial; lastSnapshot = null;
+          notify(reason === "membership" ? "not-member" : "disabled"); drawDiscord(null);
+        } else fallback();
+      });
+      stream.addEventListener("error", fallback);
     }
     function apply(site) {
       if (disposed) return;
@@ -377,6 +424,7 @@
       const userId = site.discordSync === true && /^\d{17,20}$/.test(site.discordUserId || "") ? site.discordUserId : "";
       if (userId !== requestedUser) {
         requestedUser = userId;
+        connectDiscordLive(userId);
         lastSnapshot = null;
         ++fetchSerial;
         clearInterval(pollTimer);
@@ -391,6 +439,7 @@
     }
     function dispose() {
       disposed = true;
+      liveStream?.close();
       window.IwtxzBadgeOverflow?.dispose(nodes.discordBadges);
       scene?.dispose();
       profileLayout?.dispose();

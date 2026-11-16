@@ -52,7 +52,19 @@
     return '';
   }
   let previousEffects = null;
-  const musicCatalog = window.IwtxzMusicCatalog?.create({ async onSelect(track, options) {
+  const musicCatalog = window.IwtxzMusicCatalog?.create({ onEmbed(track) {
+    if (!accountReady) throw new Error('Сначала войди в аккаунт.');
+    const source=window.IwtxzMusicServices?.source(track.url);
+    if (!source) throw new Error('Ссылка на трек недействительна.');
+    currentSite.music=source.url;
+    savedServiceMusic=source.url;
+    currentSite.musicCover=track.cover || "";
+    $("#musicUrl").value=source.url;
+    $("#musicTitle").value=track.metadataMissing?track.title:`${track.artist} — ${track.title}`;
+    const coverField=document.querySelector('[data-asset-url="musicCover"]');
+    if (coverField) coverField.value=currentSite.musicCover;
+    updatePreview(); toast("Плеер сервиса выбран");
+  }, async onSelect(track, options) {
     if (!accountReady) throw new Error('Сначала войди в аккаунт.');
     const version=sessionVersion;
     const previousMusic=currentSite.music;

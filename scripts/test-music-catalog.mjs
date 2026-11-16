@@ -10,12 +10,13 @@ test('music service links canonicalize tracking links and reject deceptive hosts
     ['https://music.yandex.ru/album/9553251/track/61304855?utm_source=share','yandex'],
     ['https://open.spotify.com/intl-ru/track/5FkJHVudUByVjanCqFXRql?si=example','spotify'],
     ['https://youtu.be/sVx1mJDeUjY?si=example','youtube'],
-    ['https://www.youtube.com/watch?v=sVx1mJDeUjY&t=20','youtube']
+    ['https://www.youtube.com/watch?v=sVx1mJDeUjY&t=20','youtube'],
+    ['https://soundcloud.com/artist/song?utm_source=share','soundcloud']
   ]){
     const result=source(input);assert.equal(result.service,service);assert.equal(source(result.url).embed,result.embed);
     assert.equal(new URL(result.embed).protocol,'https:');
   }
-  for(const input of ['http://open.spotify.com/track/5FkJHVudUByVjanCqFXRql','https://music.yandex.ru.evil.example/album/1/track/2','https://user:password@music.yandex.ru/album/1/track/2','https://open.spotify.com/artist/5FkJHVudUByVjanCqFXRql','https://www.youtube.com/watch?v=<script>','https://example.com/song.mp3','javascript:alert(1)','https://youtu.be/sVx1mJDeUjY/extra'])assert.equal(source(input),null,input);
+  for(const input of ['http://open.spotify.com/track/5FkJHVudUByVjanCqFXRql','https://music.yandex.ru.evil.example/album/1/track/2','https://user:password@music.yandex.ru/album/1/track/2','https://open.spotify.com/artist/5FkJHVudUByVjanCqFXRql','https://www.youtube.com/watch?v=<script>','https://example.com/song.mp3','javascript:alert(1)','https://youtu.be/sVx1mJDeUjY/extra','https://soundcloud.com.evil.example/artist/song','https://soundcloud.com/artist/sets/playlist','https://soundcloud.com/artist'])assert.equal(source(input),null,input);
 });
 test('every editorial selection has a real service track, artwork and searchable attribution',()=>{
   const tracks=context.window.IwtxzMusicCatalogData.tracks;

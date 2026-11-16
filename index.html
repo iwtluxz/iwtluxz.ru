@@ -11,14 +11,14 @@
   <title>Личный кабинет · iwtxz</title>
   <script src="profile-links.js?v=40c61c4a7df8" defer></script>
   <script src="vendor/supabase-2.102.0.min.js" defer></script>
-  <script src="backend-config.js?v=de09dc01acac" defer></script>
+  <script src="backend-config.js?v=f80930a2da11" defer></script>
   <script src="backend-client.js?v=069910da23ec" defer></script>
   <script src="profile-decorations.js?v=4a4bc7aa65a9" defer></script>
   <script src="profile-features.js?v=e79afe5e6b21" defer></script>
   <script src="music-library.js?v=2fab4296d8bb" defer></script>
-  <script src="music-services.js?v=a4a92a4fc51d" defer></script>
+  <script src="music-services.js?v=edf984807172" defer></script>
   <script src="music-catalog-data.js?v=920cd10922e5" defer></script>
-  <script src="music-catalog.js?v=109976640021" defer></script>
+  <script src="music-catalog.js?v=cf18b819163b" defer></script>
   <script src="profile-scene.js?v=795f7d6f88de" defer></script>
   <script src="profile-layout.js?v=79074bd28891" defer></script>
   <script src="site-audio-config.js?v=2ef578a39d63" defer></script>
@@ -27,10 +27,10 @@
   <script src="builder-discord-badges.js?v=0dfb6a1ce948" defer></script>
   <script src="profile-badge-overflow.js?v=02511a5dba22" defer></script>
   <script src="site-chrome.js?v=450b749f24e4" defer></script>
-  <script src="builder.js?v=337e0524c47c" defer></script>
+  <script src="builder.js?v=55b1a9f40cb7" defer></script>
   <script src="builder-discord-dialog.js?v=f038935de49e" defer></script>
   <link rel="stylesheet" href="profile-features.css?v=6e54ed2cdc6c">
-  <link rel="stylesheet" href="music-services.css?v=b83e04cda2b4">
+  <link rel="stylesheet" href="music-services.css?v=a949d4937549">
   <link rel="stylesheet" href="profile-scene.css?v=d901490b8aa2">
   <link rel="stylesheet" href="profile-layout.css?v=183623eec637">
   <link rel="stylesheet" href="profile-decorations.css?v=905e884c7dad">
@@ -236,9 +236,9 @@
         <section class="settings-section hidden" data-settings-section="music" aria-labelledby="musicHeading">
           <header class="section-head"><span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg></span><div><h2 id="musicHeading">Музыка</h2><p class="section-description">Твоя библиотека, аудиофайлы и ссылки — всё для музыки на странице.</p></div></header>
           <div class="music-own-files" id="ownMusicFiles">
-          <div class="music-library" id="musicLibrary"><h3>Моя библиотека</h3><p class="hint">YouTube, Bandcamp или Vimeo. SoundCloud пока недоступен.</p><div class="library-import"><input type="url" data-library-url placeholder="Ссылка на трек" aria-label="Ссылка для библиотеки" maxlength="1000"><button class="button" type="button" data-library-import>Добавить</button></div><p class="status" role="status" aria-live="polite" data-library-status></p><ul class="library-list" data-library-list></ul></div>
+          <div class="music-library" id="musicLibrary"><h3>Моя библиотека</h3><p class="hint">Ссылки на треки YouTube, SoundCloud, Bandcamp или Vimeo.</p><div class="library-import"><input type="url" data-library-url placeholder="Ссылка на трек" aria-label="Ссылка для библиотеки" maxlength="1000"><button class="button" type="button" data-library-import>Добавить</button></div><p class="status" role="status" aria-live="polite" data-library-status></p><ul class="library-list" data-library-list></ul></div>
           <div class="upload-card"><div class="upload-details"><label for="musicFile">Твой трек</label><input id="musicFile" data-upload="music" type="file" accept="audio/mpeg,audio/mp3,audio/ogg,audio/wav,audio/x-wav,audio/mp4,audio/webm"><span class="hint" data-file-note="music">MP3, OGG, WAV, M4A или WebM · до 4 МБ</span></div><button type="button" class="text-button" data-remove="music">Убрать</button></div>
-          <div class="url-details music-direct-url"><h3>Прямая ссылка на аудио</h3><label class="field">Ссылка на аудиофайл<input id="musicUrl" data-asset-url="music" type="url" placeholder="https://…/track.mp3"></label><p class="hint">MP3 и другие аудиофайлы работают сразу. Для скачивания с YouTube вставь ссылку в «Мою библиотеку». Яндекс Музыку и Spotify ищи в подборке ниже.</p></div>
+          <div class="url-details music-direct-url"><h3>Прямая ссылка на аудио</h3><label class="field">Ссылка на аудиофайл<input id="musicUrl" data-asset-url="music" type="url" placeholder="https://…/track.mp3"></label><p class="hint">MP3 и другие аудиофайлы работают сразу. Для скачивания с YouTube или SoundCloud вставь ссылку в «Мою библиотеку». Яндекс Музыку и Spotify ищи в подборке ниже.</p></div>
           <label class="field">Название трека<input id="musicTitle" maxlength="80" placeholder="Исполнитель — название"></label>
           <div class="upload-card"><img id="coverThumbnail" class="cover-thumbnail" src="img/tree.png" alt="Обложка трека"><div class="upload-details"><label for="musicCoverFile">Обложка</label><input id="musicCoverFile" data-upload="musicCover" type="file" accept="image/png,image/jpeg,image/gif,image/webp"><span class="hint" data-file-note="musicCover">Картинка · до 4 МБ</span></div><button type="button" class="text-button" data-remove="musicCover">Убрать</button></div>
           <label class="checkbox-field"><input id="musicLoop" type="checkbox" checked><span>Повторять трек</span></label>
@@ -252,7 +252,7 @@
             <div class="catalog-tools"><input type="search" data-catalog-search placeholder="Трек, исполнитель или ссылка" aria-label="Поиск музыки или добавление ссылки" autocomplete="off"><div class="catalog-moods" role="group" aria-label="Настроение"><button type="button" data-catalog-mood="all" aria-pressed="true">Всё</button><button type="button" data-catalog-mood="dark" aria-pressed="false">Тёмная сторона</button><button type="button" data-catalog-mood="dream" aria-pressed="false">Мечтать</button><button type="button" data-catalog-mood="indie" aria-pressed="false">Инди</button></div></div>
             <p class="catalog-count" data-catalog-count></p><ul class="catalog-tracks" data-catalog-tracks></ul><p class="catalog-empty" data-catalog-empty hidden>Ничего не нашлось. Попробуй другое настроение или запрос.</p>
             <p class="catalog-status" data-catalog-status role="status" aria-live="polite"></p><div class="catalog-preview" data-catalog-preview hidden></div>
-            <div class="catalog-footnote">«Скачать и выбрать» сохраняет аудио в твою библиотеку. Для Яндекс Музыки и Spotify сначала выбери подходящую версию на YouTube. На странице будет твой классический или компактный плеер.</div>
+            <div class="catalog-footnote">«Скачать и выбрать» сохраняет доступное аудио в библиотеку для твоего плеера. «Плеер сервиса» встраивает трек без скачивания; его доступность и автозапуск зависят от площадки.</div>
           </div>
 </details>
         </section>

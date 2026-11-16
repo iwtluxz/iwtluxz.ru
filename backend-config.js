@@ -8,7 +8,8 @@ window.IWTXZ_BACKEND_CONFIG = Object.freeze({
   authSiteUrl: "https://iwtxz.su",
   usernameAuthUrl: "https://aknoeytrgzkgdcttwgvb.supabase.co/functions/v1/account-login",
   bucket: "profile-assets",
-  musicApiUrl: "https://music.iwtxz.su",
+  musicApiUrl: "https://api.iwtxz.su",
+  discordLiveUrl: "https://api.iwtxz.su",
   discordGuildId: "1557152366208229486",
   discordInviteUrl: "https://discord.gg/cbtEaVcZHC"
 });

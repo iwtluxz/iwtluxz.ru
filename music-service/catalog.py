@@ -52,7 +52,7 @@ class Catalog:
             if len(payload)>2_000_000:raise CatalogError('Ответ музыкального сервиса слишком большой.')
             return json.loads(payload)
     def search(self,service,query):
-        if service not in ('yandex','youtube','spotify'):raise CatalogError('Выбери музыкальный сервис.')
+        if service not in ('yandex','youtube','spotify','soundcloud'):raise CatalogError('Выбери музыкальный сервис.')
         query=' '.join(query.split())
         if not 2<=len(query)<=100:raise CatalogError('Введи от 2 до 100 символов.')
         key=(service,query.casefold())
@@ -105,6 +105,19 @@ class Catalog:
             tracks.append({'id':'youtube-'+video_id,'service':'youtube','title':str(item.get('title',''))[:120],
                 'artist':str(item.get('channel') or item.get('uploader') or 'YouTube')[:160],
                 'url':'https://www.youtube.com/watch?v='+video_id,'cover':f'https://i.ytimg.com/vi/{video_id}/hqdefault.jpg','duration':item.get('duration')})
+        return tracks
+    def search_soundcloud(self,query):
+        command=[os.environ.get('YTDLP_BIN','yt-dlp'),'--ignore-config','--flat-playlist','--dump-single-json','--skip-download','--no-warnings','--socket-timeout','5','--retries','0','--extractor-retries','0','--playlist-end','12','--','scsearch12:'+query]
+        result=subprocess.run(command,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,timeout=25,check=True)
+        payload=json.loads(result.stdout)
+        tracks=[]
+        for item in payload.get('entries',[])[:12]:
+            url=item.get('webpage_url','')
+            if not isinstance(url,str) or not re.fullmatch(r'https://soundcloud\.com/[A-Za-z0-9_-]+/[A-Za-z0-9_-]+/?',url):continue
+            track_id=str(item.get('id',''))
+            if not track_id.isdigit():continue
+            tracks.append({'id':'soundcloud-'+track_id,'service':'soundcloud','title':str(item.get('title') or 'SoundCloud')[:120],
+                'artist':str(item.get('uploader') or 'SoundCloud')[:160],'url':url,'cover':'','duration':item.get('duration')})
         return tracks
     def search_spotify(self,query):
         client_id=os.environ.get('SPOTIFY_CLIENT_ID','');secret=os.environ.get('SPOTIFY_CLIENT_SECRET','')

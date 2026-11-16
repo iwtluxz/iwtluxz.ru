@@ -1,7 +1,7 @@
 # Музыкальная библиотека iwtxz
 
-Поиск каталога: `GET /v1/catalog/search?service=yandex|youtube|spotify&q=...`.
-Яндекс: публичные метаданные. YouTube: ограниченный поиск yt-dlp, либо официальный
+Поиск каталога: `GET /v1/catalog/search?service=yandex|youtube|spotify|soundcloud&q=...`.
+Яндекс: публичные метаданные. SoundCloud: поиск yt-dlp. YouTube: ограниченный поиск yt-dlp, либо официальный
 YouTube Data API при наличии `YOUTUBE_API_KEY` в `/etc/iwtxz-music.env`.
 Только запросы к официальному YouTube Data API используют отдельное IPv4 HTTPS-соединение:
 это позволяет применять IP-ограничение ключа на IPv4-адрес VPS, даже если сервер
@@ -13,8 +13,8 @@ Spotify Search требует `SPOTIFY_CLIENT_ID` и `SPOTIFY_CLIENT_SECRET` в 
 показывает причину недоступности поиска. Секреты не передаются браузеру.
 Результаты кешируются на 10 минут; одновременно выполняются максимум два поиска.
 
-Текущий домен API: `https://music.iwtxz.su`. Nginx и сертификат обслуживают также
-старый `music.iwtxz.ru`, чтобы сохранить опубликованные MP3-ссылки.
+Текущий домен API: `https://api.iwtxz.su`. Библиотека на новом сервере отдельная:
+для восстановления старых MP3-ссылок нужна библиотека со старого сервера или резервная копия.
 
 Отдельный процесс на VPS скачивает один публичный трек YouTube, SoundCloud,
 Bandcamp или Vimeo через yt-dlp, преобразует в MP3 и хранит на диске сервера.
@@ -35,7 +35,7 @@ apt-get update
 apt-get install -y python3-venv ffmpeg
 useradd --system --home /var/lib/iwtxz-music --shell /usr/sbin/nologin iwtxz-music
 mkdir -p /opt/iwtxz-music
-# Скопировать app.py и requirements.txt в /opt/iwtxz-music/
+# Скопировать app.py, catalog.py и requirements.txt в /opt/iwtxz-music/
 python3 -m venv /opt/iwtxz-music/venv
 /opt/iwtxz-music/venv/bin/pip install -r /opt/iwtxz-music/requirements.txt
 ```
@@ -43,11 +43,11 @@ python3 -m venv /opt/iwtxz-music/venv
 Создать `/etc/iwtxz-music.env` (права 600):
 
 ```ini
-MUSIC_PUBLIC_ORIGIN=https://music.iwtxz.ru
+MUSIC_PUBLIC_ORIGIN=https://api.iwtxz.su
 MUSIC_DATA_DIR=/var/lib/iwtxz-music
 SUPABASE_URL=https://aknoeytrgzkgdcttwgvb.supabase.co
 SUPABASE_PUBLISHABLE_KEY=публичный_publishable_key_из_backend-config.js
-MUSIC_ALLOWED_ORIGINS=https://iwtxz.ru,https://www.iwtxz.ru
+MUSIC_ALLOWED_ORIGINS=https://iwtxz.su,https://www.iwtxz.su
 YTDLP_BIN=/opt/iwtxz-music/venv/bin/yt-dlp
 YTDLP_JS_RUNTIME=node:/usr/bin/node
 ```
@@ -58,12 +58,12 @@ YTDLP_JS_RUNTIME=node:/usr/bin/node
 8787 наружу. Например, отдельный блок Caddy:
 
 ```caddy
-music.iwtxz.ru {
+api.iwtxz.su {
     reverse_proxy 127.0.0.1:8787
 }
 ```
 
-После проверки `https://music.iwtxz.ru/health` указать этот HTTPS-origin в
+После проверки `https://api.iwtxz.su/health` указать этот HTTPS-origin в
 `backend-config.js` → `musicApiUrl` и обновить версии ассетов. Изменение базы
 Supabase для библиотеки не требуется: настройки хранят обычный URL музыки.
 
@@ -82,25 +82,11 @@ API проверяет access token через Supabase Auth и существу
 обновлениях и включить в резервные копии. Обновлять yt-dlp в venv при изменении
 площадок. Пароль VPS, приватные SSH-ключи и конфигурацию сервера не коммитить.
 
-На текущем VPS API обслуживается существующим nginx через отдельный vhost
-`/etc/nginx/conf.d/iwtxz-music.conf`; сертификат Let's Encrypt обновляет certbot.
-Загрузчик yt-dlp использует обычный выбор IPv4/IPv6 без глобальных `-4` и `-6`:
-на этом VPS метаданные YouTube доступны по IPv6, а некоторые аудиохосты Google
-имеют только IPv4. Принудительное семейство адресов ломает одну из этих частей.
-Официальный YouTube Data API отдельно использует IPv4 для IP-ограничения ключа.
-DNS провайдера возвращал NXDOMAIN для YouTube,
-поэтому только сервису через systemd drop-in `iwtxz-music.service.d/dns.conf`
-подставлен отдельный `resolv.conf` с резолверами 1.1.1.1 и 8.8.8.8:
-
-```ini
-[Service]
-BindReadOnlyPaths=/etc/iwtxz-music-resolv.conf:/etc/resolv.conf
-```
-
-Системный DNS и службы панели управления не менялись. Скачивание YouTube
-с преобразованием в MP3 проверено на этом VPS. Соединение с SoundCloud
-завершается таймаутом; поддержка его ссылок в коде не устраняет ограничение
-сети сервера. Ошибка загрузки показывается в библиотеке.
+На текущем VPS nginx проксирует музыкальный API и Discord live через отдельный
+vhost `/etc/nginx/sites-available/iwtxz-api`; сертификат Let's Encrypt обновляет
+certbot. SoundCloud-поиск и импорт проверены на новом сервере. Доступность
+конкретного трека не гарантируется. Если Яндекс или Spotify не отвечают,
+интерфейс сообщает об ошибке и предлагает перейти к поиску самого сервиса.
 
 Проверки без облачных аккаунтов и без скачивания настоящих треков:
 

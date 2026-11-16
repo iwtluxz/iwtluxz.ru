@@ -1,10 +1,28 @@
 # Синхронизация карточек Discord
 
-Карточки на GitHub Pages читают публичные снимки
-`data/discord-profiles/USER_ID.json`. GitHub Actions обновляет их по расписанию
-раз в 5 минут; запуск расписания и публикация могут задерживаться. Страница
-проверяет снимок раз в минуту. Это периодическое обновление, а не постоянное
-подключение браузера посетителя к Discord.
+Опубликованные карточки с включённой синхронизацией получают изменения статуса
+через Discord Gateway и SSE на `https://api.iwtxz.su/discord/stream/USER_ID`.
+При недоступности потока страница возвращается к публичным снимкам
+`data/discord-profiles/USER_ID.json`: GitHub Actions обновляет их примерно раз
+в 5 минут, страница проверяет раз в минуту. Скрытые активности Discord недоступны.
+
+## Live-сервис
+
+На VPS `scripts/discord-live.service` запускает `scripts/discord-live.mjs` от
+непривилегированного пользователя `iwtxz-discord`. Нужны Node.js с WebSocket
+(для Node 18 — пакет `node-ws`), файлы `scripts/sync-discord-avatars.mjs`,
+`scripts/lib/discord-profile.mjs` и `backend-config.js` в `/opt/iwtxz-discord`.
+В `/etc/iwtxz-discord.env` с правами 600 задаются `DISCORD_BOT_TOKEN` и
+`DISCORD_GUILD_ID`, равный `discordGuildId` в публичной конфигурации.
+В Discord Developer Portal должны быть включены Presence Intent и Server Members
+Intent. После изменений выполнить `systemctl daemon-reload` и
+`systemctl restart discord-live`.
+
+Сервис слушает `127.0.0.1:8788`; nginx проксирует `/discord/` без буферизации
+и с таймаутом чтения больше 20 секунд. Проверка доступности:
+`https://api.iwtxz.su/discord/health`. Доступ к данным ограничен опубликованными
+opt-in профилями; список обновляется каждую минуту, а членство проверяется
+через Discord. Токен не передаётся браузерам.
 
 ## Настройка GitHub Pages
 

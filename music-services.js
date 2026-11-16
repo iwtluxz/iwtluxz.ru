@@ -3,7 +3,8 @@
   const services=Object.freeze({
     yandex:{name:'Яндекс Музыка',icon:'/img/music/yandex.png',tagline:'Твоя волна на тёмной стороне'},
     youtube:{name:'YouTube',icon:'/img/socials/youtube.svg',tagline:'Звуки, которые остаются с тобой'},
-    spotify:{name:'Spotify',icon:'/img/socials/spotify.svg',tagline:'Собери настроение своей страницы'}
+    spotify:{name:'Spotify',icon:'/img/socials/spotify.svg',tagline:'Собери настроение своей страницы'},
+    soundcloud:{name:'SoundCloud',icon:'/img/socials/soundcloud.svg',tagline:'Открой новые звуки и исполнителей'}
   });
   function source(value) {
     try {
@@ -25,6 +26,11 @@
         if(!/^[\w-]{11}$/.test(id||''))return null;
         service='youtube';canonical=`https://www.youtube.com/watch?v=${id}`;
         embed=`https://www.youtube.com/embed/${id}?playsinline=1&rel=0`;
+      } else if(['soundcloud.com','www.soundcloud.com'].includes(host)) {
+        match=url.pathname.match(/^\/([A-Za-z0-9_-]+)\/([A-Za-z0-9_-]+)\/?$/);
+        if(!match||['sets','likes','reposts','tracks','albums'].includes(match[2].toLowerCase()))return null;
+        service='soundcloud';id=`${match[1]}/${match[2]}`;canonical=`https://soundcloud.com/${id}`;
+        embed=`https://w.soundcloud.com/player/?url=${encodeURIComponent(canonical)}&color=%23ff5500`;
       } else return null;
       return {service,id,url:canonical,embed,...services[service]};
     }catch{return null;}

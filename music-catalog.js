@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  function create({onSelect}) {
+  function create({onSelect,onEmbed}) {
     const root=document.querySelector('#musicCatalog'),api=window.IwtxzMusicServices;
     if(!root||!api)return null;
     const tracks=window.IwtxzMusicCatalogData?.tracks||[];
@@ -20,7 +20,7 @@
         service=direct.service;
         const known=tracks.find(track=>api.source(track.url)?.url===direct.url);
         remote=[known||{id:'linked-'+direct.id,service,title:'Трек из '+direct.name,artist:direct.name,url:direct.url,cover:'',metadataMissing:true}];
-        render();feedback.textContent=direct.service==='youtube'?'Ссылка распознана. Можно послушать и скачать аудиофайл.':'Ссылка распознана. Для скачивания найди этот трек на YouTube по исполнителю и названию.';return;
+        render();feedback.textContent=['youtube','soundcloud'].includes(direct.service)?'Ссылка распознана. Можно послушать и скачать аудиофайл.':'Ссылка распознана. Для скачивания найди этот трек на YouTube по исполнителю и названию.';return;
       }
       const version=searchVersion;
       searchTimer=setTimeout(async()=>{
@@ -50,7 +50,7 @@
       const needle=search.value.trim().toLocaleLowerCase('ru');
       serviceSearch.hidden=needle.length<2;
       serviceSearch.textContent=`Открыть поиск в ${brand.name} ↗`;
-      serviceSearch.href=service==='youtube'?'https://www.youtube.com/results?search_query='+encodeURIComponent(search.value.trim()):service==='spotify'?'https://open.spotify.com/search/'+encodeURIComponent(search.value.trim()):'https://music.yandex.ru/search?text='+encodeURIComponent(search.value.trim());
+      serviceSearch.href=service==='youtube'?'https://www.youtube.com/results?search_query='+encodeURIComponent(search.value.trim()):service==='spotify'?'https://open.spotify.com/search/'+encodeURIComponent(search.value.trim()):service==='soundcloud'?'https://soundcloud.com/search/sounds?q='+encodeURIComponent(search.value.trim()):'https://music.yandex.ru/search?text='+encodeURIComponent(search.value.trim());
       const items=remote!==null?remote:tracks.filter(track=>track.service===service&&(mood==='all'||track.mood===mood)&&`${track.title} ${track.artist}`.toLocaleLowerCase('ru').includes(needle));
       list.replaceChildren();
       for(const track of items){
@@ -69,11 +69,11 @@
           preview.append(close,api.frame(api.source(track.url),track.title));render();
         });
         const choose=document.createElement('button');choose.type='button';choose.className='catalog-choose';
-        choose.textContent=imported.has(track.url)?'Скачан ✓':track.service==='youtube'?'Скачать и выбрать':'Найти аудио';choose.disabled=importing;choose.setAttribute('aria-label',`Выбрать ${track.artist} — ${track.title}`);
+        choose.textContent=imported.has(track.url)?'Скачан ✓':['youtube','soundcloud'].includes(track.service)?'Скачать и выбрать':'Найти аудио';choose.disabled=importing;choose.setAttribute('aria-label',`Выбрать ${track.artist} — ${track.title}`);
         choose.addEventListener('click',async()=>{
           if(importing)return;
           stopPreview();
-          if(track.service!=='youtube'){
+          if(!['youtube','soundcloud'].includes(track.service)){
             if(track.metadataMissing){
               service='youtube';search.value='';cancelSearch();render();search.focus();
               feedback.textContent='Введи исполнителя и название в поиск YouTube. По этой ссылке название пока неизвестно; аудиофайл не выбран.';
@@ -93,7 +93,13 @@
           }catch(error){if(version===searchVersion&&error.name!=='AbortError')feedback.textContent=error.message;}
           finally{importing=false;render();}
         });
-        row.append(art,info,listen,choose);list.append(row);
+        const embed=document.createElement('button');embed.type='button';embed.className='catalog-embed';embed.textContent='Плеер сервиса';embed.disabled=importing;embed.setAttribute('aria-label',`Встроить ${track.artist} — ${track.title}`);
+        embed.addEventListener('click',()=>{
+          try{onEmbed(track);selected=track.url;feedback.textContent='Выбран встроенный плеер сервиса. Воспроизведение и доступность зависят от площадки; автозапуск может быть недоступен. Примени изменения к странице.';render();}
+          catch(error){feedback.textContent=error.message;}
+        });
+        const actions=document.createElement('div');actions.className='catalog-actions';actions.append(choose,embed);
+        row.append(art,info,listen,actions);list.append(row);
       }
       root.querySelector('[data-catalog-empty]').hidden=items.length>0;
       root.querySelector('[data-catalog-count]').textContent=`${items.length} треков · ${remote!==null?'поиск':'подборка iwtxz'}`;

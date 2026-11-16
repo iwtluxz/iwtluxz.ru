@@ -1,4 +1,5 @@
 import unittest
+import json
 import http.client
 import socket
 import ssl
@@ -7,6 +8,17 @@ from unittest.mock import patch, MagicMock
 from catalog import Catalog,CatalogError,connect_ipv4,IPv4HTTPSConnection,IPv4HTTPSHandler
 
 class CatalogTests(unittest.TestCase):
+    def test_soundcloud_search_uses_public_track_urls_and_discards_invalid_results(self):
+        payload={'entries':[
+            {'id':'123','title':'Song','uploader':'Artist','webpage_url':'https://soundcloud.com/artist/song','duration':90},
+            {'id':'456','webpage_url':'https://soundcloud.com.evil.example/artist/song'},
+            {'id':'789','webpage_url':'https://soundcloud.com/artist/sets/playlist'}]}
+        with patch('catalog.subprocess.run',return_value=SimpleNamespace(stdout=json.dumps(payload).encode())) as run:
+            result=Catalog().search('soundcloud','Artist Song')
+        self.assertIn('scsearch12:Artist Song',run.call_args.args[0])
+        self.assertEqual(len(result['tracks']),1)
+        self.assertEqual(result['tracks'][0]['url'],'https://soundcloud.com/artist/song')
+
     def test_ytdlp_search_fallback_does_not_force_a_global_address_family(self):
         def run(command,**options):
             self.assertFalse(set(command)&{'-4','-6','--force-ipv4','--force-ipv6'})

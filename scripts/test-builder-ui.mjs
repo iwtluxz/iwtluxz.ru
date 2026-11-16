@@ -28,7 +28,7 @@ class Element {
   click() { return this.fire("click"); }
 }
 
-function loadBuilder(request, query = "", missingIds = [], staleBadgePicker = false, storage = new Map()) {
+function loadBuilder(request, query = "", missingIds = [], staleBadgePicker = false, storage = new Map(), music = null) {
   const elements = new Map([...markup.matchAll(/id="([^"]+)"/g)].map(([, id]) => [id, new Element()]));
   for(const id of missingIds)elements.delete(id);
   const loginTab = new Element(), signupTab = new Element();
@@ -43,6 +43,7 @@ function loadBuilder(request, query = "", missingIds = [], staleBadgePicker = fa
   const location = new URL("https://example.test/" + query);
   const navigations=[];location.replace=url=>navigations.push(url);
   const window = { location, addEventListener() {}, localStorage: { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value) }, IwtxzBackend: { isConfigured: () => true, request } };
+  if(music){window.IwtxzMusicServices={source:value=>value===music.url?{url:value}:null};window.IwtxzMusicCatalog={create:handlers=>{music.handlers=handlers;return {open(){},close(){},reset(){}};}};}
   if(staleBadgePicker){document.head={};window.IwtxzDiscordBadgePicker={read:()=>[],apply(){}};}
   const timers = new Set();
   const context = vm.createContext({ window, document, location, URL, URLSearchParams, Headers, AbortController,
@@ -58,6 +59,24 @@ function loadBuilder(request, query = "", missingIds = [], staleBadgePicker = fa
 const user = { username: "alice" };
 const site = { title: "Saved page", nickname: "Alice" };
 const response = path => path.endsWith("/me") ? { user: null } : path.endsWith("/list") ? { sites: [site] } : { user };
+
+test("embedding a catalog track requires login and persists its service URL", async () => {
+  const music={url:'https://soundcloud.com/artist/song'};
+  const track={url:music.url,artist:'Artist',title:'Song',cover:''};
+  let submitted;
+  const ui=loadBuilder(async(path,options)=>{
+    if(path.endsWith('/save')){submitted=JSON.parse(options.body).site;return {site:submitted};}
+    return response(path);
+  },'',[],false,new Map(),music);
+  try{
+    assert.throws(()=>music.handlers.onEmbed(track),/Сначала войди/);
+    await ui.submit();
+    music.handlers.onEmbed(track);
+    await ui.elements.get('saveButton').fire('click');
+    assert.equal(submitted.music,music.url);
+    assert.equal(submitted.musicTitle,'Artist — Song');
+  }finally{ui.close();}
+});
 
 test("login and generic profile templates do not preload the 4 MB default avatar", async()=>{
   const profile=await readFile(new URL('../profile.html',import.meta.url),'utf8');

@@ -1,0 +1,23 @@
+[Unit]
+Description=iwtxz Discord live presence
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=iwtxz-discord
+Group=iwtxz-discord
+WorkingDirectory=/opt/iwtxz-discord
+EnvironmentFile=/etc/iwtxz-discord.env
+ExecStart=/usr/bin/node /opt/iwtxz-discord/scripts/discord-live.mjs
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+MemoryMax=256M
+TasksMax=50
+
+[Install]
+WantedBy=multi-user.target
