@@ -20,6 +20,7 @@ class Element {
   }
   addEventListener(type, callback) { this.listeners.set(type, callback); }
   setAttribute(key, value) { this.attributes.set(key, value); }
+  hasAttribute(key) { return this.attributes.has(key); }
   removeAttribute(key) { this.attributes.delete(key); }
   append(...children) { this.children.push(...children); }
   replaceChildren(...children) { this.children = children; }
@@ -292,4 +293,31 @@ test("Discord renderer uses original badges and server-tag artwork, deduplicates
     assert.equal(discordBadges.children.length, 1);
     assert.deepEqual(discordBadges.children[0].children.map(item=>item.dataset.discordBadgeId),['house-bravery','server-booster']);
   } finally { renderer.dispose(); }
+});
+
+test("Discord presence exposes each synchronized status and hides without a profile", async () => {
+  for (const [status, expected, label] of [
+    ["online", "online", "В сети"], ["idle", "idle", "Неактивен"],
+    ["dnd", "dnd", "Не беспокоить"], ["offline", "offline", "Не в сети"],
+    ["unexpected", "offline", "Не в сети"]
+  ]) {
+    const presence = new Element(), card = new Element();
+    const document = { documentElement: new Element(), body: new Element(), createElement: name => new Element(name) };
+    const window = { IWTXZ_BACKEND_CONFIG: { discordGuildId: "123456789012345678" } }; window.parent = window;
+    const profile = { id: "484816707798564894", guildId: window.IWTXZ_BACKEND_CONFIG.discordGuildId, member: true, updatedAt: Date.now(), username: "alice", status };
+    vm.runInNewContext(customization, { window, document, location: new URL("https://example.test/"), URL, AbortSignal,
+      fetch: async () => Response.json(profile), setInterval: () => 1, clearInterval() {} });
+    const renderer = window.IwtxzProfileCustomization.createCustomizer({ discordPresence: presence, discordCard: card });
+    try {
+      renderer.apply({ discordSync: true, discordUserId: profile.id });
+      await new Promise(resolve => setImmediate(resolve));
+      assert.equal(presence.hidden, false);
+      assert.equal(presence.dataset.presence, expected);
+      assert.equal(presence.attributes.get("aria-label"), label);
+      assert.match(card.attributes.get("aria-label"), new RegExp(label));
+      renderer.apply({ discordSync: false });
+      assert.equal(presence.hidden, true);
+      assert.equal(card.attributes.get("aria-label"), "Discord");
+    } finally { renderer.dispose(); }
+  }
 });

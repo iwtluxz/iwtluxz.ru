@@ -27,11 +27,14 @@
 .iwtxz-discord-card .discord-card-name { min-width: 0; max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
 .iwtxz-discord-card .discord-card-status { max-height: none; white-space: normal; font-size: 11px; line-height: 1.5; margin-top: 2px; overflow-wrap: anywhere; }
 .discord-sync-activity { display: block; margin-top: 3px; color: #c2c0c8; font-size: 10px; line-height: 1.6; overflow-wrap: anywhere; }
-.discord-presence, .iwtxz-discord-card .discord-card-dot { position: absolute; bottom: -1px; right: -1px; width: 13px; height: 13px; border-radius: 50%; border: 2px solid #111; background: #747f8d; }
-.discord-presence[data-presence="online"], .iwtxz-discord-card .discord-card-dot[data-presence="online"] { background: #43b581; }
-.discord-presence[data-presence="idle"], .iwtxz-discord-card .discord-card-dot[data-presence="idle"] { background: #faa61a; }
-.discord-presence[data-presence="dnd"], .iwtxz-discord-card .discord-card-dot[data-presence="dnd"] { background: #ed4245; }
-.discord-presence[data-presence="offline"], .iwtxz-discord-card .discord-card-dot[data-presence="offline"] { background: #747f8d; }
+:is(.discord-presence,.discord-card-dot):is([data-presence],[data-status]) { position:absolute;bottom:-1px;right:-1px;box-sizing:border-box;width:16px;height:16px;border:2px solid #111;border-radius:50%;background:#111; }
+:is(.discord-presence,.discord-card-dot):is([data-presence],[data-status])::before { content:"";position:absolute;inset:0;border-radius:50%;background:#80848e; }
+:is(.discord-presence,.discord-card-dot):is([data-presence="online"],[data-status="online"]:not([data-presence]))::before { background:#23a55a; }
+:is(.discord-presence,.discord-card-dot):is([data-presence="idle"],[data-status="idle"]:not([data-presence]))::before { background:#f0b232;-webkit-mask:radial-gradient(circle at 25% 25%,transparent 42%,#000 44%);mask:radial-gradient(circle at 25% 25%,transparent 42%,#000 44%); }
+:is(.discord-presence,.discord-card-dot):is([data-presence="dnd"],[data-status="dnd"]:not([data-presence]))::before { background:#f23f43; }
+:is(.discord-presence,.discord-card-dot):is([data-presence="dnd"],[data-status="dnd"]:not([data-presence]),[data-presence="offline"],[data-status="offline"]:not([data-presence]))::after { content:"";position:absolute;background:#111; }
+:is(.discord-presence,.discord-card-dot):is([data-presence="dnd"],[data-status="dnd"]:not([data-presence]))::after { left:24%;right:24%;top:43%;height:14%;border-radius:2px; }
+:is(.discord-presence,.discord-card-dot):is([data-presence="offline"],[data-status="offline"]:not([data-presence]))::after { inset:32%;border-radius:50%; }
 .iwtxz-player-compact.track-card { width: min(600px, calc(100vw - 32px)); gap: 11px; padding: 13px 15px; border: 1px solid #ffffff16; border-radius: 15px; background: #09090caa; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
 .iwtxz-player-compact.track-card .track-card-cover-wrap, .iwtxz-player-compact.track-card .track-card-cover { width: 44px; height: 44px; }
 .iwtxz-player-compact.track-card { grid-template-columns: 44px minmax(0, 1fr); }

@@ -276,7 +276,10 @@
       if (nodes.discordPresence) {
         nodes.discordPresence.hidden = !profile;
         nodes.discordPresence.dataset.presence = ["online", "idle", "dnd", "offline"].includes(profile?.status) ? profile.status : "offline";
-        nodes.discordPresence.setAttribute("aria-label", { online: "В сети", idle: "Неактивен", dnd: "Не беспокоить", offline: "Не в сети" }[nodes.discordPresence.dataset.presence]);
+        const presenceLabel = { online: "В сети", idle: "Неактивен", dnd: "Не беспокоить", offline: "Не в сети" }[nodes.discordPresence.dataset.presence];
+        nodes.discordPresence.setAttribute("aria-label", presenceLabel);
+        nodes.discordPresence.title = presenceLabel;
+        if (profile && nodes.discordCard) nodes.discordCard.setAttribute("aria-label", `${copyName ? `Скопировать Discord: ${copyName}` : "Discord"} · ${presenceLabel}`);
       }
       const statusText = settings.discordShowStatus !== false && profile ? text(profile.statusText, 240) : "";
       if (nodes.discordStatus) { nodes.discordStatus.textContent = statusText; nodes.discordStatus.hidden = !statusText; nodes.discordStatus.style.display = statusText ? "" : "none"; }
