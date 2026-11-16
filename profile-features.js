@@ -43,6 +43,15 @@
     element.classList.add("iwtxz-animated-name");
     element.dataset.nameAnimation = animationIds.has(value) ? value : "none";
   }
+  function applyGradientFlow(element, angle) {
+    if (!element) return;
+    const number = Number(angle);
+    const radians = (Number.isFinite(number) ? Math.min(360, Math.max(0, number)) : 90) * Math.PI / 180;
+    const x = Math.sin(radians) * 50, y = -Math.cos(radians) * 50;
+    for (const [key, value] of [["from-x", 50-x], ["to-x", 50+x], ["from-y", 50-y], ["to-y", 50+y]]) {
+      element.style.setProperty(`--gradient-${key}`, `${value.toFixed(3)}%`);
+    }
+  }
   function applyDescriptionAnimation(element, value) {
     if (!element) return;
     element.classList.add("iwtxz-animated-description");
@@ -169,7 +178,7 @@
     window.addEventListener("pagehide", () => clearInterval(timer), { once: true });
   }
 
-  window.IwtxzProfileFeatures = Object.freeze({ animations, descriptionAnimations, socials, decorations, applyNameAnimation, applyDescriptionAnimation, applyAvatarDecoration, decorationUrl, renderSocials, socialUrl });
+  window.IwtxzProfileFeatures = Object.freeze({ animations, descriptionAnimations, socials, decorations, applyNameAnimation, applyGradientFlow, applyDescriptionAnimation, applyAvatarDecoration, decorationUrl, renderSocials, socialUrl });
   if (typeof document !== "undefined") {
     const ready = () => {
       for (const container of document.querySelectorAll?.(".socials, .profile-socials") || []) {

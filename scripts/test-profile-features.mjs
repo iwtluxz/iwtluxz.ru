@@ -92,3 +92,19 @@ test("nickname and description effect choices reject injected styles and preserv
   assert.doesNotThrow(()=>api.applyDescriptionAnimation(null,'glow'));
   assert.equal(nickname.textContent,'My nickname');
 });
+
+test("gradient movement follows the chosen gradient direction",()=>{
+  const {api}=fixture({auth:true});
+  const vars=new Map();
+  const name={style:{setProperty:(key,value)=>vars.set(key,value)}};
+  api.applyGradientFlow(name,0);
+  assert.equal(vars.get('--gradient-from-x'),'50.000%');
+  assert.equal(vars.get('--gradient-from-y'),'100.000%');
+  assert.equal(vars.get('--gradient-to-y'),'0.000%');
+  api.applyGradientFlow(name,90);
+  assert.equal(vars.get('--gradient-from-x'),'0.000%');
+  assert.equal(vars.get('--gradient-to-x'),'100.000%');
+  api.applyGradientFlow(name,135);
+  assert.notEqual(vars.get('--gradient-from-x'),vars.get('--gradient-to-x'));
+  assert.notEqual(vars.get('--gradient-from-y'),vars.get('--gradient-to-y'));
+});

@@ -388,7 +388,10 @@
         if(nodes.name.classList.contains('name-text')&&Number.isFinite(site.nicknameSize))nodes.name.style.fontSize=`${clamp(site.nicknameSize,18,52,32)}px`;
         const gradient = site.nicknameGradient === true;
         nodes.name.classList.toggle("iwtxz-gradient-name", gradient);
-        nodes.name.style.setProperty("--nickname-gradient", `linear-gradient(${clamp(site.nicknameGradientAngle, 0, 360, 90)}deg, ${color(site.nicknameGradientStart, "#ffffff")}, ${color(site.nicknameGradientEnd, "#a1a1aa")})`);
+        const angle=clamp(site.nicknameGradientAngle, 0, 360, 90), start=color(site.nicknameGradientStart, "#ffffff"), end=color(site.nicknameGradientEnd, "#a1a1aa");
+        nodes.name.style.setProperty("--nickname-gradient", `linear-gradient(${angle}deg, ${start}, ${end})`);
+        nodes.name.style.setProperty("--nickname-gradient-flow", `linear-gradient(${angle}deg, ${start}, ${end}, ${start})`);
+        window.IwtxzProfileFeatures?.applyGradientFlow?.(nodes.name, angle);
         window.IwtxzProfileFeatures?.applyNameAnimation(nodes.name, site.nicknameAnimation);
       }
       if (nodes.avatar) {

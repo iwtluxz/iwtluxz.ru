@@ -24,7 +24,7 @@ class Element {
   removeAttribute(key) { this.attributes.delete(key); }
   append(...children) { this.children.push(...children); }
   replaceChildren(...children) { this.children = children; }
-  fire(type) { return this.listeners.get(type)?.({ preventDefault() {} }); }
+  fire(type, event = { preventDefault() {} }) { return this.listeners.get(type)?.(event); }
   click() { return this.fire("click"); }
 }
 
@@ -81,6 +81,36 @@ test("embedding a catalog track requires login and persists its service URL", as
   }finally{ui.close();}
 });
 
+test("gradient flow uses the existing shimmer effect and preserves static gradients until enabled", async () => {
+  let submitted;
+  const ui=loadBuilder(async(path,options)=>{
+    if(path.endsWith('/list'))return {sites:[{...site,nicknameGradient:true,nicknameAnimation:'float'}]};
+    if(path.endsWith('/save')){submitted=JSON.parse(options.body).site;return {site:submitted};}
+    return response(path);
+  });
+  try{
+    await ui.submit();
+    const flow=ui.elements.get('nicknameGradientFlow');
+    assert.equal(flow.checked,false);
+    assert.equal(ui.elements.get('nicknameAnimation').value,'float');
+    flow.checked=true;flow.fire('input');
+    assert.equal(ui.elements.get('nicknameAnimation').value,'shimmer');
+    await ui.elements.get('saveButton').fire('click');
+    assert.equal(submitted.nicknameGradient,true);
+    assert.equal(submitted.nicknameAnimation,'shimmer');
+    const effect=ui.elements.get('nicknameAnimation');
+    effect.value='pulse';
+    ui.elements.get('editorForm').fire('input',{target:effect});
+    assert.equal(flow.checked,false);
+    effect.value='shimmer';
+    ui.elements.get('editorForm').fire('input',{target:effect});
+    assert.equal(flow.checked,true);
+    flow.checked=false;flow.fire('input');
+    assert.equal(ui.elements.get('nicknameAnimation').value,'none');
+    assert.equal(ui.elements.get('nicknameGradient').checked,true);
+  }finally{ui.close();}
+});
+
 test("large uploaded pictures are compressed before the backend request", async () => {
   const file={name:"picture.png",size:5*1024*1024,type:"image/png"};
   const compressed={name:"picture.webp",size:500000,type:"image/webp"};
@@ -106,15 +136,15 @@ test("login and generic profile templates do not preload the 4 MB default avatar
 });
 
 test("cached markup missing new controls is refreshed before starting authentication",()=>{
-  for (const id of ["profileScale", "editorModeAdvanced"]) {
+  for (const id of ["profileScale", "editorModeAdvanced", "nicknameGradientFlow"]) {
     let calls=0;const ui=loadBuilder(()=>{calls++;return Promise.resolve({});},'', [id]);
-    try{assert.equal(calls,0);assert.equal(ui.navigations.length,1);assert.equal(new URL(ui.navigations[0]).searchParams.get('_ui'),'20261116-editor-modes-1');}finally{ui.close();}
+    try{assert.equal(calls,0);assert.equal(ui.navigations.length,1);assert.equal(new URL(ui.navigations[0]).searchParams.get('_ui'),'20261116-gradient-flow-1');}finally{ui.close();}
   }
 });
 
 test('a cached restricted badge picker refreshes before authentication instead of breaking free selection',()=>{
   let calls=0;const ui=loadBuilder(()=>{calls++;return Promise.resolve({});},'',[],true);
-  try{assert.equal(calls,0);assert.equal(ui.navigations.length,1);assert.equal(new URL(ui.navigations[0]).searchParams.get('_ui'),'20261116-editor-modes-1');}finally{ui.close();}
+  try{assert.equal(calls,0);assert.equal(ui.navigations.length,1);assert.equal(new URL(ui.navigations[0]).searchParams.get('_ui'),'20261116-gradient-flow-1');}finally{ui.close();}
 });
 
 test("editor modes preserve hidden settings and remember the selected mode", async () => {

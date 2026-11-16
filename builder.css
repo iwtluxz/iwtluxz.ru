@@ -147,6 +147,8 @@ h3 { font-size: 13px; font-weight: 600; }
 .effects-heading.section-head > .button { margin-left: auto; }
 .gradient-preview { display: grid; place-items: center; min-height: 64px; margin: 0 0 16px; padding: 14px; border: 1px solid #ffffff20; border-radius: 12px; background: radial-gradient(ellipse at center, #181818, transparent 75%); overflow: hidden; }
 .gradient-preview > span { max-width: 100%; font-size: 26px; line-height: 1.3; overflow-wrap: anywhere; background: linear-gradient(var(--ng-angle, 90deg), var(--ng-start, #fff), var(--ng-end, #a1a1aa)); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; }
+.gradient-preview > span.gradient-flow-preview { background-image: linear-gradient(var(--ng-angle,90deg),var(--ng-start,#fff),var(--ng-end,#a1a1aa),var(--ng-start,#fff)); background-size: 250% 250%; animation: iwtxz-gradient-flow 8s ease-in-out infinite alternate; }
+@media (prefers-reduced-motion: reduce) { .gradient-preview > span.gradient-flow-preview { animation: none; background-image: linear-gradient(var(--ng-angle,90deg),var(--ng-start,#fff),var(--ng-end,#a1a1aa)); background-size: auto; } }
 .badge-picker legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .decoration-settings .decoration-browser-heading { justify-content: flex-start; }
 .decoration-settings .decoration-browser-heading strong { display: none; }

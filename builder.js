@@ -3,8 +3,8 @@
   const $ = (selector) => document.querySelector(selector);
   const all = (selector) => [...document.querySelectorAll(selector)];
   // A cached HTML page can request a newer script after a deployment.
-  const uiVersion = "20261116-editor-modes-1";
-  if (["editorModeSimple", "editorModeAdvanced", "editorModeHint", "effectIntensity", "backgroundEffect", "avatarFit", "ownMusicFiles", "discordDecorationHint", "profileScale", "nicknameSize", "discordShowCopyHint", "descriptionSize", "cursorSize", "typewriterText", "layoutEdit", "descriptionAnimation", "previewViewport", "previewStage", "previewCanvas", "previewZoom"].some(id => !$("#"+id)) || (document.head && typeof window.IwtxzDiscordBadgePicker?.readSelected!=='function') || document.querySelector('script[src*="halloween.js"]')) {
+  const uiVersion = "20261116-gradient-flow-1";
+  if (["editorModeSimple", "editorModeAdvanced", "editorModeHint", "effectIntensity", "backgroundEffect", "avatarFit", "ownMusicFiles", "discordDecorationHint", "profileScale", "nicknameSize", "discordShowCopyHint", "descriptionSize", "cursorSize", "typewriterText", "layoutEdit", "descriptionAnimation", "previewViewport", "previewStage", "previewCanvas", "previewZoom", "nicknameGradientFlow"].some(id => !$("#"+id)) || (document.head && typeof window.IwtxzDiscordBadgePicker?.readSelected!=='function') || document.querySelector('script[src*="halloween.js"]')) {
     const fresh = new URL(location.href);
     if (fresh.searchParams.get("_ui") !== uiVersion) { fresh.searchParams.set("_ui",uiVersion);location.replace(fresh.href); }
     else if ($("#authStatus")) $("#authStatus").textContent="Не удалось обновить интерфейс. Обнови страницу с очисткой кеша.";
@@ -394,6 +394,9 @@
     gradientPreview?.setProperty("--ng-start", currentSite.nicknameGradientStart);
     gradientPreview?.setProperty("--ng-end", currentSite.nicknameGradientEnd);
     gradientPreview?.setProperty("--ng-angle", `${currentSite.nicknameGradientAngle}deg`);
+    $("#nicknameGradientFlow").checked = currentSite.nicknameAnimation === "shimmer";
+    gradientSample.classList.toggle("gradient-flow-preview", currentSite.nicknameGradient && currentSite.nicknameAnimation === "shimmer");
+    features?.applyGradientFlow?.(gradientSample, currentSite.nicknameGradientAngle);
     all('#editorForm input[type="range"]').forEach((range) => {
       const min = Number(range.min) || 0, max = Number(range.max) || 100;
       range.style.setProperty("--fill", `${((Number(range.value) - min) / (max - min)) * 100}%`);
@@ -812,6 +815,13 @@
     clearTimeout(previewTimer); sendPreview();
   }));
   $("#openEffects").addEventListener("click", () => setSection("effects"));
+  $("#nicknameGradientFlow").addEventListener("input", () => {
+    if ($("#nicknameGradientFlow").checked) {
+      $("#nicknameGradient").checked = true;
+      $("#nicknameAnimation").value = "shimmer";
+    } else if ($("#nicknameAnimation").value === "shimmer") $("#nicknameAnimation").value = "none";
+    updatePreview();
+  });
   $("#randomizeEffects").addEventListener("click", () => {
     previousEffects = { nicknameAnimation: $("#nicknameAnimation").value, avatarDecoration: $("#avatarDecoration").value };
     const choose = items => items[Math.floor(Math.random() * items.length)].id;
