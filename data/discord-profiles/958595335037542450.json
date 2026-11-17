@@ -20,8 +20,8 @@
   "activity": {
     "type": 0,
     "name": "R.E.P.O.",
-    "details": "Lobby Menu",
-    "state": "In Menu"
+    "details": "Level 2 - Service Station",
+    "state": "In Shop"
   },
-  "updatedAt": 1794933399370
+  "updatedAt": 1794934119534
 }
