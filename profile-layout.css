@@ -12,3 +12,15 @@
 .iwtxz-layout-editing .iwtxz-cursor { display: none !important; }
 .iwtxz-layout-editing, .iwtxz-layout-editing * { cursor: auto !important; }
 .iwtxz-layout-editing .iwtxz-layout-draggable, .iwtxz-layout-editing .iwtxz-layout-draggable * { cursor: grab !important; }
+.iwtxz-profile-views {
+  position:fixed;z-index:6;left:max(16px, env(safe-area-inset-left));
+  top:var(--views-dock-top, auto);bottom:var(--views-dock-bottom, max(30px, env(safe-area-inset-bottom)));
+  display:inline-flex;align-items:center;justify-content:flex-start;gap:6px;max-width:calc(100vw - 32px);
+  margin:0;padding:0;color:var(--views-color, #b6b4bd);font:var(--views-size, 12px)/1.5 "Segoe UI", Arial, sans-serif;
+  text-align:left;white-space:nowrap;font-variant-numeric:tabular-nums;text-shadow:0 1px 5px #0009;
+}
+.iwtxz-profile-views[hidden] { display:none!important; }
+.iwtxz-views-icon { display:none;flex:none;width:1.5em;height:1.5em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round; }
+.iwtxz-profile-views[data-views-style="eye"] .iwtxz-views-icon { display:block; }
+.iwtxz-profile-views[data-views-style="eye"] .iwtxz-views-label { display:none; }
+body.is-loading .iwtxz-profile-views,body:not(.is-entered):has(.entry-overlay:not([hidden])) .iwtxz-profile-views { visibility:hidden; }

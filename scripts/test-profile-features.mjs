@@ -108,3 +108,57 @@ test("gradient movement follows the chosen gradient direction",()=>{
   assert.notEqual(vars.get('--gradient-from-x'),vars.get('--gradient-to-x'));
   assert.notEqual(vars.get('--gradient-from-y'),vars.get('--gradient-to-y'));
 });
+
+function styledDescription() {
+  const classes = new Set(), properties = new Map([['color', '#aabbcc']]);
+  return {
+    textContent: 'Первая строка\nSecond line 🎵', dataset: {}, classes, properties,
+    classList: {
+      add: (...values) => values.forEach(value => classes.add(value)),
+      toggle: (value, enabled) => enabled ? classes.add(value) : classes.delete(value)
+    },
+    style: {
+      setProperty: (key, value) => properties.set(key, value),
+      removeProperty: key => properties.delete(key)
+    }
+  };
+}
+
+test('description gradients accept independent motion and clear only their own presentation', () => {
+  const { api } = fixture({ auth: true });
+  const description = styledDescription();
+  const settings = { descriptionAnimation: 'float', descriptionGradient: true, descriptionGradientStart: '#ee3366', descriptionGradientEnd: '#3388ff', descriptionGradientAngle: 135, descriptionGradientAnimated: false, descriptionGradientSpeed: 8 };
+  api.applyDescriptionStyle(description, settings);
+  assert.equal(description.dataset.descriptionAnimation, 'float');
+  assert.equal(description.classes.has('iwtxz-description-gradient'), true);
+  assert.equal(description.classes.has('iwtxz-description-gradient-animated'), false);
+  assert.equal(description.properties.get('--description-gradient'), 'linear-gradient(135deg,#ee3366,#3388ff)');
+  api.applyDescriptionStyle(description, { ...settings, descriptionGradientAnimated: true });
+  assert.equal(description.classes.has('iwtxz-description-gradient-animated'), true);
+  assert.equal(description.properties.get('--description-gradient'), 'linear-gradient(135deg,#ee3366,#3388ff,#ee3366)');
+  assert.equal(description.properties.get('--description-gradient-speed'), '8s');
+  assert.equal(description.dataset.descriptionAnimation, 'float', 'color flow must not replace the selected movement');
+  api.applyDescriptionStyle(description, { ...settings, descriptionGradient: false });
+  assert.equal(description.classes.has('iwtxz-description-gradient'), false);
+  assert.equal(description.classes.has('iwtxz-description-gradient-animated'), false);
+  assert.equal(description.properties.has('--description-gradient'), false);
+  assert.equal(description.properties.has('--gradient-from-x'), false);
+  assert.equal(description.properties.get('color'), '#aabbcc', 'disabling the gradient must preserve existing color');
+  assert.equal(description.dataset.descriptionAnimation, 'float');
+  assert.equal(description.textContent, 'Первая строка\nSecond line 🎵');
+});
+
+test('description gradients reject style injection and bound angle and animation duration', () => {
+  const { api } = fixture({ auth: true });
+  const description = styledDescription();
+  api.applyDescriptionGradient(description, { descriptionGradient: true, descriptionGradientStart: '#ffffff);background:url(https://untrusted.example)', descriptionGradientEnd: 'red', descriptionGradientAngle: Infinity, descriptionGradientSpeed: NaN });
+  assert.equal(description.properties.get('--description-gradient'), 'linear-gradient(90deg,#ffffff,#8b5cf6)');
+  assert.equal(description.properties.get('--description-gradient-speed'), '6s');
+  api.applyDescriptionGradient(description, { descriptionGradient: true, descriptionGradientAngle: -90, descriptionGradientSpeed: 10000 });
+  assert.equal(description.properties.get('--description-gradient'), 'linear-gradient(0deg,#ffffff,#8b5cf6)');
+  assert.equal(description.properties.get('--description-gradient-speed'), '30s');
+  api.applyDescriptionGradient(description, { descriptionGradient: 'true', descriptionGradientAnimated: true });
+  assert.equal(description.classes.has('iwtxz-description-gradient'), false);
+  assert.equal(description.classes.has('iwtxz-description-gradient-animated'), false);
+  assert.doesNotThrow(() => api.applyDescriptionStyle(null, { descriptionGradient: true }));
+});

@@ -397,7 +397,8 @@
         element.style.color = descriptionColor;
         if (descriptionColor) element.style.setProperty('--description-color', descriptionColor);
         else element.style.removeProperty('--description-color');
-        window.IwtxzProfileFeatures?.applyDescriptionAnimation(element,site.descriptionAnimation);
+        if(window.IwtxzProfileFeatures?.applyDescriptionStyle)window.IwtxzProfileFeatures.applyDescriptionStyle(element,site);
+        else window.IwtxzProfileFeatures?.applyDescriptionAnimation(element,site.descriptionAnimation);
       });
       if (nodes.name) {
         nodes.name.style.setProperty('--nickname-size',`${clamp(site.nicknameSize,18,52,32)}px`);

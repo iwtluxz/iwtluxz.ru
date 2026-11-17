@@ -57,13 +57,44 @@
     element.classList.add("iwtxz-animated-description");
     element.dataset.descriptionAnimation = descriptionAnimationIds.has(value) ? value : "none";
   }
+  function applyDescriptionGradient(element, settings = {}) {
+    if (!element) return;
+    element.classList.add("iwtxz-animated-description");
+    if (!element.dataset.descriptionAnimation) element.dataset.descriptionAnimation = "none";
+    const enabled = settings.descriptionGradient === true;
+    const animated = enabled && settings.descriptionGradientAnimated === true;
+    element.classList.toggle("iwtxz-description-gradient", enabled);
+    element.classList.toggle("iwtxz-description-gradient-animated", animated);
+    if (!enabled) {
+      for (const key of ["--description-gradient", "--description-gradient-speed", "--gradient-from-x", "--gradient-to-x", "--gradient-from-y", "--gradient-to-y"]) element.style.removeProperty(key);
+      return;
+    }
+    const color = (value, fallback) => typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value) ? value : fallback;
+    const number = (value, min, max, fallback) => {
+      const candidate = typeof value === "number" || (typeof value === "string" && value.trim()) ? Number(value) : NaN;
+      return Number.isFinite(candidate) ? Math.min(max, Math.max(min, candidate)) : fallback;
+    };
+    const start = color(settings.descriptionGradientStart, "#ffffff"), end = color(settings.descriptionGradientEnd, "#8b5cf6");
+    const angle = number(settings.descriptionGradientAngle, 0, 360, 90);
+    const speed = number(settings.descriptionGradientSpeed, 2, 30, 6);
+    element.style.setProperty("--description-gradient", `linear-gradient(${angle}deg,${start},${end}${animated ? `,${start}` : ""})`);
+    element.style.setProperty("--description-gradient-speed", `${speed}s`);
+    applyGradientFlow(element, angle);
+  }
+  function applyDescriptionStyle(element, settings = {}) {
+    if (!element) return;
+    applyDescriptionAnimation(element, settings.descriptionAnimation);
+    applyDescriptionGradient(element, settings);
+  }
   function decorationUrl(choice, discordDecoration) {
     if (choice === "discord") {
       const asset = discordDecoration?.asset;
       return typeof asset === "string" && /^(?:a_)?[a-f0-9]{32}$/i.test(asset)
         ? `https://cdn.discordapp.com/avatar-decoration-presets/${asset}.png?size=256&passthrough=true` : "";
     }
-    return window.IwtxzAvatarDecorations?.items.find(item=>item.id===choice)?.image || decorationMap.get(choice)?.image || "";
+    const item=window.IwtxzAvatarDecorations?.items.find(item=>item.id===choice)||decorationMap.get(choice);
+    if(item)return item.image;
+    return /^discord-a_[a-f0-9]{32}$/.test(choice||'')?`https://cdn.discordapp.com/avatar-decoration-presets/${choice.slice(8)}.png?size=240&passthrough=true`:'';
   }
   function applyAvatarDecoration(avatar, choice, discordDecoration) {
     if (!avatar) return;
@@ -74,8 +105,10 @@
     if (!frame) return;
     let image = frame.querySelector(".iwtxz-avatar-decoration");
     const reduced = Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches);
+    const item=window.IwtxzAvatarDecorations?.items.find(item=>item.id===choice)||decorationMap.get(choice);
+    const fallback=item?.thumbnail||(item?.image?.startsWith('/img/avatar-decorations/')?item.image.replace(/\.png$/,'.webp'):'');
     let source = decorationUrl(choice, discordDecoration);
-    if(reduced&&choice!=="discord")source=source.replace(/\.png$/,'.webp');
+    if(reduced&&source)source=fallback||source.replace(/\.png(?:\?.*)?$/,'.webp?size=256&passthrough=true');
     if (avatar.tagName === "IMG") frame.hidden = avatar.hidden && !source;
     if (!image && !source) return;
     if (!image) {
@@ -84,23 +117,21 @@
       image.alt = "";
       image.draggable = false;
       image.setAttribute("aria-hidden", "true");
-      image.addEventListener("error", () => { image.hidden = true; });
-      image.addEventListener("load",()=>{
-        if(image.dataset.freeze!=='true')return;
-        try{
-          const canvas=document.createElement('canvas');const scale=Math.min(1,256/image.naturalWidth,256/image.naturalHeight);canvas.width=Math.round(image.naturalWidth*scale);canvas.height=Math.round(image.naturalHeight*scale);
-          canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height);const frozen=canvas.toDataURL('image/png');image.dataset.freeze='false';image.src=frozen;
-        }catch{image.dataset.freeze='false';}
+      image.addEventListener("error", () => {
+        const still=image.dataset.decorationFallback;
+        if(still&&image.getAttribute('src')!==still&&image.dataset.decorationFallbackUsed!=='true'){
+          image.dataset.decorationFallbackUsed='true';image.dataset.freeze='false';image.removeAttribute('crossorigin');image.src=still;image.hidden=false;
+        }else image.hidden=true;
       });
       frame.append(image);
     }
     const key=(reduced?'still:':'animated:')+source;
-    const update=image.dataset.decorationKey!==key||image.hidden;
-    image.hidden = !source;
+    const update=image.dataset.decorationKey!==key;
+    if(update||!source)image.hidden=!source;
     if (!source) {image.removeAttribute("src");image.dataset.decorationKey=key;}
     else if(update){
-      image.dataset.decorationKey=key;image.dataset.freeze=String(reduced&&choice==='discord');
-      if(reduced&&choice==='discord')image.crossOrigin='anonymous';else image.removeAttribute('crossorigin');
+      image.dataset.decorationKey=key;image.dataset.freeze='false';image.dataset.decorationFallback=fallback;image.dataset.decorationFallbackUsed='false';
+      image.removeAttribute('crossorigin');
       image.src=source;
     }
   }
@@ -178,44 +209,65 @@
     window.addEventListener("pagehide", () => clearInterval(timer), { once: true });
   }
 
-  let viewsNode, viewsOwner;
+  let viewsNode, viewsOwner, viewsValue, viewsIcon, viewsLabel, viewsCount='…', viewsError=false, viewsUnavailable=false;
+  const viewVisitors=new Map();
   function showProfileViews(site, { preview = false } = {}) {
-    const description = document.querySelector(".profile-description, main.panel .tagline");
-    if (!description) return;
+    if (!document.querySelector(".profile-description, main.panel .tagline")) return;
     if (!viewsNode) {
       viewsNode = document.createElement("div");
       viewsNode.className = "iwtxz-profile-views";
       viewsNode.setAttribute("role", "status");
-      description.after(viewsNode);
+      viewsLabel=document.createElement('span');viewsLabel.className='iwtxz-views-label';viewsLabel.textContent='Просмотры ·';
+      viewsIcon=document.createElementNS('http://www.w3.org/2000/svg','svg');
+      viewsIcon.setAttribute('viewBox','0 0 24 24');viewsIcon.setAttribute('aria-hidden','true');viewsIcon.classList.add('iwtxz-views-icon');
+      const outline=document.createElementNS('http://www.w3.org/2000/svg','path');outline.setAttribute('d','M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z');
+      const pupil=document.createElementNS('http://www.w3.org/2000/svg','circle');pupil.setAttribute('cx','12');pupil.setAttribute('cy','12');pupil.setAttribute('r','3');
+      viewsIcon.append(outline,pupil);
+      viewsValue=document.createElement('span');viewsValue.className='iwtxz-views-value';
+      viewsNode.append(viewsLabel,viewsIcon,viewsValue);
+      // Fixed viewport position must not inherit profile zoom, tilt or text animations.
+      document.body.append(viewsNode);
     }
-    viewsNode.hidden = site.showProfileViews !== true;
-    if (viewsNode.hidden) { viewsOwner = null; return; }
-    if (preview) { viewsNode.textContent = "Просмотры · —"; return; }
+    viewsNode.hidden = site.showProfileViews !== true || (!preview && viewsOwner === site.owner && viewsUnavailable);
+    viewsNode.dataset.viewsStyle=site.profileViewsStyle==='eye'?'eye':'text';
+    const size=Number(site.profileViewsSize);
+    viewsNode.style.setProperty('--views-size',(Number.isFinite(size)?Math.min(24,Math.max(10,size)):12)+'px');
+    viewsNode.style.setProperty('--views-color',/^#[0-9a-f]{6}$/i.test(site.profileViewsColor||'')?site.profileViewsColor:'#b6b4bd');
+    const notify=()=>{if(typeof CustomEvent==='function')window.dispatchEvent(new CustomEvent('iwtxz-profile-views-ready'));};
+    const draw=()=>{
+      viewsValue.textContent=viewsError?'—':String(viewsCount);
+      viewsNode.setAttribute('aria-label',viewsError?'Просмотры недоступны':'Просмотры: '+viewsCount);
+      viewsNode.title=viewsError?'Просмотры недоступны':'';
+      notify();
+    };
+    if (viewsNode.hidden) { notify(); return; }
+    if (preview) { viewsCount='—';viewsError=false;draw();return; }
     const owner = site.owner;
-    if (owner === viewsOwner) return;
-    viewsOwner = owner;
-    viewsNode.textContent = "Просмотры · …";
+    if (owner === viewsOwner) { draw();return; }
+    viewsOwner = owner;viewsCount='…';viewsError=false;viewsUnavailable=false;draw();
     Promise.resolve().then(() => {
-      const key = `iwtxz-profile-visitor:${owner}`;
-      let visitor = window.localStorage.getItem(key);
+      const key = 'iwtxz-profile-visitor:'+owner;
+      let visitor=viewVisitors.get(owner);
+      try { visitor ||= window.localStorage.getItem(key); } catch {}
       if (!visitor || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(visitor)) {
-        visitor = window.crypto.randomUUID();
-        window.localStorage.setItem(key, visitor);
+        visitor=window.crypto.randomUUID();
+        try { window.localStorage.setItem(key,visitor); } catch {}
       }
+      viewVisitors.set(owner,visitor);
       if (!window.IwtxzBackend?.isConfigured()) throw new Error("Сервер просмотров не подключён.");
       return window.IwtxzBackend.recordProfileView(owner, visitor);
     }).then(count => {
-      if (viewsOwner !== owner || viewsNode.hidden) return;
-      if (count === null) { viewsNode.hidden = true; return; }
-      viewsNode.textContent = `Просмотры · ${count.toLocaleString("ru-RU")}`;
+      if (viewsOwner !== owner) return;
+      if (count === null) { viewsUnavailable=true;viewsNode.hidden=true;notify();return; }
+      viewsCount=count.toLocaleString('ru-RU');viewsError=false;draw();
     }).catch(error => {
-      if (viewsOwner !== owner || viewsNode.hidden) return;
+      if (viewsOwner !== owner) return;
       console.warn("Не удалось загрузить просмотры профиля:", error);
-      viewsNode.textContent = "Просмотры недоступны";
+      viewsError=true;draw();
     });
   }
 
-  window.IwtxzProfileFeatures = Object.freeze({ animations, descriptionAnimations, socials, decorations, applyNameAnimation, applyGradientFlow, applyDescriptionAnimation, applyAvatarDecoration, decorationUrl, renderSocials, socialUrl, showProfileViews });
+  window.IwtxzProfileFeatures = Object.freeze({ animations, descriptionAnimations, socials, decorations, applyNameAnimation, applyGradientFlow, applyDescriptionAnimation, applyDescriptionGradient, applyDescriptionStyle, applyAvatarDecoration, decorationUrl, renderSocials, socialUrl, showProfileViews });
   if (typeof document !== "undefined") {
     const ready = () => {
       for (const container of document.querySelectorAll?.(".socials, .profile-socials") || []) {

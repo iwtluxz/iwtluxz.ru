@@ -76,7 +76,7 @@ function load(overrides = {}) {
       if (state.rpcError) return { data: null, error: state.rpcError };
       if (name === "builder_capabilities") return state.oldCustomizationServer
         ? { data: null, error: { code: "PGRST202" } }
-        : { data: { profileSettingsVersion: state.oldEffectsServer ? 2 : state.oldInteractiveServer ? 3 : state.oldLayoutServer ? 4 : state.oldFreeLayoutServer ? 5 : state.oldEditorV2Server ? 6 : 7,editorV2:!state.oldEditorV2Server, freeLayout:!state.oldFreeLayoutServer, profileLayout: !state.oldLayoutServer, interactiveEffects: !state.oldInteractiveServer, customFonts: true, profileEffects: !state.oldEffectsServer, discordBadges:state.discordBadgesReady===true, discordBadgeVisibility:state.discordBadgeVisibilityReady===true, profileViewSettings:state.profileViewSettingsReady===true }, error: null };
+        : { data: { profileSettingsVersion: state.oldEffectsServer ? 2 : state.oldInteractiveServer ? 3 : state.oldLayoutServer ? 4 : state.oldFreeLayoutServer ? 5 : state.oldEditorV2Server ? 6 : 7,editorV2:!state.oldEditorV2Server, freeLayout:!state.oldFreeLayoutServer, profileLayout: !state.oldLayoutServer, interactiveEffects: !state.oldInteractiveServer, customFonts: true, profileEffects: !state.oldEffectsServer, discordBadges:state.discordBadgesReady===true, discordBadgeVisibility:state.discordBadgeVisibilityReady===true, profileViewSettings:state.profileViewSettingsReady===true,profileCatalogLayout:state.profileCatalogLayoutReady===true }, error: null };
       if (name === "profile_record_view") return {data:state.viewCount ?? null,error:null};
       if (name === "builder_get_profile") return { data: state.draft || { id: state.username, owner: state.username, nickname: state.username }, error: null };
       if (name === "builder_save_profile") { state.draft = structuredClone(input.input); return { data: state.draft, error: null }; }
@@ -378,6 +378,19 @@ test('new profile settings require the migration and views use the authenticated
   for(const key of Object.keys(site))assert.equal(saved.site[key],site[key]);
   assert.equal(await current.api.recordProfileView('alice','10000000-0000-4000-8000-000000000001'),12);
   assert.equal(current.state.calls.at(-1).name,'profile_record_view');
+});
+
+test('catalog decorations, description gradients and view positions require support before saving',async()=>{
+  const old=load();
+  const updates=[{descriptionGradient:true},{descriptionGradientAnimated:true},{descriptionGradientStart:'#123456'},{descriptionGradientAngle:135},{descriptionGradientSpeed:8},{profileViewsStyle:'eye'},{profileViewsSize:18},{profileViewsColor:'#123456'},{objectPositions:{views:{x:0,y:0}},layoutVersion:2},{avatarDecoration:'discord-a_0e839cd79500e7b68e2bbbed54790c28'}];
+  for(const site of updates)await rejects(old.api.request('/api/builder/sites/save',post({site})),503,'backend_features_update_required');
+  assert.equal(old.state.calls.some(call=>call.name==='builder_save_profile'),false);
+  const current=load({profileCatalogLayoutReady:true});
+  const site=Object.assign({},...updates);
+  const saved=await current.api.request('/api/builder/sites/save',post({site}));
+  assert.equal(JSON.stringify(saved.site.objectPositions),JSON.stringify(site.objectPositions));
+  for(const key of ['descriptionGradient','profileViewsStyle','avatarDecoration'])assert.equal(saved.site[key],site[key]);
+  assert.equal(current.state.calls.filter(call=>call.name==='builder_capabilities').length,1);
 });
 
 test("a v3 server saves and publishes animations, decorations and additional social links", async () => {

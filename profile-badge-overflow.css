@@ -1,9 +1,12 @@
-.iwtxz-discord-card { width:fit-content;min-width:min(286px,100%);max-width:min(380px,100%); }
-.discord-profile.iwtxz-discord-card { min-width:min(320px,100%); }
-.iwtxz-discord-card .discord-card-top,.discord-profile-top { flex-wrap:wrap;min-width:0;gap:2px; }
+main.panel:has(.iwtxz-discord-card) { grid-template-columns:minmax(0,1fr);min-width:0; }
+main.panel:has(.iwtxz-discord-card) > .identity { min-width:0;max-width:100%; }
+.iwtxz-discord-card { box-sizing:border-box;width:max-content;min-width:0;max-width:min(380px,calc(100vw - 32px),100%);justify-self:center;align-self:center; }
+.discord-profile.iwtxz-discord-card { width:max-content;min-width:0; }
+.iwtxz-discord-card .discord-card-body,.iwtxz-discord-card .discord-profile-body { flex:0 1 auto;min-width:0; }
+.iwtxz-discord-card .discord-card-top,.discord-profile-top { flex-wrap:nowrap;min-width:0;gap:4px;justify-content:flex-start; }
 .iwtxz-discord-card .discord-card-name,.discord-profile-top > #discordName { flex:0 1 auto;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
 .discord-badge-strip.iwtxz-badge-overflow { display:inline-flex;align-items:center;flex:0 0 auto;flex-wrap:nowrap;gap:4px;white-space:nowrap;max-width:none;overflow:visible; }
-.iwtxz-discord-card .discord-card-badges:has(.iwtxz-badge-overflow),.discord-earned-badges:has(.iwtxz-badge-overflow) { flex:0 0 auto;flex-wrap:wrap;min-width:0;max-width:100%; }
+.iwtxz-discord-card .discord-card-badges:has(.iwtxz-badge-overflow),.discord-earned-badges:has(.iwtxz-badge-overflow) { flex:0 0 auto;flex-wrap:nowrap;min-width:0;max-width:100%; }
 .iwtxz-badge-overflow > .iwtxz-badge { flex-shrink:0; }
 .iwtxz-badge-overflow-count { display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;min-width:25px;height:20px;margin:0;padding:0 4px;border:0;border-radius:5px;color:#dedee3;background:#ffffff0b;font:600 11px/1 "Segoe UI",Arial,sans-serif;letter-spacing:0;white-space:nowrap;cursor:pointer; }
 .iwtxz-badge-overflow-count:hover,.iwtxz-badge-overflow-count[aria-expanded="true"] { color:#fff;background:#ffffff19; }

@@ -3,8 +3,8 @@
   const $ = (selector) => document.querySelector(selector);
   const all = (selector) => [...document.querySelectorAll(selector)];
   // A cached HTML page can request a newer script after a deployment.
-  const uiVersion = "20261117-profile-views-1";
-  if (["editorModeSimple", "editorModeAdvanced", "editorModeHint", "effectIntensity", "backgroundEffect", "avatarFit", "ownMusicFiles", "discordDecorationHint", "profileScale", "nicknameSize", "discordShowCopyHint", "descriptionSize", "cursorSize", "typewriterText", "layoutEdit", "descriptionAnimation", "previewViewport", "previewStage", "previewCanvas", "previewZoom", "nicknameGradientFlow", "descriptionColor", "descriptionColorEnabled", "showProfileViews", "discordBadgeLimit"].some(id => !$("#"+id)) || (document.head && typeof window.IwtxzDiscordBadgePicker?.readSelected!=='function') || document.querySelector('script[src*="halloween.js"]')) {
+  const uiVersion = "20261117-profile-controls-2";
+  if (["descriptionGradient", "descriptionGradientAnimated", "descriptionGradientStart", "descriptionGradientEnd", "descriptionGradientAngle", "descriptionGradientSpeed", "profileViewsStyle", "profileViewsSize", "profileViewsColor", "editorModeSimple", "editorModeAdvanced", "editorModeHint", "effectIntensity", "backgroundEffect", "avatarFit", "ownMusicFiles", "discordDecorationHint", "profileScale", "nicknameSize", "discordShowCopyHint", "descriptionSize", "cursorSize", "typewriterText", "layoutEdit", "descriptionAnimation", "previewViewport", "previewStage", "previewCanvas", "previewZoom", "nicknameGradientFlow", "descriptionColor", "descriptionColorEnabled", "showProfileViews", "discordBadgeLimit"].some(id => !$("#"+id)) || (document.head && typeof window.IwtxzDiscordBadgePicker?.readSelected!=='function') || document.querySelector('script[src*="halloween.js"]')) {
     const fresh = new URL(location.href);
     if (fresh.searchParams.get("_ui") !== uiVersion) { fresh.searchParams.set("_ui",uiVersion);location.replace(fresh.href); }
     else if ($("#authStatus")) $("#authStatus").textContent="Не удалось обновить интерфейс. Обнови страницу с очисткой кеша.";
@@ -13,9 +13,9 @@
   const features = window.IwtxzProfileFeatures;
   const socialFields = features?.socials.map(item => item.id) || ["discord", "telegram", "steam"];
   const textFields = ["title", "nickname", "description", "entryText", "musicTitle", ...socialFields, "discordUserId", "typewriterText"];
-  const numberFields = ["avatarSize", "backgroundDim", "nicknameGradientAngle", "discordCardOpacity", "discordCardRadius", "effectIntensity", "profileScale", "nicknameSize", "descriptionSize", "cursorSize", "cursorOpacity", "typewriterSpeed", "discordBadgeLimit"];
-  const optionFields = ["font", "accentColor", "backgroundType", "nicknameGradientStart", "nicknameGradientEnd", "musicPlayerStyle", "discordCardStyle", "discordCardColor", "nicknameAnimation", "avatarDecoration", "backgroundEffect", "cursorStyle", "avatarFit", "cursorColor", "cursorHotspot", "descriptionAnimation"];
-  const boolFields = ["musicLoop", "showDiscord", "nicknameGradient", "discordSync", "discordUseAvatar", "discordShowStatus", "discordShowBadges", "discordShowActivity", "profileTilt", "discordShowCopyHint", "typewriterEnabled", "showProfileViews"];
+  const numberFields = ["avatarSize", "backgroundDim", "nicknameGradientAngle", "discordCardOpacity", "discordCardRadius", "effectIntensity", "profileScale", "nicknameSize", "descriptionSize", "cursorSize", "cursorOpacity", "typewriterSpeed", "discordBadgeLimit", "descriptionGradientAngle", "descriptionGradientSpeed", "profileViewsSize"];
+  const optionFields = ["font", "accentColor", "backgroundType", "nicknameGradientStart", "nicknameGradientEnd", "musicPlayerStyle", "discordCardStyle", "discordCardColor", "nicknameAnimation", "avatarDecoration", "backgroundEffect", "cursorStyle", "avatarFit", "cursorColor", "cursorHotspot", "descriptionAnimation", "descriptionGradientStart", "descriptionGradientEnd", "profileViewsStyle", "profileViewsColor"];
+  const boolFields = ["musicLoop", "showDiscord", "nicknameGradient", "discordSync", "discordUseAvatar", "discordShowStatus", "discordShowBadges", "discordShowActivity", "profileTilt", "discordShowCopyHint", "typewriterEnabled", "showProfileViews", "descriptionGradient", "descriptionGradientAnimated"];
   const assetFields = ["avatar", "background", "music", "musicCover", "customFont", "favicon", "customCursor"];
   const decorativeBadges = new Set(["star", "heart", "moon", "sparkle", "code", "music", "flower"]);
   const defaults = {
@@ -33,6 +33,7 @@
     nicknameAnimation: "none", avatarDecoration: "none", avatarFit:"cover", backgroundEffect:"none",effectIntensity:50,profileTilt:false,cursorStyle:"default",customCursor:"",favicon:"",profileScale:100,nicknameSize:32,discordShowCopyHint:true,
     descriptionSize:16,descriptionColor:'',showProfileViews:false,discordBadgeLimit:6,cursorSize:24,cursorOpacity:100,cursorColor:'#ffffff',cursorHotspot:'center',typewriterEnabled:false,typewriterText:'',typewriterSpeed:70,seasonalTheme:'none',objectPositions:{},layoutVersion:1,descriptionAnimation:'none'
   };
+  Object.assign(defaults,{descriptionGradient:false,descriptionGradientStart:'#ffffff',descriptionGradientEnd:'#8b5cf6',descriptionGradientAngle:90,descriptionGradientAnimated:false,descriptionGradientSpeed:6,profileViewsStyle:'text',profileViewsSize:12,profileViewsColor:'#b6b4bd'});
   const fileHints = Object.fromEntries(all("[data-file-note]").map((e) => [e.dataset.fileNote, e.textContent]));
   const previewFrame = $("#previewFrame");
   try {
@@ -121,7 +122,7 @@
   let editorMode = "simple", modeStorageAvailable = true;
   try { if (window.localStorage.getItem("iwtxz:editor-mode") === "advanced") editorMode = "advanced"; }
   catch { modeStorageAvailable = false; }
-  const positionKeys=['avatar','name','description','socials','discord','player'];
+  const positionKeys=['avatar','name','description','socials','discord','player','views'];
   let selectedLayoutBlock='',previewExpanded=false,previewMetrics=null;
   const gridDefaults={visible:false,step:24,snap:true,centerLines:true,color:'#ffffff',opacity:15};
   let gridSettings={...gridDefaults};
@@ -422,12 +423,14 @@
       button.setAttribute("aria-pressed", String(selected));
     });
     $("#decorationLabel").textContent = currentSite.avatarDecoration === "discord" ? "Из Discord"
-      : features?.decorations.find(item => item.id === currentSite.avatarDecoration)?.label || "Без украшения";
+      : features?.decorations.find(item => item.id === currentSite.avatarDecoration)?.label || (/^discord-a_[a-f0-9]{32}$/.test(currentSite.avatarDecoration)?"Своё украшение Discord":"Без украшения");
     const animationLabel = features?.animations.find(item => item.id === currentSite.nicknameAnimation)?.label || "Без анимации";
     $("#effectsSummary").textContent = `${animationLabel} · ${$("#decorationLabel").textContent}`;
     $("#nicknameEffectDemo").textContent = currentSite.nickname || "nickname";
     features?.applyNameAnimation($("#nicknameEffectDemo"), currentSite.nicknameAnimation);
-    $('#descriptionEffectDemo').textContent=currentSite.description||'Твоё описание';features?.applyDescriptionAnimation($('#descriptionEffectDemo'),currentSite.descriptionAnimation);
+    $('#descriptionEffectDemo').textContent=currentSite.description||'Твоё описание';
+    if(features?.applyDescriptionStyle)features.applyDescriptionStyle($('#descriptionEffectDemo'),currentSite);
+    else features?.applyDescriptionAnimation($('#descriptionEffectDemo'),currentSite.descriptionAnimation);
     decorationPicker?.update(currentSite.avatarDecoration,currentSite.avatar||'img/tree.png');
     const tabIcon=$('#previewTabIcon');if(tabIcon.getAttribute?.('src')!==(currentSite.favicon||'img/tree.png'))tabIcon.src=currentSite.favicon||'img/tree.png';
     updateDecorationAvatars();updateDiscordDecoration();
@@ -649,7 +652,7 @@
     const data = await api("/api/builder/sites/save", { method: "POST", body: JSON.stringify({ site }) });
     const labels={avatarDecoration:"украшение аватара",nicknameAnimation:"анимацию ника",backgroundEffect:"эффект фона",profileTilt:"наклон карточки",cursorStyle:"курсор",customCursor:"свой курсор",favicon:"иконку вкладки",music:"трек",musicCover:"обложку",nicknameSize:"размер ника",profileScale:"масштаб",discordShowCopyHint:"подсказку копирования"};
     Object.assign(labels,{descriptionSize:'размер описания',cursorSize:'размер курсора',cursorOpacity:'непрозрачность курсора',cursorColor:'цвет курсора',cursorHotspot:'точку нажатия',typewriterEnabled:'печатную строку',typewriterText:'текст печатной строки',typewriterSpeed:'скорость печати'});
-    Object.assign(labels,{descriptionAnimation:'анимацию описания',descriptionColor:'цвет описания',showProfileViews:'просмотры профиля',discordBadgeLimit:'количество значков'});if(Object.keys(site.objectPositions).length)labels.layoutVersion='координаты блоков';
+    Object.assign(labels,{descriptionAnimation:'анимацию описания',descriptionColor:'цвет описания',showProfileViews:'просмотры профиля',discordBadgeLimit:'количество значков',descriptionGradient:'градиент описания',descriptionGradientStart:'первый цвет градиента',descriptionGradientEnd:'второй цвет градиента',descriptionGradientAngle:'направление градиента',descriptionGradientAnimated:'перелив описания',descriptionGradientSpeed:'скорость перелива',profileViewsStyle:'вид просмотров',profileViewsSize:'размер просмотров',profileViewsColor:'цвет просмотров'});if(Object.keys(site.objectPositions).length)labels.layoutVersion='координаты блоков';
     const lost=Object.keys(labels).filter(key=>Object.hasOwn(data.site||{},key)||site[key]!==defaults[key]).filter(key=>data.site?.[key]!==site[key]);
     if(JSON.stringify(data.site?.discordBadges||[])!==JSON.stringify(site.discordBadges||[]))lost.push('discordBadges');
     labels.discordBadges='значки Discord';
@@ -818,6 +821,7 @@
     clearTimeout(previewTimer); sendPreview();
   }));
   $("#openEffects").addEventListener("click", () => setSection("effects"));
+  $("#descriptionGradientAnimated").addEventListener("input",()=>{if($("#descriptionGradientAnimated").checked)$("#descriptionGradient").checked=true;updatePreview();});
   $("#nicknameGradientFlow").addEventListener("input", () => {
     if ($("#nicknameGradientFlow").checked) {
       $("#nicknameGradient").checked = true;

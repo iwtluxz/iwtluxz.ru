@@ -12,15 +12,15 @@
   <script src="profile-links.js?v=40c61c4a7df8" defer></script>
   <script src="vendor/supabase-2.102.0.min.js" defer></script>
   <script src="backend-config.js?v=1353af5aba7d" defer></script>
-  <script src="backend-client.js?v=3863fbf43706" defer></script>
-  <script src="profile-decorations.js?v=4a4bc7aa65a9" defer></script>
-  <script src="profile-features.js?v=35440bf089a9" defer></script>
+  <script src="backend-client.js?v=b3ae9d197530" defer></script>
+  <script src="profile-decorations.js?v=f054d93c0896" defer></script>
+  <script src="profile-features.js?v=c91239a9d9b1" defer></script>
   <script src="music-library.js?v=2fab4296d8bb" defer></script>
   <script src="music-services.js?v=bf573127bff9" defer></script>
   <script src="music-catalog-data.js?v=920cd10922e5" defer></script>
   <script src="music-catalog.js?v=fa74e7b6c350" defer></script>
   <script src="profile-scene.js?v=795f7d6f88de" defer></script>
-  <script src="profile-layout.js?v=79074bd28891" defer></script>
+  <script src="profile-layout.js?v=4348a2c62d03" defer></script>
   <script src="site-audio-config.js?v=2ef578a39d63" defer></script>
   <script src="auth-ui.js?v=eabd36d5cc5f" defer></script>
   <script src="discord-badges.js?v=1637b0a4abd4" defer></script>
@@ -28,18 +28,18 @@
   <script src="profile-badge-overflow.js?v=773a662ee0c8" defer></script>
   <script src="site-chrome.js?v=1635d422dd3f" defer></script>
   <script src="image-compression.js?v=68e15b806c42" defer></script>
-  <script src="builder.js?v=388a4ba125e4" defer></script>
+  <script src="builder.js?v=cbc13a4f040c" defer></script>
   <script src="builder-discord-dialog.js?v=f038935de49e" defer></script>
-  <link rel="stylesheet" href="profile-features.css?v=d1396c69bc2f">
+  <link rel="stylesheet" href="profile-features.css?v=fe34e610671f">
   <link rel="stylesheet" href="music-services.css?v=7c729d89a2af">
   <link rel="stylesheet" href="profile-scene.css?v=d901490b8aa2">
-  <link rel="stylesheet" href="profile-layout.css?v=183623eec637">
-  <link rel="stylesheet" href="profile-decorations.css?v=905e884c7dad">
+  <link rel="stylesheet" href="profile-layout.css?v=32523a958369">
+  <link rel="stylesheet" href="profile-decorations.css?v=e675dc4f49d5">
   <link rel="stylesheet" href="site-chrome.css?v=795b61a759f6">
   <link rel="stylesheet" href="auth-ui.css?v=285f77f7ea44">
   <link rel="stylesheet" href="builder-discord-dialog.css?v=ea6d9814a13a">
   <link rel="stylesheet" href="builder-discord-badges.css?v=302a754e1218">
-  <link rel="stylesheet" href="profile-badge-overflow.css?v=f921defc9eaa">
+  <link rel="stylesheet" href="profile-badge-overflow.css?v=a5a7476caf8c">
 </head>
 <body class="auth-locked editor-simple">
   <header class="topbar">
@@ -95,7 +95,17 @@
             <label class="field wide">О себе<textarea id="description" maxlength="500" rows="4" placeholder="Пара слов, цитата или просто настроение"></textarea><span class="hint" id="descriptionCount">0 / 500</span></label>
             <label class="checkbox-field wide"><input id="descriptionColorEnabled" type="checkbox"><span>Свой цвет описания</span></label>
             <label class="field">Цвет описания<input id="descriptionColor" type="color" value="#f5f5f7"></label>
+            <label class="checkbox-field wide"><input id="descriptionGradient" type="checkbox"><span>Градиент описания</span></label>
+            <label class="field">Первый цвет<input id="descriptionGradientStart" type="color" value="#ffffff"></label>
+            <label class="field">Второй цвет<input id="descriptionGradientEnd" type="color" value="#8b5cf6"></label>
+            <label class="field">Направление, °<input id="descriptionGradientAngle" type="number" min="0" max="360" value="90"></label>
+            <label class="checkbox-field"><input id="descriptionGradientAnimated" type="checkbox"><span>Переливающийся градиент</span></label>
+            <label class="field">Период перелива, сек.<input id="descriptionGradientSpeed" type="number" min="2" max="30" value="6"></label>
             <label class="checkbox-field wide"><input id="showProfileViews" type="checkbox"><span>Показывать просмотры профиля</span></label>
+            <label class="field">Вид счётчика<select id="profileViewsStyle"><option value="text">Просмотры · число</option><option value="eye">Глазик · число</option></select></label>
+            <label class="field">Размер счётчика, px<input id="profileViewsSize" type="number" min="10" max="24" value="12"></label>
+            <label class="field">Цвет счётчика<input id="profileViewsColor" type="color" value="#b6b4bd"></label>
+            <p class="hint wide">По умолчанию — слева внизу, рядом с уровнем плеера. Переместить можно в превью кнопкой «Переместить блоки».</p>
             <p class="hint wide">Счётчик виден всем. Один браузер учитывается один раз в сутки; собственные просмотры при входе не считаются.</p>
             <label class="field wide">Текст на экране входа<input id="entryText" maxlength="80" placeholder="click to enter..."><span class="hint">Показывается посетителю до того, как он зайдёт на страницу.</span></label>
           </div>

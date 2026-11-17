@@ -8,9 +8,9 @@
   if(document.body.dataset)delete document.body.dataset.halloweenSurface;
   try { window.localStorage?.setItem('iwtxz:halloween:enabled','0'); } catch {}
   window.iwtxzTabTitleManaged=true;
-  const keys=Object.freeze(['avatar','name','description','socials','discord','player']);
-  const labels={avatar:'Аватар',name:'Ник',description:'Описание',socials:'Соцсети',discord:'Discord',player:'Плеер'};
-  const selectors={avatar:'.profile-avatar-frame, main.panel .avatar',name:'.iwtxz-name-row, #profileName, main.panel .name',description:'.profile-description, main.panel .tagline',socials:'.profile-socials, main.panel .socials',discord:'.discord-profile, main.panel .discord-card',player:'.music-player, .track-card'};
+  const keys=Object.freeze(['avatar','name','description','socials','discord','player','views']);
+  const labels={avatar:'Аватар',name:'Ник',description:'Описание',socials:'Соцсети',discord:'Discord',player:'Плеер',views:'Просмотры'};
+  const selectors={avatar:'.profile-avatar-frame, main.panel .avatar',name:'.iwtxz-name-row, #profileName, main.panel .name',description:'.profile-description, main.panel .tagline',socials:'.profile-socials, main.panel .socials',discord:'.discord-profile, main.panel .discord-card',player:'.music-player, .track-card',views:'.iwtxz-profile-views'};
   const clamp=(value,min,max,fallback)=>Number.isFinite(Number(value))?Math.min(max,Math.max(min,Number(value))):fallback;
   const cleanPoint=(x,y)=>({x:Math.round(clamp(x,-40,40,0)*1000)/1000,y:Math.round(clamp(y,-40,40,0)*1000)/1000});
   function normalizePositions(value){
@@ -64,7 +64,26 @@
       gridNode.style.backgroundPosition=`${innerWidth/2}px ${innerHeight/2}px`;
       guidesNode.style.color=grid.color;guidesNode.style.opacity=String(Math.min(1,grid.opacity/100+.35));
     }
-    function renderPositions(){raf=0;for(const key of nodes.keys())renderPoint(key);renderGrid();}
+    function renderViewsDock(){
+      const node=nodes.get('views');if(!node)return;
+      // The counter lives outside the scaled profile and shares the player's viewport row.
+      node.style.setProperty('translate',originals.get(node)?.translate||'none');
+      node.style.setProperty('--views-dock-top','auto');
+      node.style.setProperty('--views-dock-bottom','max(30px, env(safe-area-inset-bottom))');
+      const box=node.getBoundingClientRect();if(!box.width||!box.height)return;
+      const players=document.querySelectorAll?.('.music-player, .track-card, .service-player')||[];
+      for(const player of players){
+        if(player.hidden)continue;
+        const style=getComputedStyle(player),rect=player.getBoundingClientRect();
+        if(style.display==='none'||style.visibility==='hidden'||!rect.width||!rect.height||rect.bottom<0||rect.top>innerHeight)continue;
+        const overlaps=rect.left<box.right+14&&rect.right>box.left-14;
+        const top=overlaps?rect.top-box.height-12:rect.top+(rect.height-box.height)/2;
+        node.style.setProperty('--views-dock-top',Math.round(Math.max(8,Math.min(innerHeight-box.height-8,top)))+'px');
+        node.style.setProperty('--views-dock-bottom','auto');
+        break;
+      }
+    }
+    function renderPositions(){raf=0;for(const key of nodes.keys())if(key!=='views')renderPoint(key);renderViewsDock();renderPoint('views');renderGrid();}
     function scheduleRender(){if(!disposed&&!raf)raf=requestAnimationFrame(renderPositions);}
     const resizeObserver=typeof ResizeObserver==='function'?new ResizeObserver(scheduleRender):null;
     function refreshNodes(){
@@ -150,6 +169,7 @@
       const key=JSON.stringify([site.typewriterEnabled===true,list,site.typewriterSpeed,prefix]);if(key===typeKey)return;
       typeKey=key;baseTitle=prefix;phrases=list;phrase=0;character=0;deleting=false;stopTyping();setTitle(prefix);runTyping();
     }
+    addEventListener('iwtxz-profile-views-ready',refreshNodes,{signal:signal.signal});
     addEventListener('resize',scheduleRender,{passive:true,signal:signal.signal});document.addEventListener('transitionend',scheduleRender,{capture:true,signal:signal.signal});document.addEventListener('animationend',scheduleRender,{capture:true,signal:signal.signal});document.addEventListener('load',scheduleRender,{capture:true,signal:signal.signal});
     document.fonts?.addEventListener?.('loadingdone',scheduleRender,{signal:signal.signal});document.fonts?.ready.then(scheduleRender);
     document.addEventListener('visibilitychange',runTyping,{signal:signal.signal});addEventListener('iwtxz-preview-visibility',event=>{paused=event.detail===false;runTyping();},{signal:signal.signal});reduced.addEventListener('change',runTyping,{signal:signal.signal});

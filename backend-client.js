@@ -853,6 +853,11 @@
       const hasFeatures = (site.nicknameAnimation && site.nicknameAnimation !== "none") || (site.avatarDecoration && site.avatarDecoration !== "none") || newSocials.some(key => Boolean(site[key]));
       let settingsCapabilities;
       const loadCapabilities=()=>settingsCapabilities ||= Promise.resolve(getClient().rpc('builder_capabilities'));
+      const catalogDefaults={descriptionGradient:false,descriptionGradientStart:'#ffffff',descriptionGradientEnd:'#8b5cf6',descriptionGradientAngle:90,descriptionGradientAnimated:false,descriptionGradientSpeed:6,profileViewsStyle:'text',profileViewsSize:12,profileViewsColor:'#b6b4bd'};
+      if(Object.entries(catalogDefaults).some(([key,value])=>site[key]!==undefined&&site[key]!==value)||Object.hasOwn(site.objectPositions||{},'views')||String(site.avatarDecoration||'').startsWith('discord-a_')){
+        const capabilities=await loadCapabilities();
+        if(capabilities.error||capabilities.data?.profileCatalogLayout!==true)throw error(503,'Для градиента описания, просмотров и новых украшений выполни 20261117_profile_catalog_and_layout.sql. Выбор остался в редакторе.','backend_features_update_required');
+      }
       if (site.descriptionColor || site.showProfileViews || (site.discordBadgeLimit !== undefined && site.discordBadgeLimit !== 6)) {
         const capabilities = await loadCapabilities();
         if (capabilities.error || capabilities.data?.profileViewSettings !== true) throw error(503, 'Для этих настроек нужно обновить базу. Выбор остался в редакторе.', 'backend_features_update_required');

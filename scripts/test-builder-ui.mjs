@@ -13,7 +13,7 @@ class Element {
   constructor(tagName = "SPAN") {
     this.tagName = tagName.toUpperCase();
     this.value = ""; this.textContent = ""; this.checked = false; this.disabled = false;
-    this.dataset = {}; this.style = { setProperty() {} }; this.attributes = new Map(); this.listeners = new Map(); this.children = [];
+    this.dataset = {}; this.style = { setProperty() {}, removeProperty() {} }; this.attributes = new Map(); this.listeners = new Map(); this.children = [];
     const classes = new Set();
     this.classList = { add: name => classes.add(name), remove: name => classes.delete(name), contains: name => classes.has(name),
       toggle(name, enabled = !classes.has(name)) { if (enabled) classes.add(name); else classes.delete(name); } };
@@ -136,6 +136,31 @@ test("description color, profile views and badge limit are saved and restored", 
   }finally{ui.close();}
 });
 
+test('description gradients and movable eye counters survive editor changes and server confirmation',async()=>{
+  let submitted,drops=false,publishes=0;
+  const settings={descriptionGradient:true,descriptionGradientStart:'#123456',descriptionGradientEnd:'#abcdef',descriptionGradientAngle:135,descriptionGradientAnimated:true,descriptionGradientSpeed:9,profileViewsStyle:'eye',profileViewsSize:18,profileViewsColor:'#aa11bb',showProfileViews:true,layoutVersion:2,objectPositions:{views:{x:0,y:0}}};
+  const ui=loadBuilder(async(path,options)=>{
+    if(path.endsWith('/list'))return {sites:[{...site,...settings}]};
+    if(path.endsWith('/save')){submitted=JSON.parse(options.body).site;return {site:drops?{...submitted,descriptionGradientEnd:undefined}:submitted};}
+    if(path.endsWith('/publish'))publishes++;
+    return response(path);
+  });
+  try{
+    await ui.submit();
+    assert.equal(ui.elements.get('profileViewsStyle').value,'eye');
+    assert.equal(ui.elements.get('descriptionGradientAnimated').checked,true);
+    ui.elements.get('descriptionGradientSpeed').value='12';
+    await ui.elements.get('saveButton').fire('click');
+    assert.equal(submitted.descriptionGradientSpeed,12);
+    for(const [key,value] of Object.entries(settings))if(key!=='descriptionGradientSpeed')assert.deepEqual(submitted[key],value);
+    drops=true;ui.elements.get('descriptionGradientEnd').value='#765432';
+    await ui.elements.get('publishButton').fire('click');
+    assert.equal(publishes,0);
+    assert.match(ui.elements.get('editorStatus').textContent,/Сервер не подтвердил второй цвет градиента/);
+    assert.equal(ui.elements.get('descriptionGradientEnd').value,'#765432');
+  }finally{ui.close();}
+});
+
 test("large uploaded pictures are compressed before the backend request", async () => {
   const file={name:"picture.png",size:5*1024*1024,type:"image/png"};
   const compressed={name:"picture.webp",size:500000,type:"image/webp"};
@@ -163,13 +188,13 @@ test("login and generic profile templates do not preload the 4 MB default avatar
 test("cached markup missing new controls is refreshed before starting authentication",()=>{
   for (const id of ["profileScale", "editorModeAdvanced", "nicknameGradientFlow", "descriptionColor", "showProfileViews", "discordBadgeLimit"]) {
     let calls=0;const ui=loadBuilder(()=>{calls++;return Promise.resolve({});},'', [id]);
-    try{assert.equal(calls,0);assert.equal(ui.navigations.length,1);assert.equal(new URL(ui.navigations[0]).searchParams.get('_ui'),'20261117-profile-views-1');}finally{ui.close();}
+    try{assert.equal(calls,0);assert.equal(ui.navigations.length,1);assert.equal(new URL(ui.navigations[0]).searchParams.get('_ui'),'20261117-profile-controls-2');}finally{ui.close();}
   }
 });
 
 test('a cached restricted badge picker refreshes before authentication instead of breaking free selection',()=>{
   let calls=0;const ui=loadBuilder(()=>{calls++;return Promise.resolve({});},'',[],true);
-  try{assert.equal(calls,0);assert.equal(ui.navigations.length,1);assert.equal(new URL(ui.navigations[0]).searchParams.get('_ui'),'20261117-profile-views-1');}finally{ui.close();}
+  try{assert.equal(calls,0);assert.equal(ui.navigations.length,1);assert.equal(new URL(ui.navigations[0]).searchParams.get('_ui'),'20261117-profile-controls-2');}finally{ui.close();}
 });
 
 test("editor modes preserve hidden settings and remember the selected mode", async () => {

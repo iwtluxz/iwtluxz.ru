@@ -8,22 +8,34 @@ function nodeFixture(box={left:100,top:100,width:200,height:50}){
   const node={style:{getPropertyValue:key=>values.get(key)||'',setProperty:(key,value)=>values.set(key,value)},getAttribute:key=>attributes.get(key)??null,setAttribute:(key,value)=>attributes.set(key,value),removeAttribute:key=>attributes.delete(key),dataset:{},classList:{add(...names){names.forEach(name=>classes.add(name));},toggle(name,on){on?classes.add(name):classes.delete(name);},remove(...names){names.forEach(name=>classes.delete(name));}},parentElement:null,focus(){},setPointerCapture(){},releasePointerCapture(){},closest(){return node;},remove(){node.removed=true;},getBoundingClientRect(){const offsets=String(values.get('translate')||'').match(/-?[\d.]+/g)||[];const x=Number(offsets[0])||0,y=Number(offsets[1])||0;return {...box,left:box.left+x,top:box.top+y,right:box.left+x+box.width,bottom:box.top+y+box.height};}};
   return {node,values,box,classes};
 }
-function fixture(preview=true,nameNode=null){
+function fixture(preview=true,nameNode=null,viewNode=null){
   const listeners=new Map(),messages=[],classes=new Set(),frames=new Map(),timers=new Map(),created=[];let sequence=0,resizeCallback,motionCallback;
   const body={classList:{toggle(name,on){on?classes.add(name):classes.delete(name);},contains:name=>classes.has(name),remove(...names){names.forEach(name=>classes.delete(name));}},append(...nodes){created.push(...nodes);}};
   const window={parent:preview?{postMessage:(data,origin)=>messages.push({...data,origin})}:null};if(!preview)window.parent=window;
   const addEventListener=(name,fn)=>{listeners.set(name,[...(listeners.get(name)||[]),fn]);};
-  const document={title:'Original | iwtxz',body,hidden:false,addEventListener,querySelector:selector=>selector.includes('#profileName')?nameNode:null,querySelectorAll:()=>[],createElement:()=>nodeFixture().node};
+  const document={title:'Original | iwtxz',body,hidden:false,addEventListener,querySelector:selector=>selector.includes('#profileName')?nameNode:selector==='.iwtxz-profile-views'?viewNode:null,querySelectorAll:()=>[],createElement:()=>nodeFixture().node};
   const motion={matches:false,addEventListener:(name,callback)=>{motionCallback=callback;}};
   const context=vm.createContext({window,document,location:{search:preview?'?preview=1':'',origin:'https://iwtxz.su'},innerWidth:800,innerHeight:600,getComputedStyle:()=>({zoom:'1'}),URLSearchParams,AbortController,MutationObserver:class{observe(){}disconnect(){}},ResizeObserver:class{constructor(callback){resizeCallback=callback;}observe(){}disconnect(){}},matchMedia:()=>motion,addEventListener,requestAnimationFrame:callback=>{frames.set(++sequence,callback);return sequence;},cancelAnimationFrame:id=>frames.delete(id),setTimeout:callback=>{timers.set(++sequence,callback);return sequence;},clearTimeout:id=>timers.delete(id)});
   vm.runInContext(source,context);
   return {api:window.IwtxzProfileLayout,window,document,created,classes,messages,resize(width,height){context.innerWidth=width;context.innerHeight=height;resizeCallback?.();},flush(){const pending=[...frames.values()];frames.clear();pending.forEach(fn=>fn());},tick(){const [id,callback]=timers.entries().next().value||[];if(callback){timers.delete(id);callback();}},setReduced(value){motion.matches=value;motionCallback?.();},emit:(name,event)=>(listeners.get(name)||[]).forEach(fn=>fn(event))};
 }
 
-test('layout stores six known blocks, preserves centered zero coordinates and bounds offsets',()=>{
+test('layout stores profile and view blocks, preserves centered zero coordinates and bounds offsets',()=>{
   const {api}=fixture();
   assert.equal(JSON.stringify(api.normalizePositions({avatar:{x:100,y:-200},name:{x:1.23456,y:Infinity},script:{x:2,y:3},player:[],description:{x:0,y:0},typewriter:{x:1,y:1}})),JSON.stringify({avatar:{x:40,y:-40},name:{x:1.235,y:0},description:{x:0,y:0}}));
   for(const value of [null,[],false,'anything'])assert.equal(JSON.stringify(api.normalizePositions(value)),'{}');
+});
+
+test('view counter shares centered drag coordinates, keyboard movement and reset with other blocks',()=>{
+  const views=nodeFixture({left:16,top:550,width:110,height:18}),page=fixture(true,null,views.node),layout=page.api.create();
+  layout.apply({owner:'alice',layoutVersion:2,objectPositions:{views:{x:0,y:0}}});page.flush();
+  assert.equal(views.node.dataset.layoutBlock,'views');assert.ok(page.api.keys.includes('views'));
+  let rect=views.node.getBoundingClientRect();assert.equal(rect.left+rect.width/2,400);assert.equal(rect.top+rect.height/2,300);
+  layout.setEditing(true);page.emit('focusin',{target:views.node});
+  assert.equal(page.messages.at(-1).label,'Просмотры');
+  page.emit('keydown',{target:views.node,key:'ArrowRight',preventDefault(){},stopPropagation(){}});
+  const moved=page.messages.findLast(message=>message.type==='iwtxz-layout-change');assert.equal(moved.positions.views.x,.1);assert.equal(moved.positions.views.y,0);
+  layout.reset();page.flush();rect=views.node.getBoundingClientRect();assert.equal(rect.left,16);assert.equal(views.values.get('translate'),'none');layout.dispose();
 });
 
 test('typewriter animates only the browser tab, restores its title when disabled and sends preview titles',()=>{

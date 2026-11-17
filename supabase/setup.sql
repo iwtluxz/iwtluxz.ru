@@ -177,7 +177,11 @@ begin
   result := result || jsonb_build_object('descriptionSize',16,'cursorSize',24,'cursorOpacity',100,'cursorColor','#ffffff',
     'cursorHotspot','center','typewriterEnabled',false,'typewriterText','','typewriterSpeed',70,
     'seasonalTheme','none','objectPositions','{}'::jsonb);
-  result := result || jsonb_build_object('descriptionAnimation','none','layoutVersion',2);
+  result := result || jsonb_build_object('descriptionAnimation','none','layoutVersion',2,
+    'descriptionColor','','showProfileViews',false,'discordBadgeLimit',6,
+    'descriptionGradient',false,'descriptionGradientAnimated',false,'descriptionGradientStart','#ffffff',
+    'descriptionGradientEnd','#8b5cf6','descriptionGradientAngle',90,'descriptionGradientSpeed',6,
+    'profileViewsStyle','text','profileViewsSize',12,'profileViewsColor','#b6b4bd');
   if username not in ('iwtlu','shakzy','strelokk') then
     result := result || jsonb_build_object('avatar','','background','','music','','musicTitle','','musicCover','');
   end if;
@@ -350,8 +354,8 @@ begin
     raise exception using errcode='22023',message='Неизвестная анимация описания.';
   end if;
   result := result || jsonb_build_object('descriptionAnimation',value,'layoutVersion',private.profile_number(input,'layoutVersion',1,1,2));
-  value := private.profile_text(input, 'avatarDecoration', 'none', 24);
-  if value not in ('none','discord','phoenix','heartbloom','shy','sakura','moon','embers','aurora','cat','rainbow','firecrackers','flame-sword','steampunk-cat','potion','lotus','snowglobe','bubble-tea','black-hole','ufo','fox-hat','lovestruck','crystal-ball','hex-lights','solar-orbit','honeyblossom','heartstrings','chromawave','koi','portal-blue','cozy-cat','lightning','constellations','head-clouds','strawberry','neon-cat','runes','rainy-mood','glitch-frame') then
+  value := private.profile_text(input, 'avatarDecoration', 'none', 48);
+  if value not in ('none','discord','phoenix','heartbloom','shy','sakura','moon','embers','aurora','cat','rainbow','firecrackers','flame-sword','steampunk-cat','potion','lotus','snowglobe','bubble-tea','black-hole','ufo','fox-hat','lovestruck','crystal-ball','hex-lights','solar-orbit','honeyblossom','heartstrings','chromawave','koi','portal-blue','cozy-cat','lightning','constellations','head-clouds','strawberry','neon-cat','runes','rainy-mood','glitch-frame') and value !~ '^discord-a_[a-f0-9]{32}$' then
     raise exception using errcode = '22023', message = 'Неизвестное украшение аватара.';
   end if;
   result := result || jsonb_build_object('avatarDecoration', value, 'profileBadges', badges, 'settingsVersion', 7);
@@ -375,7 +379,7 @@ begin
     if jsonb_typeof(input->'objectPositions') <> 'object' then raise exception using errcode='22023',message='Некорректное расположение блоков.'; end if;
     for item in select * from jsonb_each(input->'objectPositions') loop
       point := item.value;
-      if item.key not in ('avatar','name','description','socials','discord','player','typewriter') or jsonb_typeof(point) <> 'object' then
+      if item.key not in ('avatar','name','description','socials','discord','player','typewriter','views') or jsonb_typeof(point) <> 'object' then
         raise exception using errcode='22023',message='Неизвестный блок страницы.';
       end if;
       if not (point ? 'x' and point ? 'y') or (point - 'x' - 'y') <> '{}'::jsonb then
@@ -391,6 +395,25 @@ begin
     end loop;
   end if;
   result := result || jsonb_build_object('objectPositions',positions);
+  value := private.profile_text(input,'descriptionColor','',7);
+  if value <> '' and value !~ '^#[a-fA-F0-9]{6}$' then raise exception using errcode='22023',message='Некорректный цвет описания.'; end if;
+  result := result || jsonb_build_object('descriptionColor',lower(value),
+    'showProfileViews',private.profile_boolean(input,'showProfileViews',false),
+    'discordBadgeLimit',private.profile_number(input,'discordBadgeLimit',6,1,6));
+  foreach value in array array['descriptionGradient','descriptionGradientAnimated'] loop
+    result := result || jsonb_build_object(value,private.profile_boolean(input,value,false));
+  end loop;
+  for item in select * from (values ('descriptionGradientStart','#ffffff'),('descriptionGradientEnd','#8b5cf6'),('profileViewsColor','#b6b4bd')) as colors(key,fallback) loop
+    value := private.profile_text(input,item.key,item.fallback,7);
+    if value !~ '^#[a-fA-F0-9]{6}$' then raise exception using errcode='22023',message='Некорректный цвет.'; end if;
+    result := result || jsonb_build_object(item.key,lower(value));
+  end loop;
+  value := private.profile_text(input,'profileViewsStyle','text',12);
+  if value not in ('text','eye') then raise exception using errcode='22023',message='Неизвестный вид счётчика просмотров.'; end if;
+  result := result || jsonb_build_object('profileViewsStyle',value,
+    'profileViewsSize',private.profile_number(input,'profileViewsSize',12,10,24),
+    'descriptionGradientAngle',private.profile_number(input,'descriptionGradientAngle',90,0,360),
+    'descriptionGradientSpeed',private.profile_number(input,'descriptionGradientSpeed',6,2,30));
   value := private.profile_text(input,'backgroundEffect','none',16);
   if value not in ('none','snow','rain','matrix','glitch','parallax') then raise exception using errcode='22023',message='Неизвестный эффект фона.'; end if;
   result := result || jsonb_build_object('backgroundEffect',value,'effectIntensity',private.profile_number(input,'effectIntensity',50,10,100),'profileTilt',private.profile_boolean(input,'profileTilt',false));
@@ -418,7 +441,7 @@ $$;
 
 create or replace function public.builder_capabilities()
 returns jsonb language sql stable set search_path = '' as $$
-  select jsonb_build_object('profileSettingsVersion', 7, 'customFonts', true, 'profileEffects', true, 'interactiveEffects', true,'profileLayout',true,'freeLayout',true,'editorV2',true,'discordBadges',true,'discordBadgeVisibility',true);
+  select jsonb_build_object('profileSettingsVersion', 7, 'customFonts', true, 'profileEffects', true, 'interactiveEffects', true,'profileLayout',true,'freeLayout',true,'editorV2',true,'discordBadges',true,'discordBadgeVisibility',true,'profileViewSettings',true,'profileCatalogLayout',true);
 $$;
 revoke all on function public.builder_capabilities() from public;
 grant execute on function public.builder_capabilities() to anon, authenticated;
@@ -517,3 +540,50 @@ revoke all on function private.profile_discord_badges(jsonb) from public,anon,au
 
 notify pgrst, 'reload schema';
 commit;
+
+-- Optional per-profile view counter.
+create table if not exists private.profile_view_totals (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  views bigint not null default 0
+);
+create table if not exists private.profile_daily_visitors (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  visit_date date not null,
+  visitor_id uuid not null,
+  primary key (user_id, visit_date, visitor_id)
+);
+alter table private.profile_view_totals enable row level security;
+alter table private.profile_daily_visitors enable row level security;
+revoke all on private.profile_view_totals, private.profile_daily_visitors from public, anon, authenticated;
+
+create or replace function public.profile_record_view(requested_username text, visitor uuid)
+returns bigint language plpgsql security definer set search_path = '' as $$
+declare
+  owner_id uuid;
+  today date := (now() at time zone 'UTC')::date;
+  added boolean := false;
+  total bigint;
+begin
+  if requested_username !~ '^[a-z0-9][a-z0-9_-]{2,31}$' or visitor is null then
+    raise exception using errcode = '22023', message = 'Некорректный запрос просмотров.';
+  end if;
+  select user_id into owner_id from public.profile_published
+    where username = requested_username and settings->'showProfileViews' = 'true'::jsonb;
+  if owner_id is null then return null; end if;
+
+  if auth.uid() is distinct from owner_id then
+    delete from private.profile_daily_visitors where user_id = owner_id and visit_date < today;
+    insert into private.profile_daily_visitors(user_id, visit_date, visitor_id)
+      values (owner_id, today, visitor)
+      on conflict do nothing returning true into added;
+    if added then
+      insert into private.profile_view_totals(user_id, views) values (owner_id, 1)
+        on conflict (user_id) do update set views = private.profile_view_totals.views + 1;
+    end if;
+  end if;
+  select views into total from private.profile_view_totals where user_id = owner_id;
+  return coalesce(total, 0);
+end;
+$$;
+revoke all on function public.profile_record_view(text,uuid) from public;
+grant execute on function public.profile_record_view(text,uuid) to anon, authenticated;
