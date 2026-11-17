@@ -45,7 +45,7 @@ python3 -m venv /opt/iwtxz-music/venv
 ```ini
 MUSIC_PUBLIC_ORIGIN=https://api.iwtxz.su
 MUSIC_DATA_DIR=/var/lib/iwtxz-music
-SUPABASE_URL=https://aknoeytrgzkgdcttwgvb.supabase.co
+SUPABASE_URL=https://hxgboekmqvhpuotddart.supabase.co
 SUPABASE_PUBLISHABLE_KEY=публичный_publishable_key_из_backend-config.js
 MUSIC_ALLOWED_ORIGINS=https://iwtxz.su,https://www.iwtxz.su
 YTDLP_BIN=/opt/iwtxz-music/venv/bin/yt-dlp

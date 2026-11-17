@@ -4,7 +4,7 @@
 
 ## 1. SQL
 
-В [SQL Editor проекта](https://supabase.com/dashboard/project/aknoeytrgzkgdcttwgvb/sql/new) выполни весь файл `migrations/20261108_account_email_and_oauth.sql`. Ожидаемый результат — `Success. No rows returned`. Повторное выполнение допустимо.
+В [SQL Editor проекта](https://supabase.com/dashboard/project/hxgboekmqvhpuotddart/sql/new) выполни весь файл `migrations/20261108_account_email_and_oauth.sql`. Ожидаемый результат — `Success. No rows returned`. Повторное выполнение допустимо.
 
 ## 2. Функция для входа по логину после привязки почты
 
@@ -12,17 +12,17 @@
 
 Вариант через панель:
 
-1. Открой [Edge Functions](https://supabase.com/dashboard/project/aknoeytrgzkgdcttwgvb/functions), создай функцию `account-login` через редактор.
+1. Открой [Edge Functions](https://supabase.com/dashboard/project/hxgboekmqvhpuotddart/functions), создай функцию `account-login` через редактор.
 2. Скопируй `functions/account-login/index.ts` в файл `index.ts` редактора, а `functions/account-login/handler.mjs` — во второй файл `handler.mjs` рядом с ним.
 3. Опубликуй функцию. В её настройках отключи **Verify JWT / Enforce JWT verification**: это точка входа для пользователя, у которого ещё нет сессии. Сам пароль всегда проверяет Supabase Auth.
 4. Стандартные серверные переменные `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` Supabase предоставляет функции автоматически. В сайт их переносить не нужно.
-5. Открой `https://aknoeytrgzkgdcttwgvb.supabase.co/functions/v1/account-login`. После SQL и публикации ответ должен быть `{"ready":true}`. До этого сайт не разрешит менять почту, чтобы сохранить вход по логину.
+5. Открой `https://hxgboekmqvhpuotddart.supabase.co/functions/v1/account-login`. После SQL и публикации ответ должен быть `{"ready":true}`. До этого сайт не разрешит менять почту, чтобы сохранить вход по логину.
 
 Вариант через Supabase CLI из корня репозитория:
 
 ```powershell
 npx supabase login
-npx supabase functions deploy account-login --project-ref aknoeytrgzkgdcttwgvb --no-verify-jwt
+npx supabase functions deploy account-login --project-ref hxgboekmqvhpuotddart --no-verify-jwt
 ```
 
 ## 3. Адреса возврата
@@ -57,7 +57,7 @@ npx supabase functions deploy account-login --project-ref aknoeytrgzkgdcttwgvb -
 В [Google Cloud Console](https://console.cloud.google.com/auth/clients) создай OAuth-клиент типа **Web application**:
 
 - JavaScript origin: `https://iwtxz.su`
-- Authorized redirect URI: `https://aknoeytrgzkgdcttwgvb.supabase.co/auth/v1/callback`
+- Authorized redirect URI: `https://hxgboekmqvhpuotddart.supabase.co/auth/v1/callback`
 
 Настрой экран согласия. Для посетителей вне списка тестировщиков приложение должно быть опубликовано для нужной аудитории. Скопируй **Client ID** и **Client secret** в **Supabase → Authentication → Sign In / Providers → Google** и включи провайдер. Ранее добавленный YouTube API key для этого не подходит.
 
@@ -67,7 +67,7 @@ npx supabase functions deploy account-login --project-ref aknoeytrgzkgdcttwgvb -
 
 В [Discord Developer Portal](https://discord.com/developers/applications) открой или создай приложение → **OAuth2**:
 
-- В Redirects добавь `https://aknoeytrgzkgdcttwgvb.supabase.co/auth/v1/callback`.
+- В Redirects добавь `https://hxgboekmqvhpuotddart.supabase.co/auth/v1/callback`.
 - Client ID и Client Secret скопируй в **Supabase → Authentication → Sign In / Providers → Discord** и включи провайдер. Bot Token для входа не используется.
 
 В **Supabase → Authentication → Sign In / Providers / Settings** включи **Allow manual linking / Manual linking**. Это нужно, чтобы действующий пользователь мог привязать Google или Discord к своей существующей странице.
