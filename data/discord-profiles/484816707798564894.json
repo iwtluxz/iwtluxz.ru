@@ -23,8 +23,12 @@
     "skuId": "1252404760448077864"
   },
   "statusText": "ww basedgod life",
-  "status": "offline",
-  "activity": null,
-  "managedBy": "iwtxz-public-discord-sync",
-  "updatedAt": 1794905335433
+  "status": "idle",
+  "activity": {
+    "type": 2,
+    "name": "Dotify",
+    "details": "фортуна⋆812 — sky + юпи  (www.lightaudio.ru).mp3",
+    "state": "sorvanec"
+  },
+  "updatedAt": 1794931088194
 }
