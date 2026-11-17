@@ -35,6 +35,7 @@
 :is(.discord-presence,.discord-card-dot):is([data-presence="dnd"],[data-status="dnd"]:not([data-presence]),[data-presence="offline"],[data-status="offline"]:not([data-presence]))::after { content:"";position:absolute;background:#111; }
 :is(.discord-presence,.discord-card-dot):is([data-presence="dnd"],[data-status="dnd"]:not([data-presence]))::after { left:24%;right:24%;top:43%;height:14%;border-radius:2px; }
 :is(.discord-presence,.discord-card-dot):is([data-presence="offline"],[data-status="offline"]:not([data-presence]))::after { inset:32%;border-radius:50%; }
+.track-card-cover { object-fit: cover; }
 .iwtxz-player-compact.track-card { width: min(600px, calc(100vw - 32px)); gap: 11px; padding: 13px 15px; border: 1px solid #ffffff16; border-radius: 15px; background: #09090caa; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
 .iwtxz-player-compact.track-card .track-card-cover-wrap, .iwtxz-player-compact.track-card .track-card-cover { width: 44px; height: 44px; }
 .iwtxz-player-compact.track-card { grid-template-columns: 44px minmax(0, 1fr); }
