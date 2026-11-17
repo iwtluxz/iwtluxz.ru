@@ -178,7 +178,44 @@
     window.addEventListener("pagehide", () => clearInterval(timer), { once: true });
   }
 
-  window.IwtxzProfileFeatures = Object.freeze({ animations, descriptionAnimations, socials, decorations, applyNameAnimation, applyGradientFlow, applyDescriptionAnimation, applyAvatarDecoration, decorationUrl, renderSocials, socialUrl });
+  let viewsNode, viewsOwner;
+  function showProfileViews(site, { preview = false } = {}) {
+    const description = document.querySelector(".profile-description, main.panel .tagline");
+    if (!description) return;
+    if (!viewsNode) {
+      viewsNode = document.createElement("div");
+      viewsNode.className = "iwtxz-profile-views";
+      viewsNode.setAttribute("role", "status");
+      description.after(viewsNode);
+    }
+    viewsNode.hidden = site.showProfileViews !== true;
+    if (viewsNode.hidden) { viewsOwner = null; return; }
+    if (preview) { viewsNode.textContent = "Просмотры · —"; return; }
+    const owner = site.owner;
+    if (owner === viewsOwner) return;
+    viewsOwner = owner;
+    viewsNode.textContent = "Просмотры · …";
+    Promise.resolve().then(() => {
+      const key = `iwtxz-profile-visitor:${owner}`;
+      let visitor = window.localStorage.getItem(key);
+      if (!visitor || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(visitor)) {
+        visitor = window.crypto.randomUUID();
+        window.localStorage.setItem(key, visitor);
+      }
+      if (!window.IwtxzBackend?.isConfigured()) throw new Error("Сервер просмотров не подключён.");
+      return window.IwtxzBackend.recordProfileView(owner, visitor);
+    }).then(count => {
+      if (viewsOwner !== owner || viewsNode.hidden) return;
+      if (count === null) { viewsNode.hidden = true; return; }
+      viewsNode.textContent = `Просмотры · ${count.toLocaleString("ru-RU")}`;
+    }).catch(error => {
+      if (viewsOwner !== owner || viewsNode.hidden) return;
+      console.warn("Не удалось загрузить просмотры профиля:", error);
+      viewsNode.textContent = "Просмотры недоступны";
+    });
+  }
+
+  window.IwtxzProfileFeatures = Object.freeze({ animations, descriptionAnimations, socials, decorations, applyNameAnimation, applyGradientFlow, applyDescriptionAnimation, applyAvatarDecoration, decorationUrl, renderSocials, socialUrl, showProfileViews });
   if (typeof document !== "undefined") {
     const ready = () => {
       for (const container of document.querySelectorAll?.(".socials, .profile-socials") || []) {

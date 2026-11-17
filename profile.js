@@ -274,6 +274,7 @@
     setLink("steamLink", site.steam);
     window.IwtxzProfileFeatures?.renderSocials(document.querySelector(".profile-socials"), site);
     customization?.apply(site);
+    window.IwtxzProfileFeatures?.showProfileViews(site, { preview: isPreview });
     fitProfileName();
     byId("musicTitle").textContent = site.musicTitle;
     const cover = assetUrl(site.musicCover, "musicCover");

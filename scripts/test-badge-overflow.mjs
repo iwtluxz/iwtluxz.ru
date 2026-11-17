@@ -51,6 +51,21 @@ test('six badges stay visible and overflow counts include every additional enabl
   }finally{f.api.dispose();}
 });
 
+test('a configured limit from one to six controls visible badges and the remaining count',()=>{
+  const f=fixture();
+  try{
+    for (const limit of [1,2,3,4,5,6]) {
+      const strip=f.render(9,{limit});
+      assert.equal(strip.children.length,limit+1);
+      assert.equal(strip.children[limit].textContent,`+${9-limit}`);
+      strip.children[limit].fire('click');
+      assert.equal(f.popup().querySelectorAll('.iwtxz-badge-popover-choice').length,9);
+    }
+    assert.equal(f.render(5,{limit:5}).querySelector('.iwtxz-badge-overflow-count'),null);
+    assert.equal(f.render(9,{limit:0}).children[6].textContent,'+3');
+  }finally{f.api.dispose();}
+});
+
 test('hover exposes the full badge collection in a bounded body portal without duplicated graphic IDs',()=>{
   const f=fixture({width:320,height:500});
   try{

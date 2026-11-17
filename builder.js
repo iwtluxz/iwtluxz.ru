@@ -3,8 +3,8 @@
   const $ = (selector) => document.querySelector(selector);
   const all = (selector) => [...document.querySelectorAll(selector)];
   // A cached HTML page can request a newer script after a deployment.
-  const uiVersion = "20261116-gradient-flow-1";
-  if (["editorModeSimple", "editorModeAdvanced", "editorModeHint", "effectIntensity", "backgroundEffect", "avatarFit", "ownMusicFiles", "discordDecorationHint", "profileScale", "nicknameSize", "discordShowCopyHint", "descriptionSize", "cursorSize", "typewriterText", "layoutEdit", "descriptionAnimation", "previewViewport", "previewStage", "previewCanvas", "previewZoom", "nicknameGradientFlow"].some(id => !$("#"+id)) || (document.head && typeof window.IwtxzDiscordBadgePicker?.readSelected!=='function') || document.querySelector('script[src*="halloween.js"]')) {
+  const uiVersion = "20261117-profile-views-1";
+  if (["editorModeSimple", "editorModeAdvanced", "editorModeHint", "effectIntensity", "backgroundEffect", "avatarFit", "ownMusicFiles", "discordDecorationHint", "profileScale", "nicknameSize", "discordShowCopyHint", "descriptionSize", "cursorSize", "typewriterText", "layoutEdit", "descriptionAnimation", "previewViewport", "previewStage", "previewCanvas", "previewZoom", "nicknameGradientFlow", "descriptionColor", "descriptionColorEnabled", "showProfileViews", "discordBadgeLimit"].some(id => !$("#"+id)) || (document.head && typeof window.IwtxzDiscordBadgePicker?.readSelected!=='function') || document.querySelector('script[src*="halloween.js"]')) {
     const fresh = new URL(location.href);
     if (fresh.searchParams.get("_ui") !== uiVersion) { fresh.searchParams.set("_ui",uiVersion);location.replace(fresh.href); }
     else if ($("#authStatus")) $("#authStatus").textContent="Не удалось обновить интерфейс. Обнови страницу с очисткой кеша.";
@@ -13,9 +13,9 @@
   const features = window.IwtxzProfileFeatures;
   const socialFields = features?.socials.map(item => item.id) || ["discord", "telegram", "steam"];
   const textFields = ["title", "nickname", "description", "entryText", "musicTitle", ...socialFields, "discordUserId", "typewriterText"];
-  const numberFields = ["avatarSize", "backgroundDim", "nicknameGradientAngle", "discordCardOpacity", "discordCardRadius", "effectIntensity", "profileScale", "nicknameSize", "descriptionSize", "cursorSize", "cursorOpacity", "typewriterSpeed"];
+  const numberFields = ["avatarSize", "backgroundDim", "nicknameGradientAngle", "discordCardOpacity", "discordCardRadius", "effectIntensity", "profileScale", "nicknameSize", "descriptionSize", "cursorSize", "cursorOpacity", "typewriterSpeed", "discordBadgeLimit"];
   const optionFields = ["font", "accentColor", "backgroundType", "nicknameGradientStart", "nicknameGradientEnd", "musicPlayerStyle", "discordCardStyle", "discordCardColor", "nicknameAnimation", "avatarDecoration", "backgroundEffect", "cursorStyle", "avatarFit", "cursorColor", "cursorHotspot", "descriptionAnimation"];
-  const boolFields = ["musicLoop", "showDiscord", "nicknameGradient", "discordSync", "discordUseAvatar", "discordShowStatus", "discordShowBadges", "discordShowActivity", "profileTilt", "discordShowCopyHint", "typewriterEnabled"];
+  const boolFields = ["musicLoop", "showDiscord", "nicknameGradient", "discordSync", "discordUseAvatar", "discordShowStatus", "discordShowBadges", "discordShowActivity", "profileTilt", "discordShowCopyHint", "typewriterEnabled", "showProfileViews"];
   const assetFields = ["avatar", "background", "music", "musicCover", "customFont", "favicon", "customCursor"];
   const decorativeBadges = new Set(["star", "heart", "moon", "sparkle", "code", "music", "flower"]);
   const defaults = {
@@ -31,7 +31,7 @@
     discordCardStyle: "glass", discordCardColor: "#111111", discordCardOpacity: 65, discordCardRadius: 18,
     discordUseAvatar: true, discordShowStatus: true, discordShowBadges: true, discordShowActivity: true,
     nicknameAnimation: "none", avatarDecoration: "none", avatarFit:"cover", backgroundEffect:"none",effectIntensity:50,profileTilt:false,cursorStyle:"default",customCursor:"",favicon:"",profileScale:100,nicknameSize:32,discordShowCopyHint:true,
-    descriptionSize:16,cursorSize:24,cursorOpacity:100,cursorColor:'#ffffff',cursorHotspot:'center',typewriterEnabled:false,typewriterText:'',typewriterSpeed:70,seasonalTheme:'none',objectPositions:{},layoutVersion:1,descriptionAnimation:'none'
+    descriptionSize:16,descriptionColor:'',showProfileViews:false,discordBadgeLimit:6,cursorSize:24,cursorOpacity:100,cursorColor:'#ffffff',cursorHotspot:'center',typewriterEnabled:false,typewriterText:'',typewriterSpeed:70,seasonalTheme:'none',objectPositions:{},layoutVersion:1,descriptionAnimation:'none'
   };
   const fileHints = Object.fromEntries(all("[data-file-note]").map((e) => [e.dataset.fileNote, e.textContent]));
   const previewFrame = $("#previewFrame");
@@ -341,13 +341,14 @@
     numberFields.forEach((key) => { site[key] = Number($("#" + key).value); });
     optionFields.forEach((key) => { site[key] = $("#" + key).value; });
     boolFields.forEach((key) => { site[key] = $("#" + key).checked; });
+    site.descriptionColor = $("#descriptionColorEnabled").checked ? $("#descriptionColor").value : "";
     site.profileBadges = all("[data-profile-badge]:checked").map((input) => input.dataset.profileBadge).filter((badge) => decorativeBadges.has(badge));
     site.discordBadges = window.IwtxzDiscordBadgePicker?.readSelected?.() || currentSite.discordBadges || [];
     return site;
   }
 
   function snapshot(site) {
-    return JSON.stringify(Object.fromEntries([...textFields, ...numberFields, ...optionFields, ...boolFields, ...assetFields, "profileBadges", "discordBadges", "discordHiddenBadges", "objectPositions", "layoutVersion"].map((key) => [key, key==='objectPositions'?normalizePositions(site[key]):site[key]])));
+    return JSON.stringify(Object.fromEntries([...textFields, ...numberFields, ...optionFields, ...boolFields, ...assetFields, "descriptionColor", "profileBadges", "discordBadges", "discordHiddenBadges", "objectPositions", "layoutVersion"].map((key) => [key, key==='objectPositions'?normalizePositions(site[key]):site[key]])));
   }
 
   function writeEditor(site) {
@@ -358,6 +359,8 @@
     savedServiceMusic=musicServiceLink(site.music);
     textFields.concat(numberFields, optionFields).forEach((key) => { $("#" + key).value = currentSite[key] ?? ""; });
     boolFields.forEach((key) => { $("#" + key).checked = Boolean(currentSite[key]); });
+    $("#descriptionColorEnabled").checked = Boolean(currentSite.descriptionColor);
+    $("#descriptionColor").value = currentSite.descriptionColor || "#f5f5f7";
     const badges = new Set(Array.isArray(currentSite.profileBadges) ? currentSite.profileBadges : []);
     all("[data-profile-badge]").forEach((input) => { input.checked = badges.has(input.dataset.profileBadge); });
     all("[data-asset-url]").forEach((field) => { field.value = /^https:\/\//i.test(currentSite[field.dataset.assetUrl] || "") ? currentSite[field.dataset.assetUrl] : ""; });
@@ -646,7 +649,7 @@
     const data = await api("/api/builder/sites/save", { method: "POST", body: JSON.stringify({ site }) });
     const labels={avatarDecoration:"украшение аватара",nicknameAnimation:"анимацию ника",backgroundEffect:"эффект фона",profileTilt:"наклон карточки",cursorStyle:"курсор",customCursor:"свой курсор",favicon:"иконку вкладки",music:"трек",musicCover:"обложку",nicknameSize:"размер ника",profileScale:"масштаб",discordShowCopyHint:"подсказку копирования"};
     Object.assign(labels,{descriptionSize:'размер описания',cursorSize:'размер курсора',cursorOpacity:'непрозрачность курсора',cursorColor:'цвет курсора',cursorHotspot:'точку нажатия',typewriterEnabled:'печатную строку',typewriterText:'текст печатной строки',typewriterSpeed:'скорость печати'});
-    Object.assign(labels,{descriptionAnimation:'анимацию описания'});if(Object.keys(site.objectPositions).length)labels.layoutVersion='координаты блоков';
+    Object.assign(labels,{descriptionAnimation:'анимацию описания',descriptionColor:'цвет описания',showProfileViews:'просмотры профиля',discordBadgeLimit:'количество значков'});if(Object.keys(site.objectPositions).length)labels.layoutVersion='координаты блоков';
     const lost=Object.keys(labels).filter(key=>Object.hasOwn(data.site||{},key)||site[key]!==defaults[key]).filter(key=>data.site?.[key]!==site[key]);
     if(JSON.stringify(data.site?.discordBadges||[])!==JSON.stringify(site.discordBadges||[]))lost.push('discordBadges');
     labels.discordBadges='значки Discord';

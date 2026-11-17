@@ -853,6 +853,10 @@
       const hasFeatures = (site.nicknameAnimation && site.nicknameAnimation !== "none") || (site.avatarDecoration && site.avatarDecoration !== "none") || newSocials.some(key => Boolean(site[key]));
       let settingsCapabilities;
       const loadCapabilities=()=>settingsCapabilities ||= Promise.resolve(getClient().rpc('builder_capabilities'));
+      if (site.descriptionColor || site.showProfileViews || (site.discordBadgeLimit !== undefined && site.discordBadgeLimit !== 6)) {
+        const capabilities = await loadCapabilities();
+        if (capabilities.error || capabilities.data?.profileViewSettings !== true) throw error(503, 'Для этих настроек нужно обновить базу. Выбор остался в редакторе.', 'backend_features_update_required');
+      }
       if (Array.isArray(site.discordHiddenBadges) && site.discordHiddenBadges.length) {
         const capabilities=await loadCapabilities();
         if(capabilities.error||capabilities.data?.discordBadgeVisibility!==true)throw error(503,'Для сохранения переключателей значков Discord выполни обновление базы 20261108_discord_badge_visibility.sql. Настройки остались в редакторе.','backend_features_update_required');
@@ -909,5 +913,13 @@
     return boundedOperation(getPublicClient(), () => readPublishedProfile(username));
   }
 
-  window.IwtxzBackend = Object.freeze({ isConfigured, request, getPublishedProfile });
+  async function recordProfileView(username, visitor) {
+    const result = await getClient().rpc("profile_record_view", { requested_username: username, visitor });
+    if (result.error) throw error(503, "Не удалось загрузить просмотры профиля.", "profile_views_unavailable");
+    if (result.data === null) return null;
+    if (!Number.isSafeInteger(result.data) || result.data < 0) throw error(503, "Сервер вернул некорректное число просмотров.", "profile_views_unavailable");
+    return result.data;
+  }
+
+  window.IwtxzBackend = Object.freeze({ isConfigured, request, getPublishedProfile, recordProfileView });
 })();

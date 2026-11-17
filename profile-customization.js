@@ -307,9 +307,10 @@
             const strip = document.createElement("span");
             strip.className = "discord-badge-strip";
             if (window.IwtxzBadgeOverflow) {
-              window.IwtxzBadgeOverflow.render(strip, badgeNodes, { owner: nodes.discordBadges });
+              window.IwtxzBadgeOverflow.render(strip, badgeNodes, { owner: nodes.discordBadges, limit: settings.discordBadgeLimit });
             } else {
-              strip.append(...badgeNodes.slice(0, 6));
+              const limit = Number.isInteger(settings.discordBadgeLimit) && settings.discordBadgeLimit >= 1 && settings.discordBadgeLimit <= 6 ? settings.discordBadgeLimit : 6;
+              strip.append(...badgeNodes.slice(0, limit));
             }
             content.push(strip);
           } else {
@@ -391,7 +392,13 @@
       scene?.apply(site);
       profileLayout?.apply(site);
       font(site);
-      document.querySelectorAll?.('.profile-description,main.panel .tagline-text').forEach(element=>window.IwtxzProfileFeatures?.applyDescriptionAnimation(element,site.descriptionAnimation));
+      document.querySelectorAll?.('.profile-description,main.panel .tagline-text').forEach(element=>{
+        const descriptionColor = /^#[0-9a-f]{6}$/i.test(site.descriptionColor || '') ? site.descriptionColor : '';
+        element.style.color = descriptionColor;
+        if (descriptionColor) element.style.setProperty('--description-color', descriptionColor);
+        else element.style.removeProperty('--description-color');
+        window.IwtxzProfileFeatures?.applyDescriptionAnimation(element,site.descriptionAnimation);
+      });
       if (nodes.name) {
         nodes.name.style.setProperty('--nickname-size',`${clamp(site.nicknameSize,18,52,32)}px`);
         if(nodes.name.classList.contains('name-text')&&Number.isFinite(site.nicknameSize))nodes.name.style.fontSize=`${clamp(site.nicknameSize,18,52,32)}px`;

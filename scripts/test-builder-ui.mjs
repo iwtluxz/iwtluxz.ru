@@ -111,6 +111,31 @@ test("gradient flow uses the existing shimmer effect and preserves static gradie
   }finally{ui.close();}
 });
 
+test("description color, profile views and badge limit are saved and restored", async () => {
+  let submitted;
+  const ui=loadBuilder(async(path,options)=>{
+    if(path.endsWith('/list'))return {sites:[{...site,descriptionColor:'#123456',showProfileViews:true,discordBadgeLimit:3}]};
+    if(path.endsWith('/save')){submitted=JSON.parse(options.body).site;return {site:submitted};}
+    return response(path);
+  });
+  try{
+    await ui.submit();
+    assert.equal(ui.elements.get('descriptionColorEnabled').checked,true);
+    assert.equal(ui.elements.get('descriptionColor').value,'#123456');
+    assert.equal(ui.elements.get('showProfileViews').checked,true);
+    assert.equal(Number(ui.elements.get('discordBadgeLimit').value),3);
+    ui.elements.get('descriptionColor').value='#abcdef';
+    ui.elements.get('discordBadgeLimit').value='5';
+    await ui.elements.get('saveButton').fire('click');
+    assert.equal(submitted.descriptionColor,'#abcdef');
+    assert.equal(submitted.showProfileViews,true);
+    assert.equal(submitted.discordBadgeLimit,5);
+    ui.elements.get('descriptionColorEnabled').checked=false;
+    await ui.elements.get('saveButton').fire('click');
+    assert.equal(submitted.descriptionColor,'');
+  }finally{ui.close();}
+});
+
 test("large uploaded pictures are compressed before the backend request", async () => {
   const file={name:"picture.png",size:5*1024*1024,type:"image/png"};
   const compressed={name:"picture.webp",size:500000,type:"image/webp"};
@@ -136,15 +161,15 @@ test("login and generic profile templates do not preload the 4 MB default avatar
 });
 
 test("cached markup missing new controls is refreshed before starting authentication",()=>{
-  for (const id of ["profileScale", "editorModeAdvanced", "nicknameGradientFlow"]) {
+  for (const id of ["profileScale", "editorModeAdvanced", "nicknameGradientFlow", "descriptionColor", "showProfileViews", "discordBadgeLimit"]) {
     let calls=0;const ui=loadBuilder(()=>{calls++;return Promise.resolve({});},'', [id]);
-    try{assert.equal(calls,0);assert.equal(ui.navigations.length,1);assert.equal(new URL(ui.navigations[0]).searchParams.get('_ui'),'20261116-gradient-flow-1');}finally{ui.close();}
+    try{assert.equal(calls,0);assert.equal(ui.navigations.length,1);assert.equal(new URL(ui.navigations[0]).searchParams.get('_ui'),'20261117-profile-views-1');}finally{ui.close();}
   }
 });
 
 test('a cached restricted badge picker refreshes before authentication instead of breaking free selection',()=>{
   let calls=0;const ui=loadBuilder(()=>{calls++;return Promise.resolve({});},'',[],true);
-  try{assert.equal(calls,0);assert.equal(ui.navigations.length,1);assert.equal(new URL(ui.navigations[0]).searchParams.get('_ui'),'20261116-gradient-flow-1');}finally{ui.close();}
+  try{assert.equal(calls,0);assert.equal(ui.navigations.length,1);assert.equal(new URL(ui.navigations[0]).searchParams.get('_ui'),'20261117-profile-views-1');}finally{ui.close();}
 });
 
 test("editor modes preserve hidden settings and remember the selected mode", async () => {

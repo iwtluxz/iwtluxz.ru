@@ -176,10 +176,11 @@
   function render(strip, badgeNodes, options = {}) {
     if (!strip?.replaceChildren) return;
     const nodes = Array.from(badgeNodes || []).filter(node => node && typeof node === 'object');
+    const visibleLimit = Number.isInteger(options.limit) && options.limit >= 1 && options.limit <= limit ? options.limit : limit;
     const owner = options.owner || strip;
     strip.classList.add('iwtxz-badge-overflow');
-    strip.replaceChildren(...nodes.slice(0, limit));
-    if (nodes.length <= limit) { dispose(owner); return; }
+    strip.replaceChildren(...nodes.slice(0, visibleLimit));
+    if (nodes.length <= visibleLimit) { dispose(owner); return; }
     let state = owners.get(owner);
     const signature = nodes.map(keyFor).join('\u0002');
     const changed = state && state.signature !== signature;
@@ -190,10 +191,10 @@
     Object.assign(state, { strip, nodes, signature });
     // Discord cards are themselves copy buttons in both renderers. A focusable
     // role button avoids invalid nested native buttons and owns its key events.
-    const counter = make('span', 'iwtxz-badge-overflow-count', `+${nodes.length - limit}`);
+    const counter = make('span', 'iwtxz-badge-overflow-count', `+${nodes.length - visibleLimit}`);
     counter.setAttribute('role', 'button'); counter.tabIndex = 0; counter.setAttribute('aria-haspopup', 'dialog');
     counter.setAttribute('aria-expanded', String(state.open));
-    counter.setAttribute('aria-label', `Ещё ${nodes.length - limit} значков. Показать все ${nodes.length}`);
+    counter.setAttribute('aria-label', `Ещё ${nodes.length - visibleLimit} значков. Показать все ${nodes.length}`);
     if (state.popup) counter.setAttribute('aria-controls', state.popup.id);
     state.counter = counter;
     counter.addEventListener('pointerenter', event => { if (event.pointerType !== 'touch') open(state); });
