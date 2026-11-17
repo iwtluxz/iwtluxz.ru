@@ -17,6 +17,11 @@
   "avatarDecoration": null,
   "statusText": "i hope you know you're everything to me",
   "status": "dnd",
-  "activity": null,
-  "updatedAt": 1794931089221
+  "activity": {
+    "type": 0,
+    "name": "R.E.P.O.",
+    "details": "Lobby Menu",
+    "state": "In Menu"
+  },
+  "updatedAt": 1794933399370
 }
