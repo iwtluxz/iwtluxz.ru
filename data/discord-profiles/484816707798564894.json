@@ -24,12 +24,7 @@
   },
   "statusText": "ww basedgod life",
   "status": "idle",
-  "activity": {
-    "type": 2,
-    "name": "Dotify",
-    "details": "безработный наркоман",
-    "state": "Юпи (@jupi_sleep)"
-  },
+  "activity": null,
   "managedBy": "iwtxz-public-discord-sync",
-  "updatedAt": 1794935830490
+  "updatedAt": 1794938103116
 }
