@@ -436,8 +436,6 @@
     });
     $("#decorationLabel").textContent = currentSite.avatarDecoration === "discord" ? "Из Discord"
       : features?.decorations.find(item => item.id === currentSite.avatarDecoration)?.label || (/^discord-a_[a-f0-9]{32}$/.test(currentSite.avatarDecoration)?"Своё украшение Discord":"Без украшения");
-    const animationLabel = features?.animations.find(item => item.id === currentSite.nicknameAnimation)?.label || "Без анимации";
-    $("#effectsSummary").textContent = `${animationLabel} · ${$("#decorationLabel").textContent}`;
     $("#nicknameEffectDemo").textContent = currentSite.nickname || "nickname";
     features?.applyNameAnimation($("#nicknameEffectDemo"), currentSite.nicknameAnimation);
     $('#descriptionEffectDemo').textContent=currentSite.description||'Твоё описание';
@@ -832,7 +830,6 @@
     updatePreview();
     clearTimeout(previewTimer); sendPreview();
   }));
-  $("#openEffects").addEventListener("click", () => setSection("effects"));
   $("#descriptionGradientAnimated").addEventListener("input",()=>{if($("#descriptionGradientAnimated").checked)$("#descriptionGradient").checked=true;updatePreview();});
   $("#nicknameGradientFlow").addEventListener("input", () => {
     if ($("#nicknameGradientFlow").checked) {

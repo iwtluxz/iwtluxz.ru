@@ -7,7 +7,7 @@
   <meta name="description" content="Твоя страница iwtxz: аватар, музыка, фон и ссылки.">
   <link rel="icon" type="image/png" href="img/tree.png">
   <link rel="preload" href="font/minecraft.ttf" as="font" type="font/ttf" crossorigin>
-  <link rel="stylesheet" href="builder.css?v=514e18b8c8c2">
+  <link rel="stylesheet" href="builder.css?v=e04a3be6c53e">
   <title>Личный кабинет · iwtxz</title>
   <script src="profile-links.js?v=40c61c4a7df8" defer></script>
   <script src="vendor/supabase-2.102.0.min.js" defer></script>
@@ -28,7 +28,7 @@
   <script src="profile-badge-overflow.js?v=773a662ee0c8" defer></script>
   <script src="image-compression.js?v=68e15b806c42" defer></script>
   <script src="site-chrome.js?v=1635d422dd3f" defer></script>
-  <script src="builder.js?v=2fcd799d179b" defer></script>
+  <script src="builder.js?v=2e0e1382cdf8" defer></script>
   <script src="builder-discord-dialog.js?v=f038935de49e" defer></script>
   <link rel="stylesheet" href="profile-features.css?v=fe34e610671f">
   <link rel="stylesheet" href="music-services.css?v=7c729d89a2af">
@@ -65,9 +65,9 @@
     <aside class="sidebar requires-auth" aria-label="Разделы кабинета">
       <div class="panel account-summary"><img id="accountAvatar" class="account-avatar" src="img/tree.png" alt=""><div><strong id="accountName"></strong><span class="hint">Моя страница</span></div></div>
       <nav class="settings-nav" aria-label="Настройки страницы">
-        <button class="nav-button active" data-section="profile" type="button" aria-current="page" title="Ник, аватар, описание и вкладка браузера"><svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"/></svg><span class="tab-label">Профиль</span></button>
-        <button class="nav-button" data-section="effects" type="button" title="Фон, курсор, анимации и украшение аватара"><svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 3l1.9 5.1L18 10l-5.1 1.9L11 17l-1.9-5.1L4 10l5.1-1.9z"/><path d="M19 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/></svg><span class="tab-label">Эффекты</span></button>
-        <button class="nav-button" data-section="appearance" type="button" title="Размер аватарки, фон, цвет и шрифт"><svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-.9 2-1.8 0-.5-.2-.9-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1 .8-1.6 1.8-1.6H17a4 4 0 0 0 4-4C21 6.5 17 3 12 3z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7.5" r="1"/><circle cx="14.5" cy="7.5" r="1"/></svg><span class="tab-label">Оформление</span></button>
+        <button class="nav-button active" data-section="profile" type="button" aria-current="page" title="Аватар, ник, описание, просмотры и вкладка"><svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"/></svg><span class="tab-label">Профиль</span></button>
+        <button class="nav-button" data-section="effects" type="button" title="Живой фон и курсор"><svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 3l1.9 5.1L18 10l-5.1 1.9L11 17l-1.9-5.1L4 10l5.1-1.9z"/><path d="M19 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/></svg><span class="tab-label">Эффекты</span></button>
+        <button class="nav-button" data-section="appearance" type="button" title="Фон страницы, цвет и шрифт"><svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-.9 2-1.8 0-.5-.2-.9-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1 .8-1.6 1.8-1.6H17a4 4 0 0 0 4-4C21 6.5 17 3 12 3z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7.5" r="1"/><circle cx="14.5" cy="7.5" r="1"/></svg><span class="tab-label">Оформление</span></button>
         <button class="nav-button" data-section="music" type="button" title="Трек, библиотека и плеер"><svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg><span class="tab-label">Музыка</span></button>
         <button class="nav-button" data-section="links" type="button" title="Соцсети и карточка Discord"><svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1"/></svg><span class="tab-label">Соцсети</span></button>
         <button class="nav-button" data-section="security" type="button" title="Вход, почта и пароль"><svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9.5 12l2 2 3.5-4"/></svg><span class="tab-label">Аккаунт</span></button>
@@ -83,123 +83,16 @@
       <div class="published-banner hidden" id="publishedBanner"><strong>Страница опубликована</strong><a class="button primary small" id="openProfileTop" target="_blank" rel="noopener noreferrer">Открыть страницу ↗</a></div>
       <form id="editorForm" novalidate>
         <section class="settings-section" data-settings-section="profile" aria-labelledby="profileHeading">
-          <header class="section-head"><span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"/></svg></span><div><h2 id="profileHeading">Профиль</h2><p class="section-description">Как тебя видят на странице: аватарка, ник, описание и вид вкладки в браузере.</p></div></header>
-          <button class="effects-shortcut" type="button" id="openEffects"><span class="effects-shortcut-icon" aria-hidden="true">✧</span><span><strong>Анимация ника и украшение аватара</strong><small id="effectsSummary">Открыть эффекты</small></span><span aria-hidden="true">↗</span></button>
-          <div class="settings-group">
-          <div class="group-head"><h3>Основное</h3><p class="hint">Аватарка, ник и описание — первое, что видят на странице.</p></div>
+          <header class="section-head"><span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"/></svg></span><div><h2 id="profileHeading">Профиль</h2><p class="section-description">Всё о тебе в одном месте: аватарка, ник, описание, просмотры и вкладка браузера. Каждая карточка собирает все настройки своего элемента.</p></div></header>
+          <div class="effects-quick"><button class="button small" id="randomizeEffects" type="button">Случайная пара ↗</button><button type="button" class="text-button hidden" id="undoEffects">Отменить случайный выбор</button></div>
+          <div class="settings-group entity-card">
+            <div class="group-head entity-head"><h3>Аватар</h3><p class="hint">Картинка, размер, заполнение круга и украшение — всё про аватарку.</p></div>
           <div class="upload-card"><img id="avatarThumbnail" class="avatar-thumbnail" src="img/tree.png" alt="Текущая аватарка"><div class="upload-details"><label for="avatarFile">Аватарка</label><input id="avatarFile" data-upload="avatar" type="file" accept="image/png,image/jpeg,image/gif,image/webp"><span class="hint" data-file-note="avatar">Картинки сжимаются автоматически · GIF до 4 МБ</span></div><button type="button" class="text-button" data-remove="avatar">Убрать</button></div>
           <details class="url-details"><summary>Или указать ссылку на аватарку</summary><label class="field">Ссылка<input id="avatarUrl" data-asset-url="avatar" type="url" placeholder="https://…"></label></details>
-
           <div class="form-grid">
-            <label class="field wide">Ник на странице<input id="nickname" maxlength="40" placeholder="Как тебя зовут?" required></label>
-            <label class="field wide">О себе<textarea id="description" maxlength="500" rows="4" placeholder="Пара слов, цитата или просто настроение"></textarea><span class="hint" id="descriptionCount">0 / 500</span></label>
-            <label class="field wide">Текст на экране входа<input id="entryText" maxlength="80" placeholder="click to enter..."><span class="hint">Показывается посетителю до того, как он зайдёт на страницу.</span></label>
-          </div>
-          </div>
-          <div class="settings-group option-card">
-            <div class="option-card-head">
-              <div><h3>Цвет описания</h3><p class="hint">Окрашивает текст «О себе» одним цветом.</p></div>
-              <label class="switch option-switch"><input id="descriptionColorEnabled" type="checkbox" aria-label="Свой цвет описания"><span class="switch-track" aria-hidden="true"></span></label>
-            </div>
-            <div class="option-card-body">
-              <div class="option-preview description-color-preview" aria-hidden="true"><span>Пара слов о тебе</span></div>
-              <label class="color-chip"><input id="descriptionColor" type="color" value="#f5f5f7"><span class="color-chip-swatch" aria-hidden="true"></span><span class="color-chip-text"><strong>Цвет</strong><output></output></span></label>
-            </div>
-          </div>
-          <div class="settings-group option-card">
-            <div class="option-card-head">
-              <div><h3>Градиент описания</h3><p class="hint">Плавный переход между двумя цветами. Если включён, он главнее одного цвета.</p></div>
-              <label class="switch option-switch"><input id="descriptionGradient" type="checkbox" aria-label="Градиент описания"><span class="switch-track" aria-hidden="true"></span></label>
-            </div>
-            <div class="option-card-body">
-              <div class="option-preview description-gradient-preview" aria-hidden="true"><span>Пара слов о тебе</span></div>
-              <label class="color-chip"><input id="descriptionGradientStart" type="color" value="#ffffff"><span class="color-chip-swatch" aria-hidden="true"></span><span class="color-chip-text"><strong>Первый</strong><output></output></span></label>
-              <label class="color-chip"><input id="descriptionGradientEnd" type="color" value="#8b5cf6"><span class="color-chip-swatch" aria-hidden="true"></span><span class="color-chip-text"><strong>Второй</strong><output></output></span></label>
-              <label class="field">Направление, °<input id="descriptionGradientAngle" type="number" min="0" max="360" value="90"></label>
-              <label class="mini-switch"><span class="switch"><input id="descriptionGradientAnimated" type="checkbox"><span class="switch-track" aria-hidden="true"></span></span><span>Переливающийся градиент</span></label>
-              <label class="field">Период перелива, сек.<input id="descriptionGradientSpeed" type="number" min="2" max="30" value="6"></label>
-            </div>
-          </div>
-          <div class="settings-group option-card">
-            <div class="option-card-head">
-              <div><h3>Просмотры профиля</h3><p class="hint">Счётчик виден всем. Один браузер считается раз в сутки, твои просмотры при входе — нет. Переместить можно в превью кнопкой «Переместить блоки».</p></div>
-              <label class="switch option-switch"><input id="showProfileViews" type="checkbox" aria-label="Показывать просмотры профиля"><span class="switch-track" aria-hidden="true"></span></label>
-            </div>
-            <div class="option-card-body">
-              <label class="field">Вид счётчика<select id="profileViewsStyle"><option value="text">Просмотры · число</option><option value="eye">Глазик · число</option></select></label>
-              <label class="field">Размер, px<input id="profileViewsSize" type="number" min="10" max="24" value="12"></label>
-              <label class="color-chip"><input id="profileViewsColor" type="color" value="#b6b4bd"><span class="color-chip-swatch" aria-hidden="true"></span><span class="color-chip-text"><strong>Цвет</strong><output></output></span></label>
-            </div>
-          </div>
-          <div class="settings-group">
-            <div class="group-head"><h3>Размеры</h3><p class="hint">Как карточка и текст выглядят на странице.</p></div>
-            <div class="form-grid">
             <label class="field">Заполнение аватара<select id="avatarFit"><option value="cover">Заполнить круг</option><option value="contain">Показать целиком</option></select></label>
-            <label class="field" data-advanced>Масштаб карточки, %<input id="profileScale" type="number" min="70" max="120" value="100"></label>
-            <label class="field" data-advanced>Размер ника, px<input id="nicknameSize" type="number" min="18" max="52" value="32"></label>
-            <label class="field" data-advanced>Размер описания, px<input id="descriptionSize" type="number" min="10" max="32" value="16"></label>
-            </div>
+            <label class="field range-field" data-advanced>Размер аватарки<output for="avatarSize" id="avatarSizeValue">150 px</output><input id="avatarSize" type="range" min="80" max="220" step="2" value="150"></label>
           </div>
-          <div class="settings-group typewriter-settings">
-            <div class="group-head"><h3>Вкладка браузера</h3><p class="hint">Название и иконка, которые видны во вкладке с твоей страницей.</p></div>
-            <div class="form-grid"><label class="field wide">Название вкладки<input id="title" maxlength="80" placeholder="Моя страница" required></label></div>
-            <div class="upload-card"><div class="upload-details"><label for="faviconFile">Иконка вкладки</label><input id="faviconFile" data-upload="favicon" type="file" accept="image/png,image/jpeg,image/webp"><span class="hint" data-file-note="favicon">Твоя иконка сайта · PNG, JPG или WebP · до 4 МБ</span></div><button type="button" class="text-button" data-remove="favicon">Убрать</button></div>
-            <label class="checkbox-field"><input id="typewriterEnabled" type="checkbox"><span>Печатная машинка рядом с иконкой сайта</span></label>
-            <div class="dependent-fields"><label class="field">Фразы для вкладки<textarea id="typewriterText" maxlength="300" rows="3" placeholder="Каждая новая строка — отдельная фраза"></textarea></label><label class="field range-field" data-advanced>Задержка между буквами, мс<input id="typewriterSpeed" type="range" min="20" max="200" value="70"><span class="hint">Меньше — быстрее. Пустое поле использует название вкладки.</span></label></div>
-          </div>
-          <div class="settings-group gradient-settings">
-            <div class="group-head"><h3>Градиент ника</h3><p class="hint">Плавный переход между двумя цветами в твоём нике.</p></div>
-            <label class="checkbox-field"><input id="nicknameGradient" type="checkbox"><span>Окрасить ник градиентом</span></label>
-            <div class="dependent-fields">
-            <div class="gradient-preview" aria-hidden="true"><span id="nicknameGradientSample">nickname</span></div>
-            <div class="form-grid"><label class="field">Первый цвет<input id="nicknameGradientStart" type="color" value="#ffffff"></label><label class="field">Второй цвет<input id="nicknameGradientEnd" type="color" value="#a1a1aa"></label></div>
-            <label class="checkbox-field"><input id="nicknameGradientFlow" type="checkbox"><span>Переливающийся градиент</span></label>
-            <p class="hint">Использует анимацию ника «Перелив» вместо другой выбранной анимации.</p>
-            <label class="field range-field" data-advanced>Направление<output for="nicknameGradientAngle" id="nicknameGradientAngleValue">90°</output><input id="nicknameGradientAngle" type="range" min="0" max="360" value="90"></label>
-            </div>
-          </div>
-        </section>
-        <section class="settings-section hidden" data-settings-section="effects" aria-labelledby="effectsHeading">
-          <div class="effects-heading section-head"><span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M11 3l1.9 5.1L18 10l-5.1 1.9L11 17l-1.9-5.1L4 10l5.1-1.9z"/><path d="M19 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/></svg></span><div><h2 id="effectsHeading">Эффекты</h2><p class="section-description">Добавь движения своей странице: фон, курсор и анимации текста.</p></div><button class="button small" id="randomizeEffects" type="button">Случайная пара ↗</button></div>
-          <div class="settings-group scene-fields"><div class="group-head"><h3>Живой фон</h3><p class="hint">Анимированные частицы поверх фона страницы.</p></div><div class="form-grid"><label class="field">Эффект<select id="backgroundEffect"><option value="none">Без эффекта</option><option value="snow">Снег</option><option value="rain">Дождь</option><option value="matrix">Матрица</option><option value="glitch">Глитч</option><option value="parallax">Параллакс</option></select></label><label class="field range-field" data-advanced>Насыщенность<input id="effectIntensity" type="range" min="10" max="100" value="50" aria-label="Насыщенность эффекта"></label></div><label class="checkbox-field"><input id="profileTilt" type="checkbox"><span>3D-наклон карточки за курсором</span></label></div>
-          <div class="settings-group"><div class="group-head"><h3>Курсор</h3><p class="hint">Свой курсор виден при управлении мышью. Цвет применяется к точке, кольцу и прицелу.</p></div><label class="field">Стиль курсора<select id="cursorStyle"><option value="default">Системный</option><option value="dot">Светящаяся точка</option><option value="ring">Кольцо</option><option value="crosshair">Прицел</option></select></label><div class="upload-card"><div class="upload-details"><label for="customCursorFile">Своя картинка курсора</label><input id="customCursorFile" data-upload="customCursor" type="file" accept="image/png,image/webp"><span class="hint" data-file-note="customCursor">PNG или WebP, желательно квадратный · до 4 МБ</span></div><button class="text-button" type="button" data-remove="customCursor">Убрать</button></div><div class="form-grid"><label class="field">Размер, px<input id="cursorSize" type="number" min="12" max="96" value="24"></label><label class="field">Непрозрачность, %<input id="cursorOpacity" type="number" min="20" max="100" value="100"></label><label class="field">Цвет<input id="cursorColor" type="color" value="#ffffff"></label><label class="field">Точка нажатия<select id="cursorHotspot"><option value="center">Центр картинки</option><option value="top-left">Верхний левый угол</option></select></label></div></div>
-          <div class="settings-group"><div class="group-head"><h3>Анимация ника</h3><p class="hint">Так ник будет двигаться на странице. Пример — в рамке ниже.</p></div>
-          <div class="effect-demo" aria-hidden="true"><span id="nicknameEffectDemo">nickname</span></div>
-            <label class="field wide">Анимация ника<select id="nicknameAnimation">
-            <!-- nickname-animations:start -->
-<option value="none">Без анимации</option>
-<option value="glow">Мягкое свечение</option>
-<option value="pulse">Пульс</option>
-<option value="float">Парение</option>
-<option value="shimmer">Перелив</option>
-<option value="glitch">Глитч</option>
-<option value="typewriter">Печатная машинка</option>
-<option value="blur">Фокус</option>
-<option value="flicker">Мерцание</option>
-<option value="bounce">Пружина</option>
-<option value="wave">Волна</option>
-<option value="neon">Неон</option>
-<option value="rainbow">Радужный поток</option>
-<option value="outline">Живой контур</option>
-<option value="scanline">Сканирование</option>
-<option value="spotlight">Вспышка света</option>
-<option value="echo">Эхо</option>
-<option value="orbit">Орбита</option>
-<option value="heartbeat">Сердцебиение</option>
-          <!-- nickname-animations:end -->
-            </select></label></div>
-          <div class="settings-group"><div class="group-head"><h3>Анимация описания</h3><p class="hint">Движение текста «О себе».</p></div>
-          <div class="effect-demo description-effect-demo"><span id="descriptionEffectDemo">Твоё описание</span></div><label class="field">Анимация описания<select id="descriptionAnimation"><!-- description-animations:start -->
-<option value="none">Без анимации</option>
-<option value="glow">Мягкое свечение</option>
-<option value="pulse">Дыхание</option>
-<option value="float">Парение</option>
-<option value="shimmer">Перелив света</option>
-<option value="reveal">Проявление</option>
-<option value="flicker">Мерцание</option>
-<option value="wave">Покачивание</option>
-<option value="gradient">Цветной перелив</option>
-          <!-- description-animations:end --></select></label></div>
           <div class="decoration-settings settings-group"><div class="decoration-heading group-head"><h3>Украшение аватара</h3><span id="decorationLabel">Без украшения</span></div><input id="avatarDecoration" type="hidden" value="none"><div class="decoration-picker" id="decorationPicker" aria-label="Украшения аватара">
           <!-- decoration-picker:start -->
 <button type="button" class="decoration-option selected" data-decoration="none" aria-pressed="true"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><span class="decoration-mode">—</span></span><span>Без украшения</span></button>
@@ -911,21 +804,14 @@
 <button type="button" class="decoration-option" data-decoration="discord-a_85a8f9ca60cb4328378270a7f13ed7fd" aria-pressed="false"><span class="decoration-preview"><img class="decoration-user-avatar" data-decoration-avatar src="img/tree.png" alt=""><img class="decoration-art" src="ttps://cdn.discordapp.com/avatar-decoration-presets/a_85a8f9ca60cb4328378270a7f13ed7fd.png?size=240&passthrough=true" alt="" loading="lazy" decoding="async"></span><span>Snowglobe</span></button>
           <!-- decoration-picker:end -->
           </div><p class="hint">Оригинальные украшения Discord. «Из Discord» использует синхронизацию аккаунта.</p></div>
-          <p class="decoration-discord-hint" id="discordDecorationHint"></p><button type="button" class="text-button hidden" id="undoEffects">Отменить случайный выбор</button>
-        </section>
-        <section class="settings-section hidden" data-settings-section="appearance" aria-labelledby="appearanceHeading">
-          <header class="section-head"><span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-.9 2-1.8 0-.5-.2-.9-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1 .8-1.6 1.8-1.6H17a4 4 0 0 0 4-4C21 6.5 17 3 12 3z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7.5" r="1"/><circle cx="14.5" cy="7.5" r="1"/></svg></span><div><h2 id="appearanceHeading">Оформление</h2><p class="section-description">Общий вид страницы: размер аватарки, фон, цвета и шрифт.</p></div></header>
-          <div class="settings-group" data-advanced><div class="group-head"><h3>Аватарка</h3><p class="hint">Размер круга с аватаркой на странице.</p></div>
-          <label class="field range-field">Размер аватарки<output for="avatarSize" id="avatarSizeValue">150 px</output><input id="avatarSize" type="range" min="80" max="220" step="2" value="150"></label></div>
-          <div class="settings-group"><div class="group-head"><h3>Фон</h3><p class="hint">Картинка, GIF или видео за карточкой профиля.</p></div>
-          <div class="upload-card"><div class="upload-details"><label for="backgroundFile">Фон страницы</label><input id="backgroundFile" data-upload="background" type="file" accept="image/png,image/jpeg,image/gif,image/webp,video/mp4,video/webm"><span class="hint" data-file-note="background">Картинки сжимаются автоматически · GIF и видео до 4 МБ</span></div><button type="button" class="text-button" data-remove="background">Убрать</button></div>
-          <details class="url-details"><summary>Или указать ссылку на фон</summary><label class="field">Ссылка<input id="backgroundUrl" data-asset-url="background" type="url" placeholder="https://…"></label><label class="field">Тип фона<select id="backgroundType"><option value="image">Картинка / GIF</option><option value="video">Видео</option></select></label></details>
-          <label class="field range-field">Затемнение фона<output for="backgroundDim" id="backgroundDimValue">58%</output><input id="backgroundDim" type="range" min="0" max="85" value="58"></label></div>
-          <div class="settings-group"><div class="group-head"><h3>Цвет и шрифт</h3><p class="hint">Акцентный цвет и шрифт, которым набрана твоя страница.</p></div>
-          <div class="form-grid"><label class="field">Цвет акцента страницы<input id="accentColor" type="color" value="#f5f5f7"></label><label class="field">Шрифт страницы<select id="font"><option value="minecraft">Minecraft</option><option value="system">Обычный</option><option value="custom">Свой шрифт</option></select><span class="hint">Меняет превью и твою страницу. Кабинет остаётся в Minecraft.</span></label></div>
-          <div class="upload-card"><span class="font-file-icon" aria-hidden="true">Aa</span><div class="upload-details"><label for="customFontFile">Свой шрифт</label><input id="customFontFile" data-upload="customFont" type="file" accept=".woff,.woff2,.ttf,.otf,font/woff,font/woff2,font/ttf,font/otf"><span class="hint" data-file-note="customFont">WOFF, WOFF2, TTF или OTF · до 4 МБ</span></div><button type="button" class="text-button" data-remove="customFont">Убрать</button></div>
-          <details class="url-details"><summary>Или указать ссылку на шрифт</summary><label class="field">Прямая ссылка на файл<input id="customFontUrl" data-asset-url="customFont" type="url" placeholder="https://…/font.woff2"></label><span class="hint">Сервер со шрифтом должен разрешать загрузку с других сайтов.</span></details>
-          <p class="hint" id="customFontStatus" role="status" aria-live="polite"></p></div>
+          <p class="decoration-discord-hint" id="discordDecorationHint"></p>
+          </div>
+          <div class="settings-group entity-card">
+            <div class="group-head entity-head"><h3>Ник</h3><p class="hint">Текст, размер, значки, градиент и анимация ника.</p></div>
+          <div class="form-grid">
+            <label class="field wide">Ник на странице<input id="nickname" maxlength="40" placeholder="Как тебя зовут?" required></label>
+            <label class="field" data-advanced>Размер ника, px<input id="nicknameSize" type="number" min="18" max="52" value="32"></label>
+          </div>
           <div class="settings-group">
             <div class="group-head"><h3>Значки</h3></div>
             <fieldset class="badge-picker"><legend>Значки на странице</legend><p class="hint">Значки рядом с ником. Значки Discord выбираются отдельно в настройках плашки.</p><div class="badge-options">
@@ -938,6 +824,128 @@
               <label><input type="checkbox" data-profile-badge="flower"><span aria-hidden="true">✿</span> Цветок</label>
             </div></fieldset>
           </div>
+          <div class="settings-group gradient-settings">
+            <div class="group-head"><h3>Градиент ника</h3><p class="hint">Плавный переход между двумя цветами в твоём нике.</p></div>
+            <label class="checkbox-field"><input id="nicknameGradient" type="checkbox"><span>Окрасить ник градиентом</span></label>
+            <div class="dependent-fields">
+            <div class="gradient-preview" aria-hidden="true"><span id="nicknameGradientSample">nickname</span></div>
+            <div class="form-grid"><label class="field">Первый цвет<input id="nicknameGradientStart" type="color" value="#ffffff"></label><label class="field">Второй цвет<input id="nicknameGradientEnd" type="color" value="#a1a1aa"></label></div>
+            <label class="checkbox-field"><input id="nicknameGradientFlow" type="checkbox"><span>Переливающийся градиент</span></label>
+            <p class="hint">Использует анимацию ника «Перелив» вместо другой выбранной анимации.</p>
+            <label class="field range-field" data-advanced>Направление<output for="nicknameGradientAngle" id="nicknameGradientAngleValue">90°</output><input id="nicknameGradientAngle" type="range" min="0" max="360" value="90"></label>
+            </div>
+          </div>
+          <div class="settings-group"><div class="group-head"><h3>Анимация ника</h3><p class="hint">Так ник будет двигаться на странице. Пример — в рамке ниже.</p></div>
+          <div class="effect-demo" aria-hidden="true"><span id="nicknameEffectDemo">nickname</span></div>
+            <label class="field wide">Анимация ника<select id="nicknameAnimation">
+            <!-- nickname-animations:start -->
+<option value="none">Без анимации</option>
+<option value="glow">Мягкое свечение</option>
+<option value="pulse">Пульс</option>
+<option value="float">Парение</option>
+<option value="shimmer">Перелив</option>
+<option value="glitch">Глитч</option>
+<option value="typewriter">Печатная машинка</option>
+<option value="blur">Фокус</option>
+<option value="flicker">Мерцание</option>
+<option value="bounce">Пружина</option>
+<option value="wave">Волна</option>
+<option value="neon">Неон</option>
+<option value="rainbow">Радужный поток</option>
+<option value="outline">Живой контур</option>
+<option value="scanline">Сканирование</option>
+<option value="spotlight">Вспышка света</option>
+<option value="echo">Эхо</option>
+<option value="orbit">Орбита</option>
+<option value="heartbeat">Сердцебиение</option>
+          <!-- nickname-animations:end -->
+            </select></label></div>
+          </div>
+          <div class="settings-group entity-card">
+            <div class="group-head entity-head"><h3>Описание</h3><p class="hint">Текст «О себе», размер, цвет, градиент и анимация.</p></div>
+          <div class="form-grid">
+            <label class="field wide">О себе<textarea id="description" maxlength="500" rows="4" placeholder="Пара слов, цитата или просто настроение"></textarea><span class="hint" id="descriptionCount">0 / 500</span></label>
+            <label class="field" data-advanced>Размер описания, px<input id="descriptionSize" type="number" min="10" max="32" value="16"></label>
+          </div>
+          <div class="settings-group option-card">
+            <div class="option-card-head">
+              <div><h3>Цвет описания</h3><p class="hint">Окрашивает текст «О себе» одним цветом.</p></div>
+              <label class="switch option-switch"><input id="descriptionColorEnabled" type="checkbox" aria-label="Свой цвет описания"><span class="switch-track" aria-hidden="true"></span></label>
+            </div>
+            <div class="option-card-body">
+              <div class="option-preview description-color-preview" aria-hidden="true"><span>Пара слов о тебе</span></div>
+              <label class="color-chip"><input id="descriptionColor" type="color" value="#f5f5f7"><span class="color-chip-swatch" aria-hidden="true"></span><span class="color-chip-text"><strong>Цвет</strong><output></output></span></label>
+            </div>
+          </div>
+          <div class="settings-group option-card">
+            <div class="option-card-head">
+              <div><h3>Градиент описания</h3><p class="hint">Плавный переход между двумя цветами. Если включён, он главнее одного цвета.</p></div>
+              <label class="switch option-switch"><input id="descriptionGradient" type="checkbox" aria-label="Градиент описания"><span class="switch-track" aria-hidden="true"></span></label>
+            </div>
+            <div class="option-card-body">
+              <div class="option-preview description-gradient-preview" aria-hidden="true"><span>Пара слов о тебе</span></div>
+              <label class="color-chip"><input id="descriptionGradientStart" type="color" value="#ffffff"><span class="color-chip-swatch" aria-hidden="true"></span><span class="color-chip-text"><strong>Первый</strong><output></output></span></label>
+              <label class="color-chip"><input id="descriptionGradientEnd" type="color" value="#8b5cf6"><span class="color-chip-swatch" aria-hidden="true"></span><span class="color-chip-text"><strong>Второй</strong><output></output></span></label>
+              <label class="field">Направление, °<input id="descriptionGradientAngle" type="number" min="0" max="360" value="90"></label>
+              <label class="mini-switch"><span class="switch"><input id="descriptionGradientAnimated" type="checkbox"><span class="switch-track" aria-hidden="true"></span></span><span>Переливающийся градиент</span></label>
+              <label class="field">Период перелива, сек.<input id="descriptionGradientSpeed" type="number" min="2" max="30" value="6"></label>
+            </div>
+          </div>
+          <div class="settings-group"><div class="group-head"><h3>Анимация описания</h3><p class="hint">Движение текста «О себе».</p></div>
+          <div class="effect-demo description-effect-demo"><span id="descriptionEffectDemo">Твоё описание</span></div><label class="field">Анимация описания<select id="descriptionAnimation"><!-- description-animations:start -->
+<option value="none">Без анимации</option>
+<option value="glow">Мягкое свечение</option>
+<option value="pulse">Дыхание</option>
+<option value="float">Парение</option>
+<option value="shimmer">Перелив света</option>
+<option value="reveal">Проявление</option>
+<option value="flicker">Мерцание</option>
+<option value="wave">Покачивание</option>
+<option value="gradient">Цветной перелив</option>
+          <!-- description-animations:end --></select></label></div>
+          </div>
+          <div class="settings-group option-card">
+            <div class="option-card-head">
+              <div><h3>Просмотры профиля</h3><p class="hint">Счётчик виден всем. Один браузер считается раз в сутки, твои просмотры при входе — нет. Переместить можно в превью кнопкой «Переместить блоки».</p></div>
+              <label class="switch option-switch"><input id="showProfileViews" type="checkbox" aria-label="Показывать просмотры профиля"><span class="switch-track" aria-hidden="true"></span></label>
+            </div>
+            <div class="option-card-body">
+              <label class="field">Вид счётчика<select id="profileViewsStyle"><option value="text">Просмотры · число</option><option value="eye">Глазик · число</option></select></label>
+              <label class="field">Размер, px<input id="profileViewsSize" type="number" min="10" max="24" value="12"></label>
+              <label class="color-chip"><input id="profileViewsColor" type="color" value="#b6b4bd"><span class="color-chip-swatch" aria-hidden="true"></span><span class="color-chip-text"><strong>Цвет</strong><output></output></span></label>
+            </div>
+          </div>
+          <div class="settings-group typewriter-settings">
+            <div class="group-head"><h3>Вкладка браузера</h3><p class="hint">Название и иконка, которые видны во вкладке с твоей страницей.</p></div>
+            <div class="form-grid"><label class="field wide">Название вкладки<input id="title" maxlength="80" placeholder="Моя страница" required></label></div>
+            <div class="upload-card"><div class="upload-details"><label for="faviconFile">Иконка вкладки</label><input id="faviconFile" data-upload="favicon" type="file" accept="image/png,image/jpeg,image/webp"><span class="hint" data-file-note="favicon">Твоя иконка сайта · PNG, JPG или WebP · до 4 МБ</span></div><button type="button" class="text-button" data-remove="favicon">Убрать</button></div>
+            <label class="checkbox-field"><input id="typewriterEnabled" type="checkbox"><span>Печатная машинка рядом с иконкой сайта</span></label>
+            <div class="dependent-fields"><label class="field">Фразы для вкладки<textarea id="typewriterText" maxlength="300" rows="3" placeholder="Каждая новая строка — отдельная фраза"></textarea></label><label class="field range-field" data-advanced>Задержка между буквами, мс<input id="typewriterSpeed" type="range" min="20" max="200" value="70"><span class="hint">Меньше — быстрее. Пустое поле использует название вкладки.</span></label></div>
+          </div>
+          <div class="settings-group">
+            <div class="group-head"><h3>Карточка и вход</h3><p class="hint">Масштаб карточки и текст на экране входа.</p></div>
+            <div class="form-grid">
+            <label class="field" data-advanced>Масштаб карточки, %<input id="profileScale" type="number" min="70" max="120" value="100"></label>
+            <label class="field wide">Текст на экране входа<input id="entryText" maxlength="80" placeholder="click to enter..."><span class="hint">Показывается посетителю до того, как он зайдёт на страницу.</span></label>
+            </div>
+          </div>
+        </section>
+        <section class="settings-section hidden" data-settings-section="effects" aria-labelledby="effectsHeading">
+          <div class="effects-heading section-head"><span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M11 3l1.9 5.1L18 10l-5.1 1.9L11 17l-1.9-5.1L4 10l5.1-1.9z"/><path d="M19 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/></svg></span><div><h2 id="effectsHeading">Эффекты</h2><p class="section-description">Живой фон и курсор. Анимации ника, описания и аватара — во вкладке «Профиль».</p></div></div>
+          <div class="settings-group scene-fields"><div class="group-head"><h3>Живой фон</h3><p class="hint">Анимированные частицы поверх фона страницы.</p></div><div class="form-grid"><label class="field">Эффект<select id="backgroundEffect"><option value="none">Без эффекта</option><option value="snow">Снег</option><option value="rain">Дождь</option><option value="matrix">Матрица</option><option value="glitch">Глитч</option><option value="parallax">Параллакс</option></select></label><label class="field range-field" data-advanced>Насыщенность<input id="effectIntensity" type="range" min="10" max="100" value="50" aria-label="Насыщенность эффекта"></label></div><label class="checkbox-field"><input id="profileTilt" type="checkbox"><span>3D-наклон карточки за курсором</span></label></div>
+          <div class="settings-group"><div class="group-head"><h3>Курсор</h3><p class="hint">Свой курсор виден при управлении мышью. Цвет применяется к точке, кольцу и прицелу.</p></div><label class="field">Стиль курсора<select id="cursorStyle"><option value="default">Системный</option><option value="dot">Светящаяся точка</option><option value="ring">Кольцо</option><option value="crosshair">Прицел</option></select></label><div class="upload-card"><div class="upload-details"><label for="customCursorFile">Своя картинка курсора</label><input id="customCursorFile" data-upload="customCursor" type="file" accept="image/png,image/webp"><span class="hint" data-file-note="customCursor">PNG или WebP, желательно квадратный · до 4 МБ</span></div><button class="text-button" type="button" data-remove="customCursor">Убрать</button></div><div class="form-grid"><label class="field">Размер, px<input id="cursorSize" type="number" min="12" max="96" value="24"></label><label class="field">Непрозрачность, %<input id="cursorOpacity" type="number" min="20" max="100" value="100"></label><label class="field">Цвет<input id="cursorColor" type="color" value="#ffffff"></label><label class="field">Точка нажатия<select id="cursorHotspot"><option value="center">Центр картинки</option><option value="top-left">Верхний левый угол</option></select></label></div></div>
+        </section>
+        <section class="settings-section hidden" data-settings-section="appearance" aria-labelledby="appearanceHeading">
+          <header class="section-head"><span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-.9 2-1.8 0-.5-.2-.9-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1 .8-1.6 1.8-1.6H17a4 4 0 0 0 4-4C21 6.5 17 3 12 3z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7.5" r="1"/><circle cx="14.5" cy="7.5" r="1"/></svg></span><div><h2 id="appearanceHeading">Оформление</h2><p class="section-description">Общий вид страницы: размер аватарки, фон, цвета и шрифт.</p></div></header>
+          <div class="settings-group"><div class="group-head"><h3>Фон</h3><p class="hint">Картинка, GIF или видео за карточкой профиля.</p></div>
+          <div class="upload-card"><div class="upload-details"><label for="backgroundFile">Фон страницы</label><input id="backgroundFile" data-upload="background" type="file" accept="image/png,image/jpeg,image/gif,image/webp,video/mp4,video/webm"><span class="hint" data-file-note="background">Картинки сжимаются автоматически · GIF и видео до 4 МБ</span></div><button type="button" class="text-button" data-remove="background">Убрать</button></div>
+          <details class="url-details"><summary>Или указать ссылку на фон</summary><label class="field">Ссылка<input id="backgroundUrl" data-asset-url="background" type="url" placeholder="https://…"></label><label class="field">Тип фона<select id="backgroundType"><option value="image">Картинка / GIF</option><option value="video">Видео</option></select></label></details>
+          <label class="field range-field">Затемнение фона<output for="backgroundDim" id="backgroundDimValue">58%</output><input id="backgroundDim" type="range" min="0" max="85" value="58"></label></div>
+          <div class="settings-group"><div class="group-head"><h3>Цвет и шрифт</h3><p class="hint">Акцентный цвет и шрифт, которым набрана твоя страница.</p></div>
+          <div class="form-grid"><label class="field">Цвет акцента страницы<input id="accentColor" type="color" value="#f5f5f7"></label><label class="field">Шрифт страницы<select id="font"><option value="minecraft">Minecraft</option><option value="system">Обычный</option><option value="custom">Свой шрифт</option></select><span class="hint">Меняет превью и твою страницу. Кабинет остаётся в Minecraft.</span></label></div>
+          <div class="upload-card"><span class="font-file-icon" aria-hidden="true">Aa</span><div class="upload-details"><label for="customFontFile">Свой шрифт</label><input id="customFontFile" data-upload="customFont" type="file" accept=".woff,.woff2,.ttf,.otf,font/woff,font/woff2,font/ttf,font/otf"><span class="hint" data-file-note="customFont">WOFF, WOFF2, TTF или OTF · до 4 МБ</span></div><button type="button" class="text-button" data-remove="customFont">Убрать</button></div>
+          <details class="url-details"><summary>Или указать ссылку на шрифт</summary><label class="field">Прямая ссылка на файл<input id="customFontUrl" data-asset-url="customFont" type="url" placeholder="https://…/font.woff2"></label><span class="hint">Сервер со шрифтом должен разрешать загрузку с других сайтов.</span></details>
+          <p class="hint" id="customFontStatus" role="status" aria-live="polite"></p></div>
         </section>
         <section class="settings-section hidden" data-settings-section="music" aria-labelledby="musicHeading">
           <header class="section-head"><span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg></span><div><h2 id="musicHeading">Музыка</h2><p class="section-description">Твоя библиотека, аудиофайлы и ссылки — всё для музыки на странице.</p></div></header>

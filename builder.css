@@ -138,6 +138,11 @@ h3 { font-size: 13px; font-weight: 600; }
 .group-head .hint { flex-basis: 100%; margin: 4px 0 0; color: #8f8f8f; font-size: 10px; }
 .dependent-fields { transition: opacity 0.2s; }
 .settings-group:has(> .checkbox-field > input[type="checkbox"]:not(:checked)) > .dependent-fields { opacity: 0.5; }
+.entity-card { padding-bottom: 6px; border-color: #ffffff26; }
+.entity-head { padding-bottom: 12px; border-bottom: 1px solid #ffffff14; }
+.entity-head h3 { font-size: 15px; }
+.entity-card > .settings-group { background: #ffffff05; }
+.effects-quick { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 16px; }
 .option-card { padding-bottom: 18px; }
 .option-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
 .option-card-head h3 { margin: 0; font-size: 13px; }
