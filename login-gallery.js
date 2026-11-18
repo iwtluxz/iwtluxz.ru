@@ -61,7 +61,9 @@
     if (!window.IwtxzBackend?.isConfigured?.()) return;
     const profiles = shuffle(await window.IwtxzBackend.listPublishedProfiles(60));
     if (!profiles.length) return;
-    const rowCount = window.innerWidth < 700 ? 3 : window.innerWidth < 1100 ? 4 : 6;
+    // The wall is rotated, so add spare columns to cover the corners.
+    const columnWidth = window.innerWidth < 700 ? 162 : 238;
+    const rowCount = Math.min(16, Math.ceil(window.innerWidth / columnWidth) + 3);
     for (let r = 0; r < rowCount; r += 1) {
       // Every column shows all profiles, shifted so neighbours differ.
       const shift = Math.floor((r * profiles.length) / rowCount);
