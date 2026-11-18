@@ -51,7 +51,11 @@ begin
   result := result || jsonb_build_object('descriptionSize',16,'cursorSize',24,'cursorOpacity',100,'cursorColor','#ffffff',
     'cursorHotspot','center','typewriterEnabled',false,'typewriterText','','typewriterSpeed',70,
     'seasonalTheme','none','objectPositions','{}'::jsonb);
-  result := result || jsonb_build_object('descriptionAnimation','none','layoutVersion',2);
+  result := result || jsonb_build_object('descriptionAnimation','none','layoutVersion',2,
+    'descriptionColor','','showProfileViews',false,'discordBadgeLimit',6,
+    'descriptionGradient',false,'descriptionGradientAnimated',false,'descriptionGradientStart','#ffffff',
+    'descriptionGradientEnd','#8b5cf6','descriptionGradientAngle',90,'descriptionGradientSpeed',6,
+    'profileViewsStyle','text','profileViewsSize',12,'profileViewsColor','#b6b4bd');
   if username not in ('iwtlu','shakzy','strelokk') then
     result := result || jsonb_build_object('avatar','','background','','music','','musicTitle','','musicCover','');
   end if;
@@ -71,6 +75,7 @@ begin
     when username='iwtlu' then '["nitro","house-bravery","server-booster","active-developer"]'::jsonb
     when username in ('shakzy','strelokk') then '["nitro","house-bravery"]'::jsonb
     else '[]'::jsonb end);
+  result := result || jsonb_build_object('discordHiddenBadges','[]'::jsonb);
   return result;
 end;
 $$;
@@ -154,8 +159,8 @@ begin
     raise exception using errcode='22023',message='Неизвестная анимация описания.';
   end if;
   result := result || jsonb_build_object('descriptionAnimation',value,'layoutVersion',private.profile_number(input,'layoutVersion',1,1,2));
-  value := private.profile_text(input, 'avatarDecoration', 'none', 24);
-  if value not in ('none','discord','phoenix','heartbloom','shy','sakura','moon','embers','aurora','cat','rainbow','firecrackers','flame-sword','steampunk-cat','potion','lotus','snowglobe','bubble-tea','black-hole','ufo','fox-hat','lovestruck','crystal-ball','hex-lights','solar-orbit','honeyblossom','heartstrings','chromawave','koi','portal-blue','cozy-cat','lightning','constellations','head-clouds','strawberry','neon-cat','runes','rainy-mood','glitch-frame') then
+  value := private.profile_text(input, 'avatarDecoration', 'none', 48);
+  if value not in ('none','discord','phoenix','heartbloom','shy','sakura','moon','embers','aurora','cat','rainbow','firecrackers','flame-sword','steampunk-cat','potion','lotus','snowglobe','bubble-tea','black-hole','ufo','fox-hat','lovestruck','crystal-ball','hex-lights','solar-orbit','honeyblossom','heartstrings','chromawave','koi','portal-blue','cozy-cat','lightning','constellations','head-clouds','strawberry','neon-cat','runes','rainy-mood','glitch-frame') and value !~ '^discord-a_[a-f0-9]{32}$' then
     raise exception using errcode = '22023', message = 'Неизвестное украшение аватара.';
   end if;
   result := result || jsonb_build_object('avatarDecoration', value, 'profileBadges', badges, 'settingsVersion', 7);
@@ -179,7 +184,7 @@ begin
     if jsonb_typeof(input->'objectPositions') <> 'object' then raise exception using errcode='22023',message='Некорректное расположение блоков.'; end if;
     for item in select * from jsonb_each(input->'objectPositions') loop
       point := item.value;
-      if item.key not in ('avatar','name','description','socials','discord','player','typewriter') or jsonb_typeof(point) <> 'object' then
+      if item.key not in ('avatar','name','description','socials','discord','player','typewriter','views') or jsonb_typeof(point) <> 'object' then
         raise exception using errcode='22023',message='Неизвестный блок страницы.';
       end if;
       if not (point ? 'x' and point ? 'y') or (point - 'x' - 'y') <> '{}'::jsonb then
@@ -195,6 +200,25 @@ begin
     end loop;
   end if;
   result := result || jsonb_build_object('objectPositions',positions);
+  value := private.profile_text(input,'descriptionColor','',7);
+  if value <> '' and value !~ '^#[a-fA-F0-9]{6}$' then raise exception using errcode='22023',message='Некорректный цвет описания.'; end if;
+  result := result || jsonb_build_object('descriptionColor',lower(value),
+    'showProfileViews',private.profile_boolean(input,'showProfileViews',false),
+    'discordBadgeLimit',private.profile_number(input,'discordBadgeLimit',6,1,6));
+  foreach value in array array['descriptionGradient','descriptionGradientAnimated'] loop
+    result := result || jsonb_build_object(value,private.profile_boolean(input,value,false));
+  end loop;
+  for item in select * from (values ('descriptionGradientStart','#ffffff'),('descriptionGradientEnd','#8b5cf6'),('profileViewsColor','#b6b4bd')) as colors(key,fallback) loop
+    value := private.profile_text(input,item.key,item.fallback,7);
+    if value !~ '^#[a-fA-F0-9]{6}$' then raise exception using errcode='22023',message='Некорректный цвет.'; end if;
+    result := result || jsonb_build_object(item.key,lower(value));
+  end loop;
+  value := private.profile_text(input,'profileViewsStyle','text',12);
+  if value not in ('text','eye') then raise exception using errcode='22023',message='Неизвестный вид счётчика просмотров.'; end if;
+  result := result || jsonb_build_object('profileViewsStyle',value,
+    'profileViewsSize',private.profile_number(input,'profileViewsSize',12,10,24),
+    'descriptionGradientAngle',private.profile_number(input,'descriptionGradientAngle',90,0,360),
+    'descriptionGradientSpeed',private.profile_number(input,'descriptionGradientSpeed',6,2,30));
   value := private.profile_text(input,'backgroundEffect','none',16);
   if value not in ('none','snow','rain','matrix','glitch','parallax') then raise exception using errcode='22023',message='Неизвестный эффект фона.'; end if;
   result := result || jsonb_build_object('backgroundEffect',value,'effectIntensity',private.profile_number(input,'effectIntensity',50,10,100),'profileTilt',private.profile_boolean(input,'profileTilt',false));
@@ -208,6 +232,7 @@ begin
     result := result || jsonb_build_object(value, private.profile_boolean(input, value, coalesce((defaults->>value)::boolean, false)));
   end loop;
   result := result || jsonb_build_object('discordBadges',private.profile_discord_badges(coalesce(input->'discordBadges',defaults->'discordBadges','[]'::jsonb)));
+  result := result || jsonb_build_object('discordHiddenBadges',private.profile_discord_badges(coalesce(input->'discordHiddenBadges',defaults->'discordHiddenBadges','[]'::jsonb)));
   return result || jsonb_build_object(
     'avatarSize', private.profile_number(input, 'avatarSize',150,80,220),
     'backgroundDim', private.profile_number(input, 'backgroundDim',58,0,85),
@@ -221,7 +246,7 @@ $$;
 
 create or replace function public.builder_capabilities()
 returns jsonb language sql stable set search_path = '' as $$
-  select jsonb_build_object('profileSettingsVersion', 7, 'customFonts', true, 'profileEffects', true, 'interactiveEffects', true,'profileLayout',true,'freeLayout',true,'editorV2',true,'discordBadges',true);
+  select jsonb_build_object('profileSettingsVersion', 7, 'customFonts', true, 'profileEffects', true, 'interactiveEffects', true,'profileLayout',true,'freeLayout',true,'editorV2',true,'discordBadges',true,'discordBadgeVisibility',true,'profileViewSettings',true,'profileCatalogLayout',true);
 $$;
 
 revoke all on function private.profile_discord_badges(jsonb),private.profile_default(text),private.profile_normalize(jsonb,text,uuid) from public,anon,authenticated;

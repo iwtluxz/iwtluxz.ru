@@ -138,6 +138,33 @@ h3 { font-size: 13px; font-weight: 600; }
 .group-head .hint { flex-basis: 100%; margin: 4px 0 0; color: #8f8f8f; font-size: 10px; }
 .dependent-fields { transition: opacity 0.2s; }
 .settings-group:has(> .checkbox-field > input[type="checkbox"]:not(:checked)) > .dependent-fields { opacity: 0.5; }
+.option-card { padding-bottom: 18px; }
+.option-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.option-card-head h3 { margin: 0; font-size: 13px; }
+.option-card-head .hint { margin: 4px 0 0; color: #8f8f8f; font-size: 10px; line-height: 1.6; }
+.option-card-body { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin-top: 16px; transition: opacity 0.2s, filter 0.2s; }
+.option-card-body > .field { flex: 1 1 130px; margin: 0; }
+.option-card-body > .wide { flex-basis: 100%; }
+.option-card:has(.option-switch input:not(:checked)) .option-card-body { opacity: 0.45; filter: saturate(0.4); }
+.switch { position: relative; flex: 0 0 auto; display: inline-block; cursor: pointer; }
+.switch input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.switch-track { display: block; width: 40px; height: 22px; border: 1px solid #ffffff30; border-radius: 99px; background: #ffffff12; transition: background 0.2s, border-color 0.2s; }
+.switch-track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #c9c9cf; transition: transform 0.2s, background 0.2s; }
+.switch input:checked + .switch-track { border-color: #ffffff70; background: linear-gradient(135deg, #ffffff55, #ffffff22); }
+.switch input:checked + .switch-track::after { transform: translateX(18px); background: #fff; }
+.switch input:focus-visible + .switch-track { outline: 2px solid #fff; outline-offset: 2px; }
+.mini-switch { display: inline-flex; align-items: center; gap: 10px; flex: 1 1 100%; color: #eee; font-size: 12px; }
+.option-preview { flex: 1 1 100%; display: grid; place-items: center; min-height: 52px; padding: 12px 14px; border: 1px solid #ffffff20; border-radius: 12px; background: radial-gradient(ellipse at center, #181818, transparent 80%); }
+.option-preview span { font-size: 15px; text-align: center; overflow-wrap: anywhere; }
+.description-color-preview span { color: var(--dc, #f5f5f7); }
+.description-gradient-preview span { background: linear-gradient(var(--dg-angle, 90deg), var(--dg-start, #fff), var(--dg-end, #8b5cf6)); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; }
+.color-chip { position: relative; display: inline-flex; align-items: center; gap: 10px; padding: 7px 14px 7px 7px; border: 1px solid #ffffff28; border-radius: 12px; background: #ffffff08; cursor: pointer; transition: border-color 0.2s, background 0.2s; }
+.color-chip:hover { border-color: #ffffff55; background: #ffffff10; }
+.color-chip input { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; opacity: 0; cursor: pointer; }
+.color-chip-swatch { width: 32px; height: 32px; border: 2px solid #ffffff40; border-radius: 9px; background: var(--chip, #f5f5f7); box-shadow: 0 0 14px -2px var(--chip, #f5f5f7); }
+.color-chip-text { display: grid; gap: 1px; font-size: 11px; }
+.color-chip-text strong { color: #fff; font-weight: 600; }
+.color-chip-text output { color: #9a9aa2; font-family: ui-monospace, Consolas, monospace; text-transform: uppercase; }
 .section-head { display: flex; align-items: flex-start; gap: 14px; margin: 0 0 22px; padding-bottom: 18px; border-bottom: 1px solid transparent; border-image: linear-gradient(90deg, #ffffff30, #ffffff0a 60%, transparent) 1; }
 .section-head > div { flex: 1; min-width: 0; }
 .section-head h2 { margin: 0 0 4px; }

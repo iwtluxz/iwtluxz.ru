@@ -16,7 +16,7 @@
   position:fixed;z-index:6;left:max(16px, env(safe-area-inset-left));
   top:var(--views-dock-top, auto);bottom:var(--views-dock-bottom, max(30px, env(safe-area-inset-bottom)));
   display:inline-flex;align-items:center;justify-content:flex-start;gap:6px;max-width:calc(100vw - 32px);
-  margin:0;padding:0;color:var(--views-color, #b6b4bd);font:var(--views-size, 12px)/1.5 "Segoe UI", Arial, sans-serif;
+  margin:0;padding:.35em .9em;border:1px solid #ffffff22;border-radius:99px;background:#0000004d;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:var(--views-color, #b6b4bd);font:600 var(--views-size, 12px)/1.5 "Segoe UI", Arial, sans-serif;
   text-align:left;white-space:nowrap;font-variant-numeric:tabular-nums;text-shadow:0 1px 5px #0009;
 }
 .iwtxz-profile-views[hidden] { display:none!important; }

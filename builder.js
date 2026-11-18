@@ -392,6 +392,18 @@
     $("#avatarSizeValue").value = `${currentSite.avatarSize} px`;
     $("#backgroundDimValue").value = `${currentSite.backgroundDim}%`;
     $("#nicknameGradientAngleValue").value = `${currentSite.nicknameGradientAngle}°`;
+    all(".color-chip").forEach((chip) => {
+      const value = chip.querySelector("input")?.value || "";
+      chip.style.setProperty("--chip", value);
+      const out = chip.querySelector("output");
+      if (out) out.textContent = value;
+    });
+    const dcStyle = $(".description-color-preview")?.style;
+    dcStyle?.setProperty("--dc", $("#descriptionColor").value);
+    const dgStyle = $(".description-gradient-preview")?.style;
+    dgStyle?.setProperty("--dg-start", $("#descriptionGradientStart").value);
+    dgStyle?.setProperty("--dg-end", $("#descriptionGradientEnd").value);
+    dgStyle?.setProperty("--dg-angle", `${$("#descriptionGradientAngle").value || 90}deg`);
     const gradientSample = $("#nicknameGradientSample");
     gradientSample.textContent = currentSite.nickname || "nickname";
     const gradientPreview = gradientSample.parentElement?.style;
