@@ -15,7 +15,7 @@
     const cabinet = Boolean(document.getElementById('authForm'));
     if (!cabinet) return inert;
     const controller = new AbortController();
-    const motion = matchMedia('(prefers-reduced-motion: reduce)');
+    const motion = matchMedia('not all');
     const listen = (node, type, handler, options = {}) => node.addEventListener(type, handler, { ...options, signal: controller.signal });
     const storage = {
       get(key, fallback) { try { return localStorage.getItem(key) ?? fallback; } catch { return fallback; } },

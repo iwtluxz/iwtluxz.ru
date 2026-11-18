@@ -172,7 +172,7 @@
       if(existing)existing.addEventListener?.('load',ready,{once:true});
       else{const script=document.createElement('script');script.src='/profile-badge-overflow.js'+sceneVersion;script.onload=ready;document.head.append(script);}
     }
-    const motion=window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    const motion=window.matchMedia?.('not all');
     const updateMotion=()=>drawDiscord(lastSnapshot);
     motion?.addEventListener?.('change',updateMotion);
     if (!scene && document.head) {

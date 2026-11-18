@@ -8,7 +8,7 @@
     let site={},canvas,ctx,cursor,particles=[],w=0,h=0,last=0,raf=0,pointerRaf=0,sceneKey='',x=0,y=0,tiltNode=null,legacyBackground=null,previewSuspended=false;
     const modest=Boolean(navigator.connection?.saveData)||(navigator.hardwareConcurrency||8)<=4||(navigator.deviceMemory||8)<=4;
     const frameDelay=1000/(modest?18:30);
-    const reduced=matchMedia('(prefers-reduced-motion: reduce)'),fine=matchMedia('(hover: hover) and (pointer: fine)');
+    const reduced=matchMedia('not all'),fine=matchMedia('(hover: hover) and (pointer: fine)');
     const listeners=new AbortController();
     const initialIcon=document.querySelector('link[rel="icon"]')?.getAttribute('href')||'/img/tree.png';
     function resize(){

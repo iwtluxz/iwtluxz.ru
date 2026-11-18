@@ -60,6 +60,4 @@
 @media(hover:none),(pointer:coarse){
  .site-project-telegram:hover:not(:focus-visible){flex-basis:var(--site-telegram-size)}.site-project-telegram:hover:not(:focus-visible) .site-telegram-label{opacity:0;transform:translate(7px,-50%)}.site-project-telegram:hover:not(:focus-visible) .site-telegram-icon{transform:none}
 }
-@media(prefers-reduced-motion:reduce){
- .iwtxz-site-chrome *{transition:none!important;animation:none!important}.site-winter-flake{animation:none;opacity:.13}.site-winter-lights>span{animation:none;opacity:.6}
-}
+

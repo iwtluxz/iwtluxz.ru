@@ -3,7 +3,7 @@
 
   const params = new URLSearchParams(window.location.search);
   const isPreview = params.get("preview") === "1" && window.parent !== window;
-  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const reducedMotion = window.matchMedia("not all");
   const byId = (id) => document.getElementById(id);
   const audio = byId("profileAudio");
   const backgroundVideo = byId("backgroundVideo");

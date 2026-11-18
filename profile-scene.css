@@ -16,7 +16,7 @@ body[data-background-effect="parallax"] .profile-background-image, body[data-bac
   body.iwtxz-custom-cursor input[type="range"]::-webkit-slider-thumb, body.iwtxz-custom-cursor input[type="range"]::-webkit-slider-runnable-track { cursor: none !important; }
   body.iwtxz-custom-cursor input[type="range"]::-moz-range-thumb, body.iwtxz-custom-cursor input[type="range"]::-moz-range-track { cursor: none !important; }
 }
-@media (prefers-reduced-motion: reduce) { .iwtxz-scene { display: none; } body[data-background-effect="parallax"] .profile-background-image,body[data-background-effect="parallax"] .profile-background-video,body[data-background-effect="parallax"] .page-bg-video { transform: none; } }
+
 .decoration-user-avatar { display: block; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: #151515; }
 .decoration-option .decoration-preview { overflow: visible; }
 .decoration-mode { z-index: 2; }

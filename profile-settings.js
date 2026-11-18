@@ -30,7 +30,7 @@
     player: document.querySelector(".track-card"),
     onFontReady() { if (typeof lockNameSize === "function") lockNameSize(); }
   });
-  const backgroundMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const backgroundMotion = window.matchMedia("not all");
   let backgroundSettings = null, staticBackgroundSource = "";
   function updateBackgroundPlayback() {
     const video = document.querySelector(".page-bg-video");
