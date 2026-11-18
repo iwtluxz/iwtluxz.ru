@@ -84,6 +84,7 @@
         track.append(group);
       }
       track.style.setProperty("--gallery-seconds", `${Math.max(40, cards.length * 8) + r * 4}s`);
+      track.style.setProperty("--i", String(r));
       track.style.setProperty("--gallery-copies", String(copies));
       rows.append(track);
     }
