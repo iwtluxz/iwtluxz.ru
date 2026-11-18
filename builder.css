@@ -142,6 +142,9 @@ h3 { font-size: 13px; font-weight: 600; }
 .entity-head { padding-bottom: 12px; border-bottom: 1px solid #ffffff14; }
 .entity-head h3 { font-size: 15px; }
 .entity-card > .settings-group { background: #ffffff05; }
+.entity-card .form-grid { grid-template-columns: 1fr; }
+.inline-field { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 14px; border: 1px solid #ffffff14; border-radius: 10px; background: #ffffff05; }
+.inline-field input { width: 96px; flex: 0 0 96px; text-align: center; }
 .effects-quick { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 16px; }
 .option-card { padding-bottom: 18px; }
 .option-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
