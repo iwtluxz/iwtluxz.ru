@@ -7,12 +7,12 @@
   <meta name="description" content="Твоя страница iwtxz: аватар, музыка, фон и ссылки.">
   <link rel="icon" type="image/png" href="img/tree.png">
   <link rel="preload" href="font/minecraft.ttf" as="font" type="font/ttf" crossorigin>
-  <link rel="stylesheet" href="builder.css?v=5ac07e7ee15a">
+  <link rel="stylesheet" href="builder.css?v=05e196fd07bc">
   <title>Личный кабинет · iwtxz</title>
   <script src="profile-links.js?v=40c61c4a7df8" defer></script>
   <script src="vendor/supabase-2.102.0.min.js" defer></script>
   <script src="backend-config.js?v=1353af5aba7d" defer></script>
-  <script src="backend-client.js?v=b3ae9d197530" defer></script>
+  <script src="backend-client.js?v=f4314ac00886" defer></script>
   <script src="profile-decorations.js?v=f054d93c0896" defer></script>
   <script src="profile-features.js?v=c91239a9d9b1" defer></script>
   <script src="music-library.js?v=2fab4296d8bb" defer></script>
@@ -26,6 +26,7 @@
   <script src="discord-badges.js?v=1637b0a4abd4" defer></script>
   <script src="builder-discord-badges.js?v=0dfb6a1ce948" defer></script>
   <script src="profile-badge-overflow.js?v=773a662ee0c8" defer></script>
+  <script src="login-gallery.js?v=bbdfc5d64d8a" defer></script>
   <script src="image-compression.js?v=68e15b806c42" defer></script>
   <script src="site-chrome.js?v=1635d422dd3f" defer></script>
   <script src="builder.js?v=2e0e1382cdf8" defer></script>
@@ -40,6 +41,7 @@
   <link rel="stylesheet" href="builder-discord-dialog.css?v=ea6d9814a13a">
   <link rel="stylesheet" href="builder-discord-badges.css?v=302a754e1218">
   <link rel="stylesheet" href="profile-badge-overflow.css?v=a5a7476caf8c">
+  <link rel="stylesheet" href="login-gallery.css?v=9f396e535780">
 </head>
 <body class="auth-locked editor-simple">
   <header class="topbar">
@@ -1030,6 +1032,10 @@
       <div class="preview-footer"><span class="hint" id="publishedStatus">Страница ещё не опубликована</span><a class="text-button hidden" id="openProfile" target="_blank" rel="noopener noreferrer">Открыть страницу ↗</a></div>
     </aside>
   </main>
+  <section class="login-gallery" id="loginGallery" aria-labelledby="galleryHeading" hidden>
+    <div class="gallery-heading"><h2 id="galleryHeading">Страницы на iwtxz</h2><p>Так выглядят страницы других людей. Нажми на любую, чтобы открыть.</p></div>
+    <div class="gallery-viewport"><div class="gallery-track" data-gallery-track></div></div>
+  </section>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 </body>
 </html>

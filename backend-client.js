@@ -926,5 +926,14 @@
     return result.data;
   }
 
-  window.IwtxzBackend = Object.freeze({ isConfigured, request, getPublishedProfile, recordProfileView });
+  async function listPublishedProfiles(limit = 40) {
+    const count = Math.min(Math.max(Math.trunc(Number(limit)) || 40, 1), 100);
+    const columns = "username,published_at,nickname:settings->>nickname,description:settings->>description,avatar:settings->>avatar,background:settings->>background,accent:settings->>accentColor,gradient:settings->>nicknameGradient,gradientStart:settings->>nicknameGradientStart,gradientEnd:settings->>nicknameGradientEnd";
+    const result = await getPublicClient().from("profile_published").select(columns).order("published_at", { ascending: false }).limit(count);
+    const rows = throwIfError(result);
+    if (!Array.isArray(rows)) throw error(503, "Сервер вернул неверный список страниц.", "invalid_response");
+    return rows.filter(row => typeof row?.username === "string").map(row => ({ ...row, publicUrl: publicUrl(row.username) }));
+  }
+
+  window.IwtxzBackend = Object.freeze({ isConfigured, request, getPublishedProfile, listPublishedProfiles, recordProfileView });
 })();
