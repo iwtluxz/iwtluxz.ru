@@ -1,4 +1,4 @@
-﻿(() => {
+(() => {
   'use strict';
   try { window.IwtxzHalloween?.create?.({cabinet:false})?.dispose?.(); } catch {}
   const retiredTheme=Object.freeze({apply(){},dispose(){}});
@@ -28,7 +28,7 @@
     return {visible:value.visible===true,snap:value.snap!==false,centerLines:value.centerLines!==false,step:Math.round(clamp(value.step,8,80,24)),opacity:clamp(value.opacity,0,100,15),color:/^#[0-9a-f]{6}$/i.test(value.color||'')?value.color:'#ffffff'};
   }
   function create(){
-    const signal=new AbortController(),reduced=matchMedia('(prefers-reduced-motion: reduce)');
+    const signal=new AbortController(),reduced=matchMedia('not all');
     const preview=window.parent!==window&&new URLSearchParams(location.search).get('preview')==='1';
     const nodes=new Map(),originals=new Map(),initialTitle=document.title||'iwtxz';
     let site={},positions={},modelVersion=1,editing=false,selected='',drag=null,raf=0,timer=0,grid=normalizeGrid(),gridNode=null,guidesNode=null;
