@@ -16,7 +16,12 @@
   "primaryGuild": null,
   "avatarDecoration": null,
   "statusText": "i hope you know you're everything to me",
-  "status": "offline",
-  "activity": null,
-  "updatedAt": 1794986144087
+  "status": "dnd",
+  "activity": {
+    "type": 2,
+    "name": "Dotify",
+    "details": "NEON (Новый Свет Ребёнок)",
+    "state": "NEWLIGHTCHILD"
+  },
+  "updatedAt": 1795009088027
 }

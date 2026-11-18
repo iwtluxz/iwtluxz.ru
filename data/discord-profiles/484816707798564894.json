@@ -24,7 +24,12 @@
   },
   "statusText": "ww basedgod life",
   "status": "idle",
-  "activity": null,
+  "activity": {
+    "type": 2,
+    "name": "Dotify",
+    "details": "дядя полицейский (Speed Up)",
+    "state": "koonki"
+  },
   "managedBy": "iwtxz-public-discord-sync",
-  "updatedAt": 1794986145421
+  "updatedAt": 1795009089952
 }
