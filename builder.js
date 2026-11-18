@@ -160,7 +160,7 @@
   }
   function expandPreview(enabled){
     previewExpanded=Boolean(enabled);$('.preview-panel')?.classList.toggle('is-expanded',previewExpanded);document.body.classList.toggle('preview-expanded',previewExpanded);
-    $('#previewExpand').setAttribute('aria-pressed',String(previewExpanded));$('#previewExpand').textContent=previewExpanded?'Свернуть ↙':'Развернуть ↗';resizePreview();
+    $('#previewExpand').setAttribute('aria-pressed',String(previewExpanded));$('#previewExpand').textContent=previewExpanded?'Свернуть превью ↓':'На весь экран ↗';resizePreview();
   }
   function normalizePositions(value) {
     if(!value || typeof value!=='object' || Array.isArray(value))return {};
@@ -170,7 +170,8 @@
     layoutEditing=Boolean(enabled&&accountReady&&!busy);
     $('#layoutEdit').setAttribute('aria-pressed',String(layoutEditing));
     $('#layoutEdit').textContent=layoutEditing?'Завершить перемещение':'Переместить блоки';
-    $('#layoutHint').textContent=layoutEditing?'Перетаскивай блоки мышью или пальцем. Стрелки — точный шаг, Esc — завершить.':'Расположение блоков можно менять прямо в превью.';
+    $('#layoutHint').classList.toggle('hidden',!layoutEditing);
+    $('#layoutHint').textContent='Перетаскивай блоки мышью или пальцем. Нажми Esc, чтобы закончить.';
     if(layoutEditing&&!previewExpanded)expandPreview(true);
     previewFrame.contentWindow?.postMessage({type:'iwtxz-layout-edit',enabled:layoutEditing},location.origin);
     sendGrid();
@@ -184,10 +185,7 @@
       try { window.localStorage.setItem("iwtxz:editor-mode", editorMode); modeStorageAvailable = true; }
       catch { modeStorageAvailable = false; }
     }
-    $("#editorModeHint").textContent = (editorMode === "simple"
-      ? "Основные настройки. Точные параметры — в продвинутом режиме."
-      : "Все настройки, включая размеры, сетку и точные параметры.") +
-      (modeStorageAvailable ? "" : " Режим не сохранится: хранилище браузера недоступно.");
+    $("#editorModeHint").textContent = modeStorageAvailable ? "" : "Режим не сохранён: хранилище браузера недоступно.";
     sendGrid();
   }
   $("#editorModeSimple").addEventListener("click", () => setEditorMode("simple"));
