@@ -22,5 +22,6 @@
 .login-gallery[data-motion="off"] .gallery-track { animation: none; transform: none; }
 .login-gallery[data-motion="off"] .gallery-group[aria-hidden="true"] { display: none; }
 .auth-locked main, .auth-locked .topbar { position: relative; z-index: 2; }
-.auth-locked .topbar { position: absolute; }
+.auth-locked .topbar { position: absolute; background: transparent; }
+.auth-locked .auth-panel { background: transparent; }
 @media (max-width: 660px) { .gallery-card { width: 150px; padding: 0 10px 14px; } .gallery-cover { margin: 0 -10px; height: 60px; } .gallery-avatar { width: 58px; height: 58px; margin-top: -30px; } .gallery-wall { gap: 12px; } .gallery-group { gap: 12px; padding-bottom: 12px; } }
