@@ -96,6 +96,7 @@
   const stored = () => { try { return localStorage.getItem("iwtxz-gallery-motion"); } catch { return null; } };
   function applyMotion(on) {
     root.dataset.motion = on ? "on" : "off";
+    document.body.classList.toggle("iwtxz-wall-still", !on);
     button.setAttribute("aria-pressed", String(on));
     button.textContent = on ? "Анимации: вкл" : "Анимации: выкл";
   }
