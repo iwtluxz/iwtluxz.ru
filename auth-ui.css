@@ -72,3 +72,8 @@
   .auth-provider { transition: none; }
   .auth-provider:hover { transform: none; }
 }
+/* "Last used" marker under the sign-in method used most recently. */
+[data-last-login] { position: relative; }
+[data-last-login]::after { content: "Последний вход"; position: absolute; top: calc(100% + 6px); left: 0; right: 0; color: #8f8f8f; font-size: 10px; line-height: 1; text-align: center; letter-spacing: .02em; pointer-events: none; }
+.auth-provider-area.has-last-login .auth-providers { margin-bottom: 22px; }
+#authSubmit[data-last-login] { margin-bottom: 20px; }

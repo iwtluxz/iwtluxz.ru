@@ -48,6 +48,22 @@
     providerArea.innerHTML = `<div class="auth-providers" aria-label="Войти через сервис"><button class="auth-provider auth-provider-google" type="button" data-auth-provider="google">${icons.google}<span>Google</span></button><button class="auth-provider auth-provider-discord" type="button" data-auth-provider="discord">${icons.discord}<span>Discord</span></button></div><div class="auth-divider"><span>или по логину</span></div>`;
     tabs?.before(providerArea);
     if (!tabs) ordinaryForm.before(providerArea);
+    // "Last used" marker under the sign-in method used most recently on this device.
+    const LOGIN_LAST_KEY = 'iwtxz-last-login', LOGIN_PENDING_KEY = 'iwtxz-login-pending', LOGIN_METHODS = ['google', 'discord', 'password'];
+    function readLogin(key, maxAge) {
+      try {
+        const value = JSON.parse(localStorage.getItem(key) || 'null');
+        if (value && Date.now() - Number(value.at) <= maxAge) return value.method;
+      } catch { /* ignore */ }
+      return '';
+    }
+    function markLastLogin() {
+      const method = readLogin(LOGIN_LAST_KEY, Infinity);
+      for (const button of providerArea.querySelectorAll('[data-auth-provider]')) button.toggleAttribute('data-last-login', button.dataset.authProvider === method);
+      ordinaryForm.querySelector('#authSubmit')?.toggleAttribute('data-last-login', method === 'password');
+      providerArea.classList.toggle('has-last-login', method === 'google' || method === 'discord');
+    }
+    markLastLogin();
     const forgotten = document.createElement('button');
     forgotten.type = 'button';
     forgotten.className = 'text-button auth-forgotten';
@@ -176,6 +192,7 @@
     for (const button of providerArea.querySelectorAll('[data-auth-provider]')) button.addEventListener('click', () => void run(async () => {
       notice($('#authStatus'), 'Открываем вход…');
       const result = await post('oauth', { provider: button.dataset.authProvider });
+      try { localStorage.setItem(LOGIN_PENDING_KEY, JSON.stringify({ method: button.dataset.authProvider, at: Date.now() })); } catch { /* storage blocked */ }
       navigateOAuth(result.url, button.dataset.authProvider);
     }, $('#authStatus')));
     forgotten.addEventListener('click', () => {
@@ -341,6 +358,14 @@
     updateBusy();
     const instance = Object.freeze({
       handleAuthResult, setAccount, reset, refreshAccount,
+      recordLogin(method) {
+        const pending = readLogin(LOGIN_PENDING_KEY, 15 * 60 * 1000);
+        const chosen = method || pending;
+        try { localStorage.removeItem(LOGIN_PENDING_KEY); } catch { /* storage blocked */ }
+        if (!LOGIN_METHODS.includes(chosen)) return;
+        try { localStorage.setItem(LOGIN_LAST_KEY, JSON.stringify({ method: chosen, at: Date.now() })); } catch { /* storage blocked */ }
+        markLastLogin();
+      },
       setOrdinaryBusy(value) { ordinaryBusy = Boolean(value); updateBusy(); },
       isBusy: () => localBusy || ordinaryBusy,
       isFlowActive: () => view !== 'login',

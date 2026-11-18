@@ -569,6 +569,7 @@
     sessionVersion += 1;
     const version = sessionVersion;
     currentUser = user;
+    authUi?.recordLogin();
     void authUi?.setAccount(user);
     accountReady = false;
     $("#userLine").textContent = `@${user.username}`;
@@ -787,6 +788,7 @@
       const result = await api(`/api/builder/auth/${mode}`, { method: "POST", body: JSON.stringify(credentials) });
       if (attempt !== authAttemptVersion) return;
       signedIn = true;
+      authUi?.recordLogin("password");
       status("#authStatus", mode === "signup" ? "Аккаунт создан. Загружаем кабинет…" : "Вход выполнен. Загружаем кабинет…");
       await enterAccount(result.user, attempt);
     } catch (error) {
