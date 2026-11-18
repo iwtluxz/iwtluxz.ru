@@ -17,11 +17,6 @@
   "avatarDecoration": null,
   "statusText": "i hope you know you're everything to me",
   "status": "dnd",
-  "activity": {
-    "type": 2,
-    "name": "Dotify",
-    "details": "NEON (Новый Свет Ребёнок)",
-    "state": "NEWLIGHTCHILD"
-  },
-  "updatedAt": 1795009088027
+  "activity": null,
+  "updatedAt": 1795011695214
 }
