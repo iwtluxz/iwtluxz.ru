@@ -17,6 +17,11 @@
   "avatarDecoration": null,
   "statusText": "i hope you know you're everything to me",
   "status": "dnd",
-  "activity": null,
-  "updatedAt": 1795011695214
+  "activity": {
+    "type": 2,
+    "name": "Dotify",
+    "details": "ghost boy",
+    "state": "Lil Peep"
+  },
+  "updatedAt": 1795019295144
 }
