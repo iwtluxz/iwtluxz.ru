@@ -104,7 +104,7 @@
     }
     if (!frame) return;
     let image = frame.querySelector(".iwtxz-avatar-decoration");
-    const reduced = Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches);
+    const reduced = false;
     const item=window.IwtxzAvatarDecorations?.items.find(item=>item.id===choice)||decorationMap.get(choice);
     const fallback=item?.thumbnail||(item?.image?.startsWith('/img/avatar-decorations/')?item.image.replace(/\.png$/,'.webp'):'');
     let source = decorationUrl(choice, discordDecoration);
