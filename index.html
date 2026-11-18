@@ -26,7 +26,7 @@
   <script src="discord-badges.js?v=1637b0a4abd4" defer></script>
   <script src="builder-discord-badges.js?v=0dfb6a1ce948" defer></script>
   <script src="profile-badge-overflow.js?v=773a662ee0c8" defer></script>
-  <script src="login-gallery.js?v=a920a3d16290" defer></script>
+  <script src="login-gallery.js?v=64f6f0bc6ffd" defer></script>
   <script src="image-compression.js?v=68e15b806c42" defer></script>
   <script src="site-chrome.js?v=1635d422dd3f" defer></script>
   <script src="builder.js?v=2e0e1382cdf8" defer></script>
@@ -41,7 +41,7 @@
   <link rel="stylesheet" href="builder-discord-dialog.css?v=ea6d9814a13a">
   <link rel="stylesheet" href="builder-discord-badges.css?v=302a754e1218">
   <link rel="stylesheet" href="profile-badge-overflow.css?v=a5a7476caf8c">
-  <link rel="stylesheet" href="login-gallery.css?v=a8de142ea860">
+  <link rel="stylesheet" href="login-gallery.css?v=1bfd3f905e53">
 </head>
 <body class="auth-locked editor-simple">
   <header class="topbar">
@@ -1033,8 +1033,9 @@
     </aside>
   </main>
   <section class="login-gallery" id="loginGallery" aria-labelledby="galleryHeading" hidden>
-    <div class="gallery-heading"><h2 id="galleryHeading">Страницы на iwtxz</h2><p>Так выглядят страницы других людей. Нажми на любую, чтобы открыть.</p><button class="gallery-motion" type="button" data-gallery-motion aria-pressed="true">Анимации: вкл</button></div>
-    <div class="gallery-viewport" data-gallery-rows></div>
+    <h2 id="galleryHeading" class="gallery-heading">Страницы на iwtxz</h2>
+        <div class="gallery-viewport"><div class="gallery-wall" data-gallery-rows></div></div>
+        <button class="gallery-motion" type="button" data-gallery-motion aria-pressed="true">Анимации: вкл</button>
   </section>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 </body>

@@ -61,11 +61,13 @@
     if (!window.IwtxzBackend?.isConfigured?.()) return;
     const profiles = shuffle(await window.IwtxzBackend.listPublishedProfiles(60));
     if (!profiles.length) return;
-    const rowCount = profiles.length >= 6 ? 2 : 1;
+    const rowCount = window.innerWidth < 700 ? 3 : window.innerWidth < 1100 ? 4 : 6;
     for (let r = 0; r < rowCount; r += 1) {
-      const cards = profiles.filter((_, index) => index % rowCount === r).map(card);
-      // Marquee needs the set repeated until it is wider than the screen.
-      const copies = Math.max(2, Math.ceil(8 / cards.length) * 2);
+      // Every column shows all profiles, shifted so neighbours differ.
+      const shift = Math.floor((r * profiles.length) / rowCount);
+      const cards = profiles.slice(shift).concat(profiles.slice(0, shift)).map(card);
+      // Column must be taller than the screen twice over for a seamless loop.
+      const copies = Math.max(2, Math.ceil(10 / cards.length) * 2);
       const track = document.createElement("div");
       track.className = "gallery-track";
       if (r % 2) track.classList.add("reverse");
@@ -79,7 +81,7 @@
         });
         track.append(group);
       }
-      track.style.setProperty("--gallery-seconds", `${Math.max(30, cards.length * 6)}s`);
+      track.style.setProperty("--gallery-seconds", `${Math.max(40, cards.length * 8) + r * 4}s`);
       track.style.setProperty("--gallery-copies", String(copies));
       rows.append(track);
     }
