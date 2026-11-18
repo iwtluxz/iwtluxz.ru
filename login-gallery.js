@@ -2,7 +2,8 @@
   "use strict";
   const root = document.getElementById("loginGallery");
   if (!root) return;
-  const track = root.querySelector("[data-gallery-track]");
+  const rows = root.querySelector("[data-gallery-rows]");
+  const button = root.querySelector("[data-gallery-motion]");
 
   const safeImage = (value) => {
     if (typeof value !== "string" || !value) return "";
@@ -60,23 +61,45 @@
     if (!window.IwtxzBackend?.isConfigured?.()) return;
     const profiles = shuffle(await window.IwtxzBackend.listPublishedProfiles(60));
     if (!profiles.length) return;
-    const cards = profiles.map(card);
-    // Marquee needs the set repeated until it is wider than the screen.
-    const copies = Math.max(2, Math.ceil(8 / cards.length) * 2);
-    for (let i = 0; i < copies; i += 1) {
-      const group = document.createElement("div");
-      group.className = "gallery-group";
-      if (i > 0) group.setAttribute("aria-hidden", "true");
-      (i === 0 ? cards : cards.map(item => item.cloneNode(true))).forEach(item => {
-        if (i > 0) item.tabIndex = -1;
-        group.append(item);
-      });
-      track.append(group);
+    const rowCount = profiles.length >= 6 ? 2 : 1;
+    for (let r = 0; r < rowCount; r += 1) {
+      const cards = profiles.filter((_, index) => index % rowCount === r).map(card);
+      // Marquee needs the set repeated until it is wider than the screen.
+      const copies = Math.max(2, Math.ceil(8 / cards.length) * 2);
+      const track = document.createElement("div");
+      track.className = "gallery-track";
+      if (r % 2) track.classList.add("reverse");
+      for (let i = 0; i < copies; i += 1) {
+        const group = document.createElement("div");
+        group.className = "gallery-group";
+        if (i > 0) group.setAttribute("aria-hidden", "true");
+        (i === 0 ? cards : cards.map(item => item.cloneNode(true))).forEach(item => {
+          if (i > 0) item.tabIndex = -1;
+          group.append(item);
+        });
+        track.append(group);
+      }
+      track.style.setProperty("--gallery-seconds", `${Math.max(30, cards.length * 6)}s`);
+      track.style.setProperty("--gallery-copies", String(copies));
+      rows.append(track);
     }
-    track.style.setProperty("--gallery-seconds", `${Math.max(30, cards.length * 5)}s`);
-    track.style.setProperty("--gallery-copies", String(copies));
     root.hidden = false;
   }
+
+  // Explicit choice wins; otherwise follow the system "reduce motion" setting.
+  const motionQuery = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+  const stored = () => { try { return localStorage.getItem("iwtxz-gallery-motion"); } catch { return null; } };
+  function applyMotion(on) {
+    root.dataset.motion = on ? "on" : "off";
+    button.setAttribute("aria-pressed", String(on));
+    button.textContent = on ? "Анимации: вкл" : "Анимации: выкл";
+  }
+  applyMotion(stored() ? stored() === "on" : !motionQuery?.matches);
+  button?.addEventListener("click", () => {
+    const next = root.dataset.motion !== "on";
+    try { localStorage.setItem("iwtxz-gallery-motion", next ? "on" : "off"); } catch { /* storage blocked */ }
+    applyMotion(next);
+  });
 
   const start = () => load().catch(error => console.warn("Галерея страниц недоступна:", error));
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, { once: true });
