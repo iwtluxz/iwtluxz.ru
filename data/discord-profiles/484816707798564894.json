@@ -23,8 +23,13 @@
     "skuId": "1252404760448077864"
   },
   "statusText": "ww basedgod life",
-  "status": "offline",
-  "activity": null,
+  "status": "idle",
+  "activity": {
+    "type": 2,
+    "name": "Dotify",
+    "details": "безработный наркоман",
+    "state": "Юпи (@jupi_sleep)"
+  },
   "managedBy": "iwtxz-public-discord-sync",
-  "updatedAt": 1795139790973
+  "updatedAt": 1795166991982
 }
