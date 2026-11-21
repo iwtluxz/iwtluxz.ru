@@ -23,13 +23,8 @@
     "skuId": "1252404760448077864"
   },
   "statusText": "ww basedgod life",
-  "status": "idle",
-  "activity": {
-    "type": 0,
-    "name": "Honkai: Star Rail",
-    "details": "",
-    "state": ""
-  },
+  "status": "offline",
+  "activity": null,
   "managedBy": "iwtxz-public-discord-sync",
-  "updatedAt": 1795290137967
+  "updatedAt": 1795305320267
 }
