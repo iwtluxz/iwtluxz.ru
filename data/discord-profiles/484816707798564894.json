@@ -23,8 +23,13 @@
     "skuId": "1252404760448077864"
   },
   "statusText": "ww basedgod life",
-  "status": "offline",
-  "activity": null,
+  "status": "idle",
+  "activity": {
+    "type": 2,
+    "name": "Dotify",
+    "details": "one more time",
+    "state": "тёмный принц"
+  },
   "managedBy": "iwtxz-public-discord-sync",
-  "updatedAt": 1795234184273
+  "updatedAt": 1795264394500
 }
