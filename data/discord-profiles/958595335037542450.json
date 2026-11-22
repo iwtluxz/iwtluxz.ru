@@ -17,6 +17,11 @@
   "avatarDecoration": null,
   "statusText": "i hope you know you're everything to me",
   "status": "dnd",
-  "activity": null,
-  "updatedAt": 1795362175160
+  "activity": {
+    "type": 0,
+    "name": "Counter-Strike 2",
+    "details": "",
+    "state": ""
+  },
+  "updatedAt": 1795362937877
 }
