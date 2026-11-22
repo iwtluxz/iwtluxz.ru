@@ -104,7 +104,7 @@
     });
 
     // Автоматическое закрытие через некоторое время
-    const autoDismissTimer = setTimeout(dismiss, AUTO_DISMISS_DELAY);
+    let autoDismissTimer = setTimeout(dismiss, AUTO_DISMISS_DELAY);
 
     // Отмена автозакрытия при наведении
     container.addEventListener('mouseenter', () => {
@@ -112,29 +112,14 @@
     });
 
     container.addEventListener('mouseleave', () => {
-      const newTimer = setTimeout(dismiss, 3000);
-      autoDismissTimer !== newTimer && clearTimeout(autoDismissTimer);
+      clearTimeout(autoDismissTimer);
+      autoDismissTimer = setTimeout(dismiss, 3000);
     });
   }
 
   function init() {
-    // Инициализируем только если не в кабинете редактора
-    const isEditor = Boolean(document.getElementById('authForm'));
-    if (isEditor) {
-      // Показываем уведомление с задержкой после того, как пользователь залогинился
-      const delay = SHOW_DELAY_MIN + Math.random() * (SHOW_DELAY_MAX - SHOW_DELAY_MIN);
-      setTimeout(() => {
-        // Проверяем, залогинен ли пользователь
-        const authPanel = document.getElementById('authPanel');
-        if (authPanel && authPanel.classList.contains('hidden')) {
-          show();
-        }
-      }, delay);
-    } else {
-      // На обычных страницах показываем с задержкой 5-10 сек после загрузки
-      const delay = SHOW_DELAY_MIN + Math.random() * (SHOW_DELAY_MAX - SHOW_DELAY_MIN);
-      setTimeout(show, delay);
-    }
+    const delay = SHOW_DELAY_MIN + Math.random() * (SHOW_DELAY_MAX - SHOW_DELAY_MIN);
+    setTimeout(show, delay);
   }
 
   // Инициализируем когда DOM готов
