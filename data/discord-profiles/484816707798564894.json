@@ -25,11 +25,11 @@
   "statusText": "ww basedgod life",
   "status": "idle",
   "activity": {
-    "type": 2,
-    "name": "Dotify",
-    "details": "CUPSIZE - шАхАшАхА",
-    "state": "CUPSIZE"
+    "type": 0,
+    "name": "Counter-Strike 2",
+    "details": "",
+    "state": ""
   },
   "managedBy": "iwtxz-public-discord-sync",
-  "updatedAt": 1795363909298
+  "updatedAt": 1795364339861
 }
