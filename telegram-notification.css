@@ -1,0 +1,277 @@
+.telegram-notification {
+  position: fixed;
+  bottom: max(120px, calc(env(safe-area-inset-bottom) + 120px));
+  left: 50%;
+  transform: translateX(-50%) translateY(120px);
+  z-index: 25;
+  max-width: calc(100vw - 32px);
+  width: min(420px, 100%);
+  padding: 16px 20px;
+  border: 1px solid #ffffff15;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #000a 0%, #0a1f3d1a 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  color: #f5f5f7;
+  font-family: "Minecraft", "Trebuchet MS", "Segoe UI", sans-serif;
+  animation: telegram-notification-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+}
+
+.telegram-notification.is-visible {
+  animation: telegram-notification-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.telegram-notification.is-leaving {
+  animation: telegram-notification-exit 0.5s cubic-bezier(0.7, 0, 0.84, 0) forwards;
+}
+
+@keyframes telegram-notification-enter {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(120px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes telegram-notification-exit {
+  0% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(120px);
+  }
+}
+
+.telegram-notification-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.telegram-notification-icon {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #0088cc 0%, #0066aa 100%);
+  box-shadow: 0 0 24px rgba(0, 136, 204, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  animation: telegram-notification-icon-pulse 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+.telegram-notification-icon svg {
+  width: 22px;
+  height: 22px;
+  fill: #fff;
+  display: block;
+}
+
+@keyframes telegram-notification-icon-pulse {
+  0%, 100% {
+    box-shadow: 0 0 24px rgba(0, 136, 204, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 32px rgba(0, 136, 204, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+}
+
+.telegram-notification-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.telegram-notification-title {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #f5f5f7;
+  margin: 0;
+}
+
+.telegram-notification-description {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #c2c0c8;
+  margin: 0;
+}
+
+.telegram-notification-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  border: 1px solid #0088cc;
+  border-radius: 8px;
+  background: rgba(0, 136, 204, 0.12);
+  color: #0088cc;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.telegram-notification-link:hover,
+.telegram-notification-link:focus-visible {
+  background: rgba(0, 136, 204, 0.25);
+  border-color: #00aaff;
+  color: #00aaff;
+  transform: translateX(2px);
+}
+
+.telegram-notification-link:focus-visible {
+  outline: 1px solid #00aaff;
+  outline-offset: 2px;
+}
+
+.telegram-notification-link svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+.telegram-notification-close {
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #8e9eac;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.telegram-notification-close:hover,
+.telegram-notification-close:focus-visible {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.telegram-notification-close:focus-visible {
+  outline: 1px solid #0088cc;
+  outline-offset: 2px;
+}
+
+/* Пульсирующий индикатор "новое" */
+.telegram-notification-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff4757 100%);
+  box-shadow: 0 0 12px rgba(255, 107, 107, 0.6);
+  animation: telegram-notification-badge-pulse 2s ease-in-out infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: #fff;
+  font-weight: 700;
+}
+
+@keyframes telegram-notification-badge-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 12px rgba(255, 107, 107, 0.6);
+  }
+  50% {
+    transform: scale(1.15);
+    box-shadow: 0 0 20px rgba(255, 107, 107, 0.8);
+  }
+}
+
+/* Поддержка мобильных */
+@media (max-width: 480px) {
+  .telegram-notification {
+    width: calc(100vw - 24px);
+    padding: 14px 16px;
+    bottom: max(90px, calc(env(safe-area-inset-bottom) + 90px));
+  }
+
+  .telegram-notification-title {
+    font-size: 13px;
+  }
+
+  .telegram-notification-description {
+    font-size: 11px;
+  }
+
+  .telegram-notification-icon {
+    flex: 0 0 36px;
+    width: 36px;
+    height: 36px;
+  }
+
+  .telegram-notification-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .telegram-notification-link {
+    padding: 7px 10px;
+    font-size: 11px;
+  }
+
+  .telegram-notification-close {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    min-height: 28px;
+  }
+}
+
+/* Поддержка высокого контраста */
+@media (prefers-contrast: more) {
+  .telegram-notification {
+    border-color: #ffffff2e;
+  }
+
+  .telegram-notification-link {
+    border-color: #0099ff;
+  }
+}
+
+/* Уменьшенная анимация */
+@media (prefers-reduced-motion: reduce) {
+  .telegram-notification,
+  .telegram-notification-icon,
+  .telegram-notification-badge,
+  .telegram-notification-link {
+    animation: none !important;
+  }
+
+  .telegram-notification {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .telegram-notification-link {
+    transition: none;
+  }
+}
