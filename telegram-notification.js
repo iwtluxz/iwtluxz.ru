@@ -3,7 +3,7 @@
 
   if (window.TelegramNotification) return;
 
-  const STORAGE_KEY = 'iwtxz:telegram-notification-dismissed';
+  const STORAGE_KEY = 'iwtxz:telegram-notification-opt-out';
   const SHOW_DELAY_MIN = 5000;
   const SHOW_DELAY_MAX = 10000;
   const AUTO_DISMISS_DELAY = 8000;
@@ -42,7 +42,20 @@
     link.setAttribute('aria-label', 'Перейти в Telegram канал @iwt_su');
     link.innerHTML = `Открыть канал ${arrowIcon}`;
 
-    textWrapper.append(title, description, link);
+    const neverButton = document.createElement('button');
+    neverButton.className = 'telegram-notification-never';
+    neverButton.type = 'button';
+    neverButton.textContent = 'Не показывать снова';
+
+    const actions = document.createElement('div');
+    actions.className = 'telegram-notification-actions';
+    actions.append(link, neverButton);
+
+    const error = document.createElement('p');
+    error.className = 'telegram-notification-error';
+    error.setAttribute('role', 'alert');
+
+    textWrapper.append(title, description, actions, error);
 
     const closeButton = document.createElement('button');
     closeButton.className = 'telegram-notification-close';
@@ -53,13 +66,14 @@
     content.append(iconWrapper, textWrapper, closeButton);
     container.append(content);
 
-    return { container, closeButton, link };
+    return { container, closeButton, neverButton, error };
   }
 
   function isDismissed() {
     try {
       return localStorage.getItem(STORAGE_KEY) === '1';
-    } catch {
+    } catch (error) {
+      console.warn('Не удалось проверить настройки уведомления Telegram.', error);
       return false;
     }
   }
@@ -67,7 +81,11 @@
   function markAsDismissed() {
     try {
       localStorage.setItem(STORAGE_KEY, '1');
-    } catch {}
+      return true;
+    } catch (error) {
+      console.warn('Не удалось сохранить настройки уведомления Telegram.', error);
+      return false;
+    }
   }
 
   function show() {
@@ -77,7 +95,9 @@
     // Не показываем если уже есть уведомление на странице
     if (document.querySelector('.telegram-notification')) return;
 
-    const { container, closeButton, link } = createNotification();
+    const { container, closeButton, neverButton, error } = createNotification();
+    let autoDismissTimer;
+    let leaving = false;
 
     // Добавляем на страницу
     document.body.append(container);
@@ -88,23 +108,28 @@
     });
 
     function dismiss() {
+      if (leaving) return;
+      leaving = true;
+      clearTimeout(autoDismissTimer);
       container.classList.add('is-leaving');
       setTimeout(() => {
         container.remove();
       }, 500);
-      markAsDismissed();
     }
 
     // Закрытие по кнопке
     closeButton.addEventListener('click', dismiss);
 
-    // Закрытие при клике на ссылку
-    link.addEventListener('click', () => {
-      markAsDismissed();
+    neverButton.addEventListener('click', () => {
+      if (markAsDismissed()) {
+        dismiss();
+      } else {
+        error.textContent = 'Не удалось сохранить настройку в браузере.';
+      }
     });
 
     // Автоматическое закрытие через некоторое время
-    let autoDismissTimer = setTimeout(dismiss, AUTO_DISMISS_DELAY);
+    autoDismissTimer = setTimeout(dismiss, AUTO_DISMISS_DELAY);
 
     // Отмена автозакрытия при наведении
     container.addEventListener('mouseenter', () => {
@@ -112,6 +137,17 @@
     });
 
     container.addEventListener('mouseleave', () => {
+      if (container.contains(document.activeElement)) return;
+      clearTimeout(autoDismissTimer);
+      autoDismissTimer = setTimeout(dismiss, 3000);
+    });
+
+    container.addEventListener('focusin', () => {
+      clearTimeout(autoDismissTimer);
+    });
+
+    container.addEventListener('focusout', (event) => {
+      if (container.contains(event.relatedTarget) || container.matches(':hover')) return;
       clearTimeout(autoDismissTimer);
       autoDismissTimer = setTimeout(dismiss, 3000);
     });

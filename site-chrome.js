@@ -15,7 +15,7 @@
     const cabinet = Boolean(document.getElementById('authForm'));
     if (!cabinet) return inert;
     const controller = new AbortController();
-    const motion = matchMedia('not all');
+    const motion = matchMedia('(prefers-reduced-motion: reduce)');
     const listen = (node, type, handler, options = {}) => node.addEventListener(type, handler, { ...options, signal: controller.signal });
     const storage = {
       get(key, fallback) { try { return localStorage.getItem(key) ?? fallback; } catch { return fallback; } },
@@ -41,7 +41,7 @@
     telegramLabel.append(make('strong', '', 'Telegram проекта'), make('span', '', '@iwt_su'));
     const telegramSurface = make('span', 'site-telegram-surface');
     telegramSurface.append(telegramIconSlot, telegramLabel); telegram.append(telegramSurface);
-    let decor, garland, winterButton, musicButton, status, volumeOutput, volume, audio, disposed = false;
+    let decor, winterButton, musicButton, status, volumeOutput, volume, audio, disposed = false;
     let musicRequested = false, pendingPlay = false, mediaSource = '', mediaStart = 0, mediaVersion = 0, playSerial = 0;
     let configured = window.IWTXZ_SITE_AUDIO_CONFIG || {}, musicError = '';
     let winter = cabinet && storage.get('iwtxz:winter:enabled', '1') !== '0';
@@ -53,17 +53,12 @@
     function buildDecor() {
       if (decor) return;
       decor = make('div', 'site-winter-scene'); decor.setAttribute('aria-hidden', 'true');
-      const lights = make('div', 'site-winter-lights');
-      for (let i = 0; i < 18; i++) { const bulb = make('span', ''); bulb.style.setProperty('--bulb-index', i); lights.append(bulb); }
-      garland = lights;
-      garland.setAttribute('aria-hidden', 'true'); document.body.append(garland);
-      for (let i = 0; i < 14; i++) {
-        const snow = icon('snow'); snow.classList.add('site-winter-flake');
-        snow.style.setProperty('--flake-x', `${3 + ((i * 37) % 94)}%`);
-        snow.style.setProperty('--flake-y', `${8 + ((i * 29) % 79)}%`);
-        snow.style.setProperty('--flake-size', `${7 + (i % 4) * 2}px`);
-        snow.style.setProperty('--flake-delay', `${-i * 1.9}s`);
-        snow.style.setProperty('--flake-time', `${24 + (i % 4) * 4}s`);
+      for (let i = 0; i < 24; i++) {
+        const snow = make('span', 'site-winter-flake');
+        snow.style.setProperty('--flake-x', `${2 + ((i * 37) % 96)}%`);
+        snow.style.setProperty('--flake-size', `${2 + (i % 3)}px`);
+        snow.style.setProperty('--flake-delay', `${-i * 1.37}s`);
+        snow.style.setProperty('--flake-time', `${17 + (i % 5) * 3}s`);
         decor.append(snow);
       }
       document.body.prepend(decor);
@@ -72,7 +67,6 @@
       winter = Boolean(value);
       if (winter) buildDecor();
       if (decor) decor.hidden = !winter;
-      if (garland) garland.hidden = !winter;
       document.body.classList.toggle('iwtxz-winter', winter);
       winterButton?.setAttribute('aria-pressed', String(winter));
       const winterLabel = winter ? 'Выключить новогоднее оформление' : 'Включить новогоднее оформление';
@@ -187,7 +181,7 @@
       if (disposed) return;
       disposed = true; controller.abort(); musicRequested = false; audio?.pause();
       if (audio) { audio.removeAttribute('src'); audio.load(); }
-      decor?.remove(); garland?.remove(); root.remove();
+      decor?.remove(); root.remove();
       document.body.classList.remove('iwtxz-winter', 'iwtxz-winter-paused', 'iwtxz-winter-reduced'); instance = undefined;
     }
     listen(window, 'pagehide', event => { if (event.persisted) audio?.pause(); else dispose(); });
