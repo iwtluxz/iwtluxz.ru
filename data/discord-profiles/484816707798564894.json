@@ -24,7 +24,12 @@
   },
   "statusText": "ww basedgod life",
   "status": "idle",
-  "activity": null,
+  "activity": {
+    "type": 2,
+    "name": "Dotify",
+    "details": "папирус",
+    "state": "sonpersona"
+  },
   "managedBy": "iwtxz-public-discord-sync",
-  "updatedAt": 1795420663581
+  "updatedAt": 1795463194740
 }
