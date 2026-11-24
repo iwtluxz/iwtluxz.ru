@@ -23,13 +23,8 @@
     "skuId": "1252404760448077864"
   },
   "statusText": "ww basedgod life",
-  "status": "idle",
-  "activity": {
-    "type": 2,
-    "name": "Dotify",
-    "details": "cupsize_x_severlisais - на её лице :с",
-    "state": "gõl0v3"
-  },
+  "status": "offline",
+  "activity": null,
   "managedBy": "iwtxz-public-discord-sync",
-  "updatedAt": 1795532625852
+  "updatedAt": 1795564205689
 }
