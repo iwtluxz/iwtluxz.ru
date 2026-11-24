@@ -23,13 +23,8 @@
     "skuId": "1252404760448077864"
   },
   "statusText": "ww basedgod life",
-  "status": "idle",
-  "activity": {
-    "type": 2,
-    "name": "Dotify",
-    "details": "папирус",
-    "state": "sonpersona"
-  },
+  "status": "offline",
+  "activity": null,
   "managedBy": "iwtxz-public-discord-sync",
-  "updatedAt": 1795463194740
+  "updatedAt": 1795494419391
 }
