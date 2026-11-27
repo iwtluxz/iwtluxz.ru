@@ -16,7 +16,12 @@
   "primaryGuild": null,
   "avatarDecoration": null,
   "statusText": "Между нами пропасть-пропасть\nЯ пропадал, погибал, оживал",
-  "status": "offline",
-  "activity": null,
-  "updatedAt": 1795774179784
+  "status": "dnd",
+  "activity": {
+    "type": 0,
+    "name": "Counter-Strike 2",
+    "details": "",
+    "state": ""
+  },
+  "updatedAt": 1795807585778
 }
