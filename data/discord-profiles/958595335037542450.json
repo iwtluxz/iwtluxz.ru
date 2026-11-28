@@ -16,7 +16,12 @@
   "primaryGuild": null,
   "avatarDecoration": null,
   "statusText": "Между нами пропасть-пропасть\nЯ пропадал, погибал, оживал",
-  "status": "offline",
-  "activity": null,
-  "updatedAt": 1795831427328
+  "status": "dnd",
+  "activity": {
+    "type": 2,
+    "name": "Dotify",
+    "details": "Maxx - No More (I Can't Stand It)",
+    "state": "deejaymounzzye"
+  },
+  "updatedAt": 1795860654136
 }
