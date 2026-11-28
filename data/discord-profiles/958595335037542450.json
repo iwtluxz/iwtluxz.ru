@@ -18,10 +18,10 @@
   "statusText": "Между нами пропасть-пропасть\nЯ пропадал, погибал, оживал",
   "status": "dnd",
   "activity": {
-    "type": 2,
-    "name": "Dotify",
-    "details": "Maxx - No More (I Can't Stand It)",
-    "state": "deejaymounzzye"
+    "type": 0,
+    "name": "Counter-Strike 2",
+    "details": "",
+    "state": ""
   },
-  "updatedAt": 1795860654136
+  "updatedAt": 1795889591074
 }
